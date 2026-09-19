@@ -19,9 +19,9 @@ class MkPasswordField extends StatefulWidget {
     this.onSubmitted,
     this.autovalidateMode,
   }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
+          fieldBloc != null || name != null,
+          'Either fieldBloc or name must be provided',
+        );
 
   final MkFieldBloc<String>? fieldBloc;
   final String? name;
@@ -45,9 +45,11 @@ class _MkPasswordFieldState extends State<MkPasswordField> {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveDecoration = (widget.decoration ?? const InputDecoration()).copyWith(
+    final effectiveDecoration =
+        (widget.decoration ?? const InputDecoration()).copyWith(
       labelText: widget.decoration?.labelText ?? 'Password',
-      prefixIcon: widget.decoration?.prefixIcon ?? const Icon(Icons.lock_outline),
+      prefixIcon:
+          widget.decoration?.prefixIcon ?? const Icon(Icons.lock_outline),
       suffixIcon: IconButton(
         icon: _obscureText ? widget.showPasswordIcon : widget.hidePasswordIcon,
         onPressed: () {

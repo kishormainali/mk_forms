@@ -61,7 +61,8 @@ extension MkFormContextX on BuildContext {
   MkFormBloc get mkForm => MkFormScope.of(this);
 
   /// Shorthand to access the active [AutovalidateMode] from the nearest [MkFormScope].
-  AutovalidateMode get mkAutovalidateMode => MkFormScope.autovalidateModeOf(this);
+  AutovalidateMode get mkAutovalidateMode =>
+      MkFormScope.autovalidateModeOf(this);
 
   /// Shorthand to access an [MkFieldBloc<T>] by [name] from the nearest [MkFormBloc].
   MkFieldBloc<T>? mkField<T>(String name) => mkForm.field<T>(name);

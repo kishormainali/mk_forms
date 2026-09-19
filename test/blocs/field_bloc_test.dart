@@ -116,8 +116,10 @@ void main() {
       expect(field.state.showError, isFalse);
     });
 
-    group('Cross-field dependent validation (e.g. password & confirmPassword)', () {
-      test('confirmPassword automatically revalidates when password changes', () {
+    group('Cross-field dependent validation (e.g. password & confirmPassword)',
+        () {
+      test('confirmPassword automatically revalidates when password changes',
+          () {
         final passwordField = MkFieldBloc<String>(
           validators: [MkValidators.required(), MkValidators.minLength(6)],
         );
@@ -220,7 +222,8 @@ void main() {
         expect(field.state.error, 'Username is taken');
       });
 
-      test('cancels stale async validation when a newer value is emitted', () async {
+      test('cancels stale async validation when a newer value is emitted',
+          () async {
         final calls = <String>[];
         final field = MkFieldBloc<String>(
           asyncValidators: [

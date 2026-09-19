@@ -70,8 +70,8 @@ class _MkMultiSelectModalContentState<T>
                 Text(
                   widget.modalTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 TextButton(
                   onPressed: () {

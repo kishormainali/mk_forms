@@ -11,7 +11,8 @@ class AutovalidateFormBloc extends MkFormBloc {
               initialValue: '',
               validators: [
                 MkValidators.required('Username is required'),
-                MkValidators.minLength(4, 'Username must be at least 4 characters'),
+                MkValidators.minLength(
+                    4, 'Username must be at least 4 characters'),
               ],
             ),
             'email': MkFieldBloc<String>(
@@ -25,7 +26,8 @@ class AutovalidateFormBloc extends MkFormBloc {
               initialValue: '',
               validators: [
                 MkValidators.required('Bio is required'),
-                MkValidators.minLength(10, 'Bio must be at least 10 characters'),
+                MkValidators.minLength(
+                    10, 'Bio must be at least 10 characters'),
               ],
             ),
             'agreeTerms': MkFieldBloc<bool>(
@@ -41,7 +43,8 @@ class AutovalidateFormBloc extends MkFormBloc {
   void fillValidData() {
     field<String>('username')?.changeValue('alex_dev');
     field<String>('email')?.changeValue('alex@example.com');
-    field<String>('bio')?.changeValue('Full-stack Flutter developer passionate about clean forms.');
+    field<String>('bio')?.changeValue(
+        'Full-stack Flutter developer passionate about clean forms.');
     field<bool>('agreeTerms')?.changeValue(true);
   }
 

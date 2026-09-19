@@ -17,9 +17,9 @@ class MkEmailField extends StatelessWidget {
     this.onSubmitted,
     this.autovalidateMode,
   }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
+          fieldBloc != null || name != null,
+          'Either fieldBloc or name must be provided',
+        );
 
   final MkFieldBloc<String>? fieldBloc;
   final String? name;
@@ -34,7 +34,8 @@ class MkEmailField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveDecoration = (decoration ?? const InputDecoration()).copyWith(
+    final effectiveDecoration =
+        (decoration ?? const InputDecoration()).copyWith(
       labelText: decoration?.labelText ?? 'Email',
       hintText: decoration?.hintText ?? 'example@domain.com',
       prefixIcon: decoration?.prefixIcon ?? const Icon(Icons.email_outlined),

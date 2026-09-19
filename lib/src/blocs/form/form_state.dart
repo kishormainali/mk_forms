@@ -72,13 +72,13 @@ class MkFormState extends Equatable {
 
   @override
   List<Object?> get props => [
-    submissionStatus,
-    isValid,
-    isValidating,
-    isDirty,
-    isTouched,
-    wasSubmitted,
-    values,
-    submissionError,
-  ];
+        submissionStatus,
+        isValid,
+        isValidating,
+        isDirty,
+        isTouched,
+        wasSubmitted,
+        values,
+        submissionError,
+      ];
 }

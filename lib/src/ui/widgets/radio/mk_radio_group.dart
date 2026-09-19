@@ -22,9 +22,9 @@ class MkRadioGroup<T> extends StatelessWidget {
     this.itemBuilder,
     this.autovalidateMode,
   }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
+          fieldBloc != null || name != null,
+          'Either fieldBloc or name must be provided',
+        );
 
   final MkFieldBloc<T>? fieldBloc;
   final String? name;
@@ -74,19 +74,19 @@ class MkRadioGroup<T> extends StatelessWidget {
 
           content = switch (layout) {
             MkRadioLayout.vertical => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: items,
-            ),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: items,
+              ),
             MkRadioLayout.horizontal => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(mainAxisSize: MainAxisSize.min, children: items),
-            ),
+                scrollDirection: Axis.horizontal,
+                child: Row(mainAxisSize: MainAxisSize.min, children: items),
+              ),
             MkRadioLayout.wrap => Wrap(
-              spacing: spacing,
-              runSpacing: runSpacing,
-              children: items,
-            ),
+                spacing: spacing,
+                runSpacing: runSpacing,
+                children: items,
+              ),
           };
         } else {
           void onSelect(T? val) {

@@ -102,7 +102,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               children: [
                                 const Row(
                                   children: [
-                                    Icon(Icons.local_shipping_outlined, color: Colors.blue),
+                                    Icon(Icons.local_shipping_outlined,
+                                        color: Colors.blue),
                                     SizedBox(width: 8),
                                     Text(
                                       'Shipping Address',
@@ -114,7 +115,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ],
                                 ),
                                 Badge(
-                                  label: Text('Rebuilds: $_shippingRebuildCount'),
+                                  label:
+                                      Text('Rebuilds: $_shippingRebuildCount'),
                                   backgroundColor: Colors.blue.shade700,
                                 ),
                               ],
@@ -136,7 +138,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     fieldBloc: groupBloc.field('city'),
                                     decoration: const InputDecoration(
                                       labelText: 'City',
-                                      prefixIcon: Icon(Icons.location_city_outlined),
+                                      prefixIcon:
+                                          Icon(Icons.location_city_outlined),
                                     ),
                                   ),
                                 ),
@@ -156,7 +159,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     fieldBloc: groupBloc.field('zipCode'),
                                     decoration: const InputDecoration(
                                       labelText: 'Zip',
-                                      prefixIcon: Icon(Icons.markunread_mailbox_outlined),
+                                      prefixIcon: Icon(
+                                          Icons.markunread_mailbox_outlined),
                                     ),
                                   ),
                                 ),
@@ -165,7 +169,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             const SizedBox(height: 12),
                             OutlinedButton.icon(
                               icon: const Icon(Icons.check_circle_outline),
-                              label: const Text('Validate Shipping Subform Only'),
+                              label:
+                                  const Text('Validate Shipping Subform Only'),
                               onPressed: () =>
                                   _formBloc.validateGroup('shipping'),
                             ),
@@ -197,7 +202,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               children: [
                                 const Row(
                                   children: [
-                                    Icon(Icons.payment_outlined, color: Colors.teal),
+                                    Icon(Icons.payment_outlined,
+                                        color: Colors.teal),
                                     SizedBox(width: 8),
                                     Text(
                                       'Billing Address',
@@ -209,7 +215,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ],
                                 ),
                                 Badge(
-                                  label: Text('Rebuilds: $_billingRebuildCount'),
+                                  label:
+                                      Text('Rebuilds: $_billingRebuildCount'),
                                   backgroundColor: Colors.teal.shade700,
                                 ),
                               ],
@@ -231,7 +238,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     fieldBloc: groupBloc.field('city'),
                                     decoration: const InputDecoration(
                                       labelText: 'City',
-                                      prefixIcon: Icon(Icons.location_city_outlined),
+                                      prefixIcon:
+                                          Icon(Icons.location_city_outlined),
                                     ),
                                   ),
                                 ),
@@ -251,7 +259,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     fieldBloc: groupBloc.field('zipCode'),
                                     decoration: const InputDecoration(
                                       labelText: 'Zip',
-                                      prefixIcon: Icon(Icons.markunread_mailbox_outlined),
+                                      prefixIcon: Icon(
+                                          Icons.markunread_mailbox_outlined),
                                     ),
                                   ),
                                 ),
@@ -260,7 +269,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             const SizedBox(height: 12),
                             OutlinedButton.icon(
                               icon: const Icon(Icons.check_circle_outline),
-                              label: const Text('Validate Billing Subform Only'),
+                              label:
+                                  const Text('Validate Billing Subform Only'),
                               onPressed: () =>
                                   _formBloc.validateGroup('billing'),
                             ),

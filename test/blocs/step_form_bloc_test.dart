@@ -70,7 +70,9 @@ void main() {
       expect(stepFormBloc.state.completedSteps, isEmpty);
     });
 
-    test('validating step 0 only marks step 0 controls and does not touch step 1 or 2', () async {
+    test(
+        'validating step 0 only marks step 0 controls and does not touch step 1 or 2',
+        () async {
       // Step 0 fields are initially pure
       expect(usernameField.state.showError, isFalse);
       expect(emailField.state.showError, isFalse);
@@ -127,7 +129,9 @@ void main() {
       expect(passwordField.value, 'secret123');
     });
 
-    test('goToStep navigates backward freely and validates when navigating forward', () async {
+    test(
+        'goToStep navigates backward freely and validates when navigating forward',
+        () async {
       usernameField.changeValue('alex');
       emailField.changeValue('alex@example.com');
       await stepFormBloc.nextStep();
@@ -150,7 +154,9 @@ void main() {
       expect(stepFormBloc.currentStep, 0);
     });
 
-    test('loadInitialData populates values, marks pristine, and resumes designated step', () async {
+    test(
+        'loadInitialData populates values, marks pristine, and resumes designated step',
+        () async {
       await stepFormBloc.loadInitialData(
         () async => {
           'username': 'john_doe',
@@ -220,7 +226,8 @@ void main() {
       expect(addressField.state.showError, isFalse);
     });
 
-    test('custom initialStep parameter starts directly at requested step', () async {
+    test('custom initialStep parameter starts directly at requested step',
+        () async {
       final resumedBloc = MkSimpleStepFormBloc(
         controls: {
           'username': MkFieldBloc<String>(initialValue: 'saved_user'),

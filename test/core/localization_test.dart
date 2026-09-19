@@ -39,7 +39,8 @@ void main() {
       MkFormLocalizations.current = const MkDefaultEnglishMessages();
     });
 
-    testWidgets('scoped per-app localization override via MkLocalizationScope', (tester) async {
+    testWidgets('scoped per-app localization override via MkLocalizationScope',
+        (tester) async {
       final emailField = MkFieldBloc<String>(
         validators: [MkValidators.required()],
       );
@@ -64,7 +65,8 @@ void main() {
       expect(find.text('Ce champ est requis'), findsOneWidget);
     });
 
-    testWidgets('dynamic language switching updates form errors at runtime', (tester) async {
+    testWidgets('dynamic language switching updates form errors at runtime',
+        (tester) async {
       final field = MkFieldBloc<String>(
         validators: [MkValidators.required()],
       );

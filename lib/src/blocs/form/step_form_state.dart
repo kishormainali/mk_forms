@@ -88,8 +88,7 @@ class MkStepFormState extends MkFormState {
       currentStep: currentStep ?? this.currentStep,
       totalSteps: totalSteps ?? this.totalSteps,
       completedSteps: completedSteps ?? this.completedSteps,
-      isLoadingInitialData:
-          isLoadingInitialData ?? this.isLoadingInitialData,
+      isLoadingInitialData: isLoadingInitialData ?? this.isLoadingInitialData,
       redirectedFromStep: redirectedFromStep != null
           ? redirectedFromStep()
           : this.redirectedFromStep,
@@ -100,12 +99,12 @@ class MkStepFormState extends MkFormState {
 
   @override
   List<Object?> get props => [
-    ...super.props,
-    currentStep,
-    totalSteps,
-    completedSteps,
-    isLoadingInitialData,
-    redirectedFromStep,
-    invalidStepIndex,
-  ];
+        ...super.props,
+        currentStep,
+        totalSteps,
+        completedSteps,
+        isLoadingInitialData,
+        redirectedFromStep,
+        invalidStepIndex,
+      ];
 }

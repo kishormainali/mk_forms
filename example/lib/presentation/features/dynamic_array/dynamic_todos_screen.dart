@@ -72,7 +72,8 @@ class _DynamicTodosScreenState extends State<DynamicTodosScreen> {
                 children: [
                   Card(
                     elevation: 0,
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Text(

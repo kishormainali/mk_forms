@@ -36,11 +36,11 @@ class MkArrayState<C extends MkControlBloc<dynamic>> extends Equatable {
 
   @override
   List<Object?> get props => [
-    controls,
-    values,
-    isValid,
-    isValidating,
-    isDirty,
-    isTouched,
-  ];
+        controls,
+        values,
+        isValid,
+        isValidating,
+        isDirty,
+        isTouched,
+      ];
 }

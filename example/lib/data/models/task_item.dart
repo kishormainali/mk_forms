@@ -11,8 +11,8 @@ class TaskItem {
   final bool isCompleted;
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'isCompleted': isCompleted,
-  };
+        'id': id,
+        'title': title,
+        'isCompleted': isCompleted,
+      };
 }

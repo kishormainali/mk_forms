@@ -33,15 +33,15 @@ class ProfileStepScreen extends StatelessWidget {
               Text(
                 'Personal & Professional Details',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 4),
               Text(
                 'Notice that going back to Step 1 retains all values cleanly.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
               const SizedBox(height: 24),
               const MkTextField(
@@ -59,9 +59,11 @@ class ProfileStepScreen extends StatelessWidget {
                   prefixIcon: Icon(Icons.work_outline),
                 ),
                 items: [
-                  DropdownMenuItem(value: 'developer', child: Text('Developer')),
+                  DropdownMenuItem(
+                      value: 'developer', child: Text('Developer')),
                   DropdownMenuItem(value: 'designer', child: Text('Designer')),
-                  DropdownMenuItem(value: 'product_manager', child: Text('Product Manager')),
+                  DropdownMenuItem(
+                      value: 'product_manager', child: Text('Product Manager')),
                   DropdownMenuItem(value: 'founder', child: Text('Founder')),
                 ],
               ),
@@ -81,7 +83,8 @@ class ProfileStepScreen extends StatelessWidget {
                 onPressed: () async {
                   final canProceed = await formBloc.nextStep();
                   if (canProceed && context.mounted) {
-                    unawaited(context.router.push(PreferencesStepRoute(formBloc: formBloc)));
+                    unawaited(context.router
+                        .push(PreferencesStepRoute(formBloc: formBloc)));
                   }
                 },
                 child: const Text('Continue to Preferences →'),

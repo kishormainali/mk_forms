@@ -9,7 +9,7 @@ class UserProfile {
   final String password;
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'password': password,
-  };
+        'name': name,
+        'password': password,
+      };
 }

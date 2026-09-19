@@ -13,9 +13,11 @@ class UsernameFormBloc extends MkFormBloc {
               debounceTime: const Duration(milliseconds: 400),
               validators: [
                 MkValidators.required('Username is required'),
-                MkValidators.minLength(3, 'Username must be at least 3 characters'),
+                MkValidators.minLength(
+                    3, 'Username must be at least 3 characters'),
                 (val) {
-                  if (val != null && !RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(val)) {
+                  if (val != null &&
+                      !RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(val)) {
                     return 'Only letters, numbers and underscores are allowed';
                   }
                   return null;

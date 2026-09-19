@@ -23,9 +23,9 @@ class MkSubformBuilder extends StatelessWidget {
     this.buildWhen,
     required this.builder,
   }) : assert(
-         groupBloc != null || name != null,
-         'Either groupBloc or name must be provided to MkSubformBuilder',
-       );
+          groupBloc != null || name != null,
+          'Either groupBloc or name must be provided to MkSubformBuilder',
+        );
 
   /// The target group bloc.
   final MkGroupBloc? groupBloc;

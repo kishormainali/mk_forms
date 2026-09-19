@@ -23,9 +23,9 @@ class MkFieldBuilder<T> extends StatelessWidget {
     required this.builder,
     this.hideWhenInvisible = true,
   }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided to MkFieldBuilder',
-       );
+          fieldBloc != null || name != null,
+          'Either fieldBloc or name must be provided to MkFieldBuilder',
+        );
 
   /// The target field bloc.
   final MkFieldBloc<T>? fieldBloc;

@@ -32,9 +32,9 @@ class MkTextField extends StatefulWidget {
     this.showValidatingIndicator = true,
     this.autovalidateMode,
   }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
+          fieldBloc != null || name != null,
+          'Either fieldBloc or name must be provided',
+        );
 
   final MkFieldBloc<String>? fieldBloc;
   final String? name;

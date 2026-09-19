@@ -25,17 +25,17 @@ class OnboardingData {
   final int currentStep;
 
   Map<String, dynamic> toJson() => {
-    'username': username,
-    'email': email,
-    'password': password,
-    'fullName': fullName,
-    'role': role,
-    'bio': bio,
-    'interests': interests,
-    'notificationEmails': notificationEmails,
-    'agreeTerms': agreeTerms,
-    'step': currentStep,
-  };
+        'username': username,
+        'email': email,
+        'password': password,
+        'fullName': fullName,
+        'role': role,
+        'bio': bio,
+        'interests': interests,
+        'notificationEmails': notificationEmails,
+        'agreeTerms': agreeTerms,
+        'step': currentStep,
+      };
 
   factory OnboardingData.fromJson(Map<String, dynamic> json) {
     return OnboardingData(
@@ -45,7 +45,8 @@ class OnboardingData {
       fullName: json['fullName'] as String? ?? '',
       role: json['role'] as String? ?? 'developer',
       bio: json['bio'] as String?,
-      interests: (json['interests'] as List<dynamic>?)?.cast<String>() ?? const [],
+      interests:
+          (json['interests'] as List<dynamic>?)?.cast<String>() ?? const [],
       notificationEmails: json['notificationEmails'] as bool? ?? true,
       agreeTerms: json['agreeTerms'] as bool? ?? false,
       currentStep: json['step'] as int? ?? 0,

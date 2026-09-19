@@ -56,8 +56,8 @@ class _CustomDesignScreenState extends State<CustomDesignScreen> {
               Text(
                 'Custom Card-Style Radio Selection',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 12),
               MkRadioGroup<String>(
@@ -140,8 +140,8 @@ class _CustomDesignScreenState extends State<CustomDesignScreen> {
               Text(
                 'Custom Pill Multi-Select Chips',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 12),
               MkMultiSelectSearchDropdown<String>(

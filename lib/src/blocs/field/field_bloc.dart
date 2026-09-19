@@ -43,7 +43,8 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   final List<AsyncValidator<T>> _asyncValidators;
   final Duration _debounceTime;
 
-  final List<(MkControlBloc<dynamic>, void Function())> _dependencyCallbacks = [];
+  final List<(MkControlBloc<dynamic>, void Function())> _dependencyCallbacks =
+      [];
   final List<MkFieldBloc<dynamic>> _dependents = [];
   Timer? _debounceTimer;
   int _latestAsyncToken = 0;
@@ -255,8 +256,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
     _debounceTimer?.cancel();
     _latestAsyncToken++;
 
-    final (syncError, syncCode, syncParams) =
-        _runSyncValidation(state.value);
+    final (syncError, syncCode, syncParams) = _runSyncValidation(state.value);
 
     if (syncError != null) {
       emit(
@@ -313,8 +313,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   }
 
   void _initialValidate() {
-    final (syncError, syncCode, syncParams) =
-        _runSyncValidation(state.value);
+    final (syncError, syncCode, syncParams) = _runSyncValidation(state.value);
     if (syncError != null) {
       emit(
         state.copyWith(

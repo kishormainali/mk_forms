@@ -70,7 +70,8 @@ void main() {
       expect(billingCity.state.isTouched, isFalse);
     });
 
-    test('populateValues sets values into nested groups and fields cleanly', () {
+    test('populateValues sets values into nested groups and fields cleanly',
+        () {
       formBloc.populateValues({
         'shipping': {
           'street': '123 Market St',

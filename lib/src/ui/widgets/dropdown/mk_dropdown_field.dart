@@ -16,9 +16,9 @@ class MkDropdownField<T> extends StatelessWidget {
     this.onChanged,
     this.autovalidateMode,
   }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
+          fieldBloc != null || name != null,
+          'Either fieldBloc or name must be provided',
+        );
 
   final MkFieldBloc<T>? fieldBloc;
   final String? name;

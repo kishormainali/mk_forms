@@ -66,8 +66,8 @@ class PreferencesStepScreen extends StatelessWidget {
                 Text(
                   'Preferences & Confirmation',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 24),
                 MkMultiSelectSearchDropdown<String>(
@@ -97,7 +97,8 @@ class PreferencesStepScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 const MkCheckboxField(
                   name: 'agreeTerms',
-                  title: Text('I agree to the Terms of Service and Privacy Policy'),
+                  title: Text(
+                      'I agree to the Terms of Service and Privacy Policy'),
                 ),
                 const SizedBox(height: 32),
                 FilledButton(

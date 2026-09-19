@@ -77,7 +77,8 @@ class MkFieldState<T> extends Equatable {
       AutovalidateMode.always => true,
       AutovalidateMode.onUserInteraction ||
       AutovalidateMode.onUnfocus ||
-      AutovalidateMode.onUserInteractionIfError => isTouched || wasFormSubmitted,
+      AutovalidateMode.onUserInteractionIfError =>
+        isTouched || wasFormSubmitted,
       AutovalidateMode.disabled => wasFormSubmitted,
     };
   }
@@ -130,16 +131,16 @@ class MkFieldState<T> extends Equatable {
 
   @override
   List<Object?> get props => [
-    value,
-    initialValue,
-    error,
-    errorCode,
-    errorParams,
-    isDirty,
-    isTouched,
-    isValidating,
-    isEnabled,
-    isVisible,
-    wasFormSubmitted,
-  ];
+        value,
+        initialValue,
+        error,
+        errorCode,
+        errorParams,
+        isDirty,
+        isTouched,
+        isValidating,
+        isEnabled,
+        isVisible,
+        wasFormSubmitted,
+      ];
 }

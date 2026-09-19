@@ -12,15 +12,21 @@ class CheckoutFormBloc extends MkFormBloc {
             'shipping': MkGroupBloc({
               'street': MkFieldBloc<String>(
                 initialValue: '',
-                validators: [MkValidators.required('Shipping street is required')],
+                validators: [
+                  MkValidators.required('Shipping street is required')
+                ],
               ),
               'city': MkFieldBloc<String>(
                 initialValue: '',
-                validators: [MkValidators.required('Shipping city is required')],
+                validators: [
+                  MkValidators.required('Shipping city is required')
+                ],
               ),
               'state': MkFieldBloc<String>(
                 initialValue: '',
-                validators: [MkValidators.required('Shipping state is required')],
+                validators: [
+                  MkValidators.required('Shipping state is required')
+                ],
               ),
               'zipCode': MkFieldBloc<String>(
                 initialValue: '',
@@ -33,7 +39,9 @@ class CheckoutFormBloc extends MkFormBloc {
             'billing': MkGroupBloc({
               'street': MkFieldBloc<String>(
                 initialValue: '',
-                validators: [MkValidators.required('Billing street is required')],
+                validators: [
+                  MkValidators.required('Billing street is required')
+                ],
               ),
               'city': MkFieldBloc<String>(
                 initialValue: '',
@@ -41,7 +49,9 @@ class CheckoutFormBloc extends MkFormBloc {
               ),
               'state': MkFieldBloc<String>(
                 initialValue: '',
-                validators: [MkValidators.required('Billing state is required')],
+                validators: [
+                  MkValidators.required('Billing state is required')
+                ],
               ),
               'zipCode': MkFieldBloc<String>(
                 initialValue: '',

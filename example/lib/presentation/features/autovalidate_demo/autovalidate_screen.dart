@@ -143,7 +143,8 @@ class _AutovalidateScreenState extends State<AutovalidateScreen> {
                     // Mode description card
                     Card(
                       elevation: 0,
-                      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.5),
                       child: Padding(
                         padding: const EdgeInsets.all(12.0),
                         child: Row(

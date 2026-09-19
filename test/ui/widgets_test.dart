@@ -5,7 +5,9 @@ import 'package:mk_forms/mk_forms.dart';
 
 void main() {
   group('MkFieldBuilder & Form Widgets', () {
-    testWidgets('MkTextField synchronizes text input and touches field on focus lost', (tester) async {
+    testWidgets(
+        'MkTextField synchronizes text input and touches field on focus lost',
+        (tester) async {
       final field = MkFieldBloc<String>(
         validators: [MkValidators.required(), MkValidators.minLength(5)],
       );
@@ -104,7 +106,8 @@ void main() {
       expect(termsField.isTouched, isTrue);
     });
 
-    testWidgets('MkDropdownField selects item and updates field value', (tester) async {
+    testWidgets('MkDropdownField selects item and updates field value',
+        (tester) async {
       final roleField = MkFieldBloc<String>(
         initialValue: 'user',
       );
@@ -134,7 +137,8 @@ void main() {
       expect(roleField.value, 'admin');
     });
 
-    testWidgets('MkFormListener triggers callbacks on state transitions', (tester) async {
+    testWidgets('MkFormListener triggers callbacks on state transitions',
+        (tester) async {
       bool submittingCalled = false;
       bool successCalled = false;
 
@@ -172,7 +176,8 @@ void main() {
       expect(successCalled, isTrue);
     });
 
-    testWidgets('MkEmailField renders email input and triggers change', (tester) async {
+    testWidgets('MkEmailField renders email input and triggers change',
+        (tester) async {
       final email = MkFieldBloc<String>(
         validators: [MkValidators.required(), MkValidators.email()],
       );
@@ -194,7 +199,9 @@ void main() {
       expect(email.isValid, isTrue);
     });
 
-    testWidgets('MkPasswordField toggles obscureText when suffix icon is tapped', (tester) async {
+    testWidgets(
+        'MkPasswordField toggles obscureText when suffix icon is tapped',
+        (tester) async {
       final password = MkFieldBloc<String>(
         validators: [MkValidators.required()],
       );
@@ -222,7 +229,8 @@ void main() {
       expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
     });
 
-    testWidgets('MkRadioGroup selects option and updates field', (tester) async {
+    testWidgets('MkRadioGroup selects option and updates field',
+        (tester) async {
       final gender = MkFieldBloc<String>(initialValue: 'male');
 
       await tester.pumpWidget(
@@ -248,7 +256,8 @@ void main() {
       expect(gender.value, 'female');
     });
 
-    testWidgets('MkMultiSelectSearchDropdown opens modal and selects items', (tester) async {
+    testWidgets('MkMultiSelectSearchDropdown opens modal and selects items',
+        (tester) async {
       final tagsField = MkFieldBloc<List<String>>(
         initialValue: ['Dart'],
       );

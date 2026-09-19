@@ -4,7 +4,9 @@ import 'package:mk_forms/mk_forms.dart';
 
 void main() {
   group('AutovalidateMode Widget Integration', () {
-    testWidgets('AutovalidateMode.always displays error immediately on pristine load', (tester) async {
+    testWidgets(
+        'AutovalidateMode.always displays error immediately on pristine load',
+        (tester) async {
       final nameField = MkFieldBloc<String>(
         validators: [MkValidators.required('Username is required')],
       );
@@ -29,7 +31,8 @@ void main() {
       expect(find.text('Username is required'), findsOneWidget);
     });
 
-    testWidgets('AutovalidateMode.onUserInteraction hides error until touched', (tester) async {
+    testWidgets('AutovalidateMode.onUserInteraction hides error until touched',
+        (tester) async {
       final nameField = MkFieldBloc<String>(
         validators: [MkValidators.required('Username is required')],
       );
@@ -60,7 +63,9 @@ void main() {
       expect(find.text('Username is required'), findsOneWidget);
     });
 
-    testWidgets('AutovalidateMode.disabled hides error even after touch until form submission', (tester) async {
+    testWidgets(
+        'AutovalidateMode.disabled hides error even after touch until form submission',
+        (tester) async {
       final nameField = MkFieldBloc<String>(
         validators: [MkValidators.required('Username is required')],
       );
@@ -95,7 +100,8 @@ void main() {
       expect(find.text('Username is required'), findsOneWidget);
     });
 
-    testWidgets('Widget-level autovalidateMode overrides MkFormScope', (tester) async {
+    testWidgets('Widget-level autovalidateMode overrides MkFormScope',
+        (tester) async {
       final emailField = MkFieldBloc<String>(
         validators: [MkValidators.required('Email is required')],
       );

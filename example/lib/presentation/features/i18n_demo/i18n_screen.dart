@@ -84,7 +84,9 @@ class _I18nDemoScreenState extends State<I18nDemoScreen> {
                           'Dynamic Language Switching (No UI Jank)',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onTertiaryContainer,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onTertiaryContainer,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -94,7 +96,9 @@ class _I18nDemoScreenState extends State<I18nDemoScreen> {
                           '3. Watch errors instantly update between English and Spanish.\n'
                           '4. Fully compatible with flutter_localizations and per-app custom overrides.',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onTertiaryContainer,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onTertiaryContainer,
                           ),
                         ),
                       ],
@@ -124,7 +128,9 @@ class _I18nDemoScreenState extends State<I18nDemoScreen> {
                 OutlinedButton(
                   onPressed: () => _formBloc.reset(),
                   child: Text(
-                    _currentLocale.languageCode == 'en' ? 'Reset' : 'Restablecer',
+                    _currentLocale.languageCode == 'en'
+                        ? 'Reset'
+                        : 'Restablecer',
                   ),
                 ),
               ],

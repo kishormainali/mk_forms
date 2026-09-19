@@ -18,9 +18,9 @@ class MkCheckboxField extends StatelessWidget {
     this.dense,
     this.autovalidateMode,
   }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
+          fieldBloc != null || name != null,
+          'Either fieldBloc or name must be provided',
+        );
 
   final MkFieldBloc<bool>? fieldBloc;
   final String? name;

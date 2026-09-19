@@ -20,7 +20,8 @@ class LoginFormBloc extends MkFormBloc {
               initialValue: '',
               validators: [
                 MkValidators.required('Password is required'),
-                MkValidators.minLength(6, 'Password must be at least 6 characters'),
+                MkValidators.minLength(
+                    6, 'Password must be at least 6 characters'),
               ],
             ),
           },

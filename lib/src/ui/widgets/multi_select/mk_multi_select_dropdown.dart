@@ -25,9 +25,9 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
     this.maxChipsDisplayed = 4,
     this.autovalidateMode,
   }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
+          fieldBloc != null || name != null,
+          'Either fieldBloc or name must be provided',
+        );
 
   final MkFieldBloc<List<T>>? fieldBloc;
   final String? name;
@@ -145,8 +145,7 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
     required List<T> currentSelection,
     required ValueChanged<List<T>> onSelectionChanged,
   }) async {
-    final searchPredicate =
-        searchFilter ??
+    final searchPredicate = searchFilter ??
         (T item, String query) =>
             itemToString(item).toLowerCase().contains(query.toLowerCase());
 
@@ -177,7 +176,8 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
           builder: (dialogCtx, modalSetState) {
             return Dialog(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 450, maxHeight: 600),
+                constraints:
+                    const BoxConstraints(maxWidth: 450, maxHeight: 600),
                 child: modalContent(dialogCtx, modalSetState),
               ),
             );

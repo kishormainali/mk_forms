@@ -85,12 +85,10 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
         isDirty: groupState.isDirty,
         isTouched: groupState.isTouched,
         values: groupState.values,
-        submissionStatus:
-            shouldClearSubmissionError
-                ? const MkSubmissionStatus.idle()
-                : state.submissionStatus,
-        submissionError:
-            shouldClearSubmissionError ? () => null : null,
+        submissionStatus: shouldClearSubmissionError
+            ? const MkSubmissionStatus.idle()
+            : state.submissionStatus,
+        submissionError: shouldClearSubmissionError ? () => null : null,
       ),
     );
   }

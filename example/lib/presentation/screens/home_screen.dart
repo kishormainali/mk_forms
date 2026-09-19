@@ -21,56 +21,64 @@ class HomeScreen extends StatelessWidget {
     })>[
       (
         title: 'Minimal Login Form',
-        subtitle: 'Lightweight MkSimpleFormBloc, 2-layer repo, pure initial states',
+        subtitle:
+            'Lightweight MkSimpleFormBloc, 2-layer repo, pure initial states',
         icon: Icons.login,
         color: Colors.indigo,
         route: MinimalLoginRoute(),
       ),
       (
         title: 'Multi-Route Onboarding Wizard',
-        subtitle: 'Multi-step forms, route navigation, API draft hydration & resuming',
+        subtitle:
+            'Multi-step forms, route navigation, API draft hydration & resuming',
         icon: Icons.alt_route,
         color: Colors.deepPurple,
         route: const OnboardingFlowRoute(),
       ),
       (
         title: 'Independent Subforms (Checkout)',
-        subtitle: 'Multiple subforms with MkSubformBuilder and isolated group validation',
+        subtitle:
+            'Multiple subforms with MkSubformBuilder and isolated group validation',
         icon: Icons.shopping_cart_checkout,
         color: Colors.cyan.shade800,
         route: CheckoutRoute(),
       ),
       (
         title: 'Cross-Field Dependent Validation',
-        subtitle: 'Password & Confirm Password reactive bidirectional validation',
+        subtitle:
+            'Password & Confirm Password reactive bidirectional validation',
         icon: Icons.sync_alt,
         color: Colors.teal,
         route: RegistrationRoute(),
       ),
       (
         title: 'Debounced Async Validation',
-        subtitle: 'Asynchronous username availability check with in-flight spinner',
+        subtitle:
+            'Asynchronous username availability check with in-flight spinner',
         icon: Icons.timer_outlined,
         color: Colors.deepOrange,
         route: UsernameRoute(),
       ),
       (
         title: 'Dynamic Array Forms',
-        subtitle: 'Dynamic list of controls with add, remove, and aggregate validation',
+        subtitle:
+            'Dynamic list of controls with add, remove, and aggregate validation',
         icon: Icons.dynamic_feed,
         color: Colors.purple,
         route: DynamicTodosRoute(),
       ),
       (
         title: 'All Fields Showcase',
-        subtitle: 'Text, Email, Password, Checkbox, Radio, Dropdown, Multi-select search',
+        subtitle:
+            'Text, Email, Password, Checkbox, Radio, Dropdown, Multi-select search',
         icon: Icons.dashboard_customize_outlined,
         color: Colors.blue,
         route: AllFieldsRoute(),
       ),
       (
         title: 'Internationalization (i18n)',
-        subtitle: 'flutter_localizations delegation, dynamic English/Spanish switching',
+        subtitle:
+            'flutter_localizations delegation, dynamic English/Spanish switching',
         icon: Icons.translate,
         color: Colors.green,
         route: I18nDemoRoute(),
@@ -84,7 +92,8 @@ class HomeScreen extends StatelessWidget {
       ),
       (
         title: 'Autovalidate Modes',
-        subtitle: 'Dynamic switching between onUserInteraction, always, and disabled',
+        subtitle:
+            'Dynamic switching between onUserInteraction, always, and disabled',
         icon: Icons.fact_check_outlined,
         color: Colors.pink.shade700,
         route: AutovalidateRoute(),

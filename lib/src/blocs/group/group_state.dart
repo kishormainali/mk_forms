@@ -26,5 +26,6 @@ class MkGroupState extends Equatable {
   final bool isTouched;
 
   @override
-  List<Object?> get props => [values, isValid, isValidating, isDirty, isTouched];
+  List<Object?> get props =>
+      [values, isValid, isValidating, isDirty, isTouched];
 }
