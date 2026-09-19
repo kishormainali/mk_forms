@@ -12,14 +12,8 @@ on:
 
 jobs:
   test:
-    name: Test (Flutter ${{ matrix.flutter-version }})
+    name: Test
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        flutter-version:
-          - stable
-          - beta
 
     steps:
       - name: Checkout
@@ -28,7 +22,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ matrix.flutter-version }}
+          channel: stable
           cache: true
 
       - name: Install dependencies
@@ -44,7 +38,6 @@ jobs:
         run: flutter test --coverage
 
       - name: Upload coverage
-        if: matrix.flutter-version == 'stable'
         uses: codecov/codecov-action@v4
         with:
           file: coverage/lcov.info
