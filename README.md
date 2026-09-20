@@ -96,8 +96,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: MkFormScope(
-        formBloc: _form,
+      body: MkFormScope.value(
+        value: _form,
         child: MkFormListener(
           formBloc: _form,
           onSuccess: (context, _) =>
@@ -170,7 +170,7 @@ final interests = MkFieldBloc<List<String>>(
 | `value` | `T?` | Current value |
 | `initialValue` | `T?` | Value at creation/reset |
 | `error` | `String?` | Current validation error |
-| `isDirty` | `bool` | Value changed from `initialValue` |
+| `isDirty` | `bool` | Value changed from `initialValue` (collections compare by contents) |
 | `isTouched` | `bool` | User has interacted with the field |
 | `isValidating` | `bool` | Async validation in progress |
 | `isValid` | `bool` | No error and not validating |
@@ -249,12 +249,20 @@ class RegistrationFormBloc extends MkFormBloc {
 
 ### `MkFormScope` & Context Extensions
 
-`MkFormScope` is an `InheritedWidget` providing the form bloc and default `AutovalidateMode` down the tree.
+`MkFormScope` is built on `BlocProvider`, so it provides the form bloc (as `MkFormBloc`, reachable via `context.read<MkFormBloc>()` too) and a default `AutovalidateMode` down the tree. Like `BlocProvider`, it has two constructors:
 
 ```dart
+// The scope creates the bloc and closes it when removed from the tree.
 MkFormScope(
-  formBloc: myFormBloc,
+  create: (context) => LoginFormBloc(),
+  lazy: true, // default
   autovalidateMode: AutovalidateMode.onUserInteraction, // default
+  child: MyFormWidget(),
+)
+
+// The scope exposes an existing bloc (e.g. owned by a State) and never closes it.
+MkFormScope.value(
+  value: myFormBloc,
   child: MyFormWidget(),
 )
 ```
@@ -270,6 +278,27 @@ final emailField = context.mkField<String>('email');
 
 // Access the active autovalidate mode
 final mode = context.mkAutovalidateMode;
+```
+
+---
+
+### `MkFormBuilder`
+
+Rebuilds when the form state changes — handy for submit buttons. Use `buildWhen` to limit rebuilds:
+
+```dart
+MkFormBuilder(
+  formBloc: _form, // optional: falls back to MkFormScope lookup
+  buildWhen: (prev, curr) =>
+      prev.isValid != curr.isValid ||
+      prev.submissionStatus != curr.submissionStatus,
+  builder: (context, state, form) => FilledButton(
+    onPressed: state.isValid && !state.submissionStatus.isSubmitting
+        ? form.submit
+        : null,
+    child: const Text('Submit'),
+  ),
+)
 ```
 
 ---
@@ -305,8 +334,8 @@ Control when field errors are surfaced to the user — at the scope level or per
 ### Scope-Level Mode
 
 ```dart
-MkFormScope(
-  formBloc: _form,
+MkFormScope.value(
+  value: _form,
   autovalidateMode: AutovalidateMode.always, // Show errors immediately even on pristine fields
   child: MyForm(),
 )
@@ -338,7 +367,7 @@ When building custom fields with `MkFieldBuilder`, use `shouldShowError(mode)`:
 ```dart
 MkFieldBuilder<String>(
   fieldBloc: _form.field<String>('username')!,
-  builder: (context, state) {
+  builder: (context, state, bloc) {
     final mode = context.mkAutovalidateMode;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,6 +437,10 @@ final confirmPassword = MkFieldBloc<String>(
 // When confirmPassword changes → password does NOT revalidate (no loop)
 ```
 
+A dependent field revalidates when the dependency's **value** changes (not when it merely re-validates).
+Synchronous validators re-run immediately; async validators are debounced like after `changeValue`, and
+adding `dependsOn` never fires an async validator (a network call) on its own at construction.
+
 ---
 
 ## ⏳ Debounced Async Validation
@@ -427,12 +460,17 @@ final username = MkFieldBloc<String>(
 );
 ```
 
+If an async validator **throws** (e.g. the network is down), the field becomes invalid with a generic,
+localized message (`MkErrorCodes.asyncValidationFailed`) instead of the raw exception text. The original
+error is reported through the field's `onError` / `BlocObserver.onError` so you can log it. Return a
+string from the validator for errors you want users to see.
+
 Display async validation state in the UI:
 
 ```dart
 MkFieldBuilder<String>(
   fieldBloc: _form.field<String>('username')!,
-  builder: (context, state) {
+  builder: (context, state, bloc) {
     return TextField(
       decoration: InputDecoration(
         suffixIcon: state.isValidating
@@ -585,8 +623,8 @@ final shippingValid = await formBloc.validateGroup('shipping');
 ### Build Subforms Efficiently
 
 ```dart
-MkFormScope(
-  formBloc: formBloc,
+MkFormScope.value(
+  value: formBloc,
   child: Column(
     children: [
       // Changes in shipping NEVER rebuild billing and vice versa
@@ -680,9 +718,36 @@ BlocBuilder<MkArrayBloc<MkFieldBloc<String>>, MkArrayState<MkFieldBloc<String>>>
 
 ---
 
+## 📦 Tree Shaking & Bundle Size
+
+`mk_forms` is built to be tree-shaken: it uses no reflection, `dart:mirrors`, `dart:io` or top-level side effects, its
+icons are `const`, and nothing is registered globally. Importing `package:mk_forms/mk_forms.dart` costs nothing for the
+parts you do not use: in release builds, unused widgets, validators, the step-form bloc and the built-in Spanish
+messages (only pulled in if you use `MkFormLocalizations.delegate`) are dropped. It also compiles to WebAssembly
+(`flutter build web --wasm`) and does not interfere with Flutter's icon tree shaking.
+
+Measured on Flutter 3.47 (web, release, `main.dart.js`), relative to an app with a plain `TextField`:
+
+| App uses | Added size (raw / gzip) |
+|---|---|
+| `MkTextField` + `MkFieldBloc` + `MkValidators.required` | ~21 KB / ~7 KB |
+| Everything (email, password, multi-select, step form, localization) | ~209 KB / ~62 KB |
+
 ## 🎨 Widget Reference
 
+All field widgets take either `name:` (looked up in the nearest `MkFormScope`) or `fieldBloc:` (direct
+reference), plus an optional `autovalidateMode:` override. On top of that they expose **the parameters of the
+Flutter widget they wrap**, so you rarely need to build your own. Only what the bloc must control is handled for
+you (value, error text, enabled state); for `enabled:` the widget is disabled if *either* the parameter or the
+bloc says so, and `onChanged:` callbacks run *after* the bloc has been updated.
+
 ### `MkTextField`
+
+Mirrors [`TextField`](https://api.flutter.dev/flutter/material/TextField-class.html): `keyboardType`,
+`textInputAction`, `inputFormatters`, `maxLength`, `maxLines` / `minLines` / `expands`, `cursor*`, `autofillHints`,
+`contextMenuBuilder`, `onTap`, `onEditingComplete`, `onTapOutside`, `buildCounter`, `focusNode`, `scrollController`,
+`undoController`, `spellCheckConfiguration`, … everything except `controller`, which the widget owns to keep the
+text in sync with the bloc.
 
 ```dart
 MkTextField(
@@ -690,121 +755,148 @@ MkTextField(
   // OR:
   fieldBloc: myFieldBloc,        // Direct field reference
 
-  label: 'Username',
-  hint: 'Enter your username',
-  prefixIcon: const Icon(Icons.person),
-  maxLines: 1,
+  decoration: const InputDecoration(
+    labelText: 'Username',
+    hintText: 'Enter your username',
+    prefixIcon: Icon(Icons.person),
+    border: OutlineInputBorder(),
+  ),
   keyboardType: TextInputType.text,
+  textInputAction: TextInputAction.next,
+  inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
+  maxLength: 20,
+  autofillHints: const [AutofillHints.username],
   autovalidateMode: AutovalidateMode.onUserInteraction,
-  decoration: const InputDecoration(border: OutlineInputBorder()),
+  showValidatingIndicator: true, // spinner while async validators run
 )
 ```
 
+Typing does not rebuild the `TextField` unless something visible changes (error, validating state, …).
+
 ### `MkEmailField`
 
-Pre-configured with email keyboard, autofill hints, and email format validation:
+`MkTextField` preset with an email keyboard, `Email` label, hint and icon (any of which your `decoration` can
+override). Accepts every `MkTextField` parameter except `maxLines`, `minLines` and `expands`.
 
 ```dart
-const MkEmailField(name: 'email')
-// or
-MkEmailField(fieldBloc: emailBloc, label: 'Work Email')
+MkEmailField(name: 'email')
+MkEmailField(
+  fieldBloc: emailBloc,
+  decoration: const InputDecoration(labelText: 'Work email'),
+  autofillHints: const [AutofillHints.email],
+)
 ```
 
 ### `MkPasswordField`
 
-Obscured input with show/hide toggle:
+Obscured input with a show/hide toggle. Accepts every `MkTextField` parameter except `obscureText` (use
+`initiallyObscured`), `maxLines`, `minLines` and `expands`.
 
 ```dart
-const MkPasswordField(name: 'password')
+MkPasswordField(name: 'password')
 MkPasswordField(
   fieldBloc: passwordBloc,
-  label: 'New Password',
+  initiallyObscured: false,
+  obscuringCharacter: '*',
+  showPasswordIcon: const Icon(Icons.visibility),
+  hidePasswordIcon: const Icon(Icons.visibility_off),
+  autofillHints: const [AutofillHints.newPassword],
   autovalidateMode: AutovalidateMode.onUnfocus,
 )
 ```
 
 ### `MkCheckboxField`
 
+Mirrors [`CheckboxListTile`](https://api.flutter.dev/flutter/material/CheckboxListTile-class.html) (`title`,
+`subtitle`, `secondary`, `controlAffinity`, `tristate`, `activeColor`, `fillColor`, `shape`, `side`, `dense`,
+`contentPadding`, `visualDensity`, …). `isError` defaults to "a validation error is currently shown". Style the
+error text with `errorStyle` / `errorPadding`.
+
 ```dart
 MkCheckboxField(
   name: 'agreeTerms',
-  label: const Text('I agree to the Terms of Service'),
-)
-// or
-MkCheckboxField(
-  fieldBloc: agreeTermsBloc,
-  label: RichText(
-    text: TextSpan(children: [
-      const TextSpan(text: 'I agree to the '),
-      TextSpan(
-        text: 'Terms of Service',
-        style: const TextStyle(color: Colors.blue),
-        recognizer: TapGestureRecognizer()..onTap = openTerms,
-      ),
-    ]),
-  ),
+  title: const Text('I agree to the Terms of Service'),
+  controlAffinity: ListTileControlAffinity.leading, // default
+  onChanged: (value) => analytics.log('terms', value),
 )
 ```
 
 ### `MkRadioGroup<T>`
 
+Vertical layouts render `RadioListTile`s, horizontal and wrap layouts render `Radio`s. Group-level parameters
+(`activeColor`, `fillColor`, `mouseCursor`, `toggleable`, `radioSide`, `dense`, `controlAffinity`, `shape`,
+`tileColor`, …) apply to every option; `highlightSelected` turns on the selected-tile styling. Per option:
+`label`, `subtitle`, `secondary`, `enabled`.
+
 ```dart
 MkRadioGroup<String>(
   name: 'role',
+  layout: MkRadioLayout.vertical, // or horizontal / wrap
+  title: const Text('Role'),
   options: const [
-    MkRadioOption(value: 'developer', label: 'Developer'),
-    MkRadioOption(value: 'designer', label: 'Designer'),
-    MkRadioOption(value: 'manager', label: 'Manager'),
+    MkRadioOption(value: 'developer', label: Text('Developer')),
+    MkRadioOption(value: 'designer', label: Text('Designer'), subtitle: Text('UI / UX')),
+    MkRadioOption(value: 'manager', label: Text('Manager'), enabled: false),
   ],
-  direction: Axis.vertical,  // or Axis.horizontal
+  activeColor: Colors.teal,
+  onChanged: (role) => debugPrint('role: $role'),
 )
 ```
 
-Custom option builder:
+Fully custom options with `itemBuilder`:
 
 ```dart
 MkRadioGroup<String>(
   fieldBloc: roleBloc,
   options: roles,
-  optionBuilder: (context, option, isSelected, onTap) => Card(
+  itemBuilder: (context, option, isSelected, onSelect) => Card(
     color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
-    child: ListTile(
-      leading: Icon(option.icon),
-      title: Text(option.label),
-      onTap: onTap,
-    ),
+    child: ListTile(title: option.label, onTap: onSelect),
   ),
 )
 ```
 
 ### `MkDropdownField<T>`
 
+Mirrors [`DropdownButtonFormField`](https://api.flutter.dev/flutter/material/DropdownButtonFormField-class.html)
+(`selectedItemBuilder`, `isExpanded`, `icon`, `iconSize`, `dropdownColor`, `menuMaxHeight`, `borderRadius`,
+`elevation`, `style`, `alignment`, `focusNode`, …) except its `FormField` members (`validator`, `onSaved`, …), which
+the bloc replaces.
+
 ```dart
 MkDropdownField<String>(
   name: 'country',
-  items: countries.map((c) => DropdownMenuItem(
-    value: c.code,
-    child: Text(c.name),
-  )).toList(),
-  label: 'Country',
+  decoration: const InputDecoration(labelText: 'Country'),
+  isExpanded: true,
+  menuMaxHeight: 300,
+  items: countries
+      .map((c) => DropdownMenuItem(value: c.code, child: Text(c.name)))
+      .toList(),
 )
 ```
 
 ### `MkMultiSelectSearchDropdown<T>`
 
-Multi-selection with search, chips, select all / clear all:
+Multi-selection with search, chips, select all / clear all. Customization is grouped by what it configures:
+the field (`decoration`, `icon`, `hintStyle` and the `InkWell` parameters such as `borderRadius`, `focusNode`,
+`mouseCursor`), the chips (`chip*`, mirroring `InputChip`, or `chipBuilder`), the picker (`sheet*` for the bottom
+sheet, `dialog*` for the dialog) and all texts (`hintText`, `searchHint`, `modalTitle`, `doneLabel`,
+`selectAllLabel`, `clearAllLabel`, `moreLabelBuilder`) so they can be localized.
 
 ```dart
 MkMultiSelectSearchDropdown<String>(
   name: 'interests',
-  label: 'Interests',
-  options: [
-    MkMultiSelectOption(value: 'flutter', label: 'Flutter'),
-    MkMultiSelectOption(value: 'dart', label: 'Dart'),
-    MkMultiSelectOption(value: 'firebase', label: 'Firebase'),
-  ],
-  searchHint: 'Search interests...',
-  displayMode: MkMultiSelectDisplayMode.bottomSheet, // or dialog
+  items: const ['Flutter', 'Dart', 'Firebase'],
+  itemToString: (item) => item,
+  decoration: const InputDecoration(labelText: 'Interests'),
+  hintText: 'Pick some…',
+  searchHint: 'Search interests…',
+  modalType: MkMultiSelectModalType.bottomSheet, // or dialog
+  maxChipsDisplayed: 3,
+  moreLabelBuilder: (hidden) => '+$hidden more',
+  chipBackgroundColor: Colors.teal.shade50,
+  sheetShowDragHandle: true,
+  onChanged: (selection) => debugPrint('$selection'),
 )
 ```
 
@@ -816,7 +908,7 @@ Build a completely custom field widget with fine-grained rebuild control:
 MkFieldBuilder<int>(
   fieldBloc: ratingBloc,
   buildWhen: (prev, curr) => prev.value != curr.value || prev.showError != curr.showError,
-  builder: (context, state) {
+  builder: (context, state, bloc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

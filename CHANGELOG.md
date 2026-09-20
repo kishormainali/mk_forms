@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **`MkFormBuilder`** — Rebuilds from `MkFormState` (with optional `formBloc` and `buildWhen`), mirroring `MkFormListener`.
+- **All field widgets now expose the parameters of the Flutter widget they wrap**, so they can be customized without rebuilding them:
+  - `MkTextField`, `MkEmailField`, `MkPasswordField`: every `TextField` parameter (`inputFormatters`, `cursor*`, `autofillHints`, `contextMenuBuilder`, `onTap`, `onEditingComplete`, `focusNode`, `buildCounter`, `undoController`, …) except `controller`. `focusNode` may be supplied (it is never disposed by the widget); `enabled` combines with the bloc's state. `MkPasswordField` gains `initiallyObscured`.
+  - `MkCheckboxField`: every `CheckboxListTile` parameter (`tristate`, `fillColor`, `shape`, `side`, `controlAffinity`, …), plus `onChanged`, `enabled`, `errorStyle`, `errorPadding`. `isError` defaults to "an error is shown".
+  - `MkDropdownField`: every `DropdownButtonFormField` parameter that is not a `FormField` member (`selectedItemBuilder`, `isExpanded`, `icon`, `dropdownColor`, `menuMaxHeight`, …), plus `enabled`.
+  - `MkRadioGroup`: the `RadioListTile` / `Radio` parameters at group level, `MkRadioOption.secondary`, `onChanged`, `enabled`, `highlightSelected`, `errorStyle`.
+  - `MkMultiSelectSearchDropdown`: `InkWell`, `InputChip`, bottom sheet and dialog parameters (`chip*`, `sheet*`, `dialog*`), plus localizable labels (`doneLabel`, `selectAllLabel`, `clearAllLabel`, `moreLabelBuilder`), `showSelectAll`, `icon`, `hintStyle`, `onChanged`, `enabled`.
+- Only parameters available in Flutter 3.41 are exposed (the version this package's own code already requires).
+
+### Fixed
+- `MkMultiSelectSearchDropdown` only rendered the first picked item: the modal handed the field its own mutable list, so later picks looked like no-ops to the bloc. It now reports a copy.
+- `MkFormBloc` / `MkStepFormBloc` leaked a second, never-closed `MkGroupBloc` (and one extra listener per control) while building their initial state.
+- `MkFormBloc.submit()` could run `onSubmit` twice when called again while validation was still in progress.
+- Editing a field while async validation was in flight made `submit()` silently do nothing. A superseded `MkFieldBloc.validate()` now resolves to the outcome of the newer validation.
+- Mapping server errors onto fields inside `onSubmitFailure` (or touching a field) no longer wipes the failure state; only real value edits clear it.
+- `MkValidators.email` rejected valid addresses with hyphenated domains and accepted trailing garbage, commas and `a@b.c@@@`. It is now anchored and follows the HTML5 rule.
+- `dependsOn` no longer runs async validators at construction, no longer validates twice per dependency change, and debounces the async part like `changeValue`. Dependents also detach from their dependency on `close()`, and group/array dependencies only trigger when their contents actually change.
+- A throwing async validator no longer shows the raw exception text (hostnames, stack details). The field gets a generic localized message (`MkErrorCodes.asyncValidationFailed`, English and Spanish included) and the error is reported through `onError` / `BlocObserver`.
+- `isDirty` compares collection values (lists, sets, maps) by contents instead of identity.
+- Async work finishing after `close()` (`submit()`, `validate()`, `nextStep()`, `goToStep()`, `validateStep()`, `loadInitialData()`, `reset()`) no longer throws "Cannot emit new states after calling close".
+- `MkRadioGroup` (vertical layout) ignored `MkRadioOption.enabled` and the bloc's enabled state visually; disabled options now render as disabled.
+- The multi-select modal title could overflow next to the Done button; it now ellipsizes.
+
+### Performance
+- Bulk operations (`touch`, `reset`, `markFormSubmitted`, `validate`) on groups, arrays and forms recompute the aggregate once instead of once per child. `submit()` on a 1000-field form went from ~315 ms to ~16 ms and `reset()` from ~105 ms to ~1 ms.
+- Aggregate flags and nested values are read from cached state instead of re-walking the subtree.
+- State listeners are only notified when a control's state actually changed.
+- `MkTextField` no longer rebuilds on every keystroke when nothing visible changes.
+- Added `MkFieldBloc.changeValue(value, markTouched: true)`; checkbox, radio and dropdown widgets use it to emit (and rebuild) once per interaction instead of twice.
+
+### Changed
+- **`MkFormScope`** is now a `StatelessWidget` built on `BlocProvider` instead of a custom `InheritedWidget`, with the same two constructors: `MkFormScope(create:, lazy:)` creates and closes the bloc, `MkFormScope.value(value:)` exposes an existing one without closing it. **Breaking:** `MkFormScope(formBloc: x)` is now `MkFormScope.value(value: x)`.
+- `MkFormScope.of` no longer registers a rebuild dependency (use `MkFormBuilder`).
+- `MkFieldBloc.validate({cascadeDependents})`: the parameter is deprecated and ignored; dependents are revalidated when the dependency's value changes.
+- Upgraded `equatable` to `^3.0.0`.
+- Dependencies bumped: `bloc ^9.2.1`, `flutter_bloc ^9.1.1`, `meta ^1.19.0` (dev: `bloc_test ^10`, `mocktail ^1.0.5`, `flutter_lints ^6`). Removed the unused `rxdart` dependency.
+- **Tree shaking verified.** Unused widgets, validators, the step-form bloc and the Spanish messages are removed from release builds; the package also builds with `flutter build web --wasm` and keeps Flutter's icon tree shaking intact (see README, *Tree Shaking & Bundle Size*).
+
+---
+
 ## [1.0.0] - 2026-09-19
 
 ### 🎉 Initial stable release
