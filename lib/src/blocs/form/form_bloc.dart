@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/deep_equals.dart';
 import '../../core/status.dart';
 import '../control_bloc.dart';
 import '../field/field_bloc.dart';
@@ -30,14 +31,17 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
                 isDirty: controls?.values.any((c) => c.isDirty) ?? false,
                 isTouched: controls?.values.any((c) => c.isTouched) ?? false,
                 wasSubmitted: false,
-                values:
-                    controls != null ? MkGroupBloc(controls).value : const {},
+                values: {
+                  for (final entry in (controls ?? const {}).entries)
+                    entry.key: entry.value.value,
+                },
               ),
         ) {
     _initControlListeners();
   }
 
   final MkGroupBloc _rootGroup;
+  bool _isSubmitInFlight = false;
 
   /// The root control group containing all registered controls.
   MkGroupBloc get root => _rootGroup;
@@ -65,6 +69,15 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
     _rootGroup.removeControl(name);
   }
 
+  /// Emitting after [close] is a silent no-op, so submissions or validations
+  /// that finish after the form was disposed cannot throw.
+  @protected
+  @override
+  void emit(MkFormState state) {
+    if (isClosed) return;
+    super.emit(state);
+  }
+
   void _initControlListeners() {
     _rootGroup.addStateListener(_onRootGroupChanged);
   }
@@ -73,9 +86,12 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
     if (isClosed) return;
     final groupState = _rootGroup.state;
 
-    // When the user edits any field after a failed submission,
-    // clear the submission error so the user doesn't see persistent/repeated error banners.
-    final shouldClearSubmissionError = state.isFailure;
+    // When the user edits any field after a failed submission, clear the
+    // submission error so the user doesn't see persistent/repeated error
+    // banners. Only actual value changes count: touching a field, or mapping
+    // server errors onto fields via [setFieldErrors], must keep the failure.
+    final shouldClearSubmissionError =
+        state.isFailure && !mkDeepEquals(state.values, groupState.values);
 
     emit(
       onUpdateFormState(
@@ -148,8 +164,18 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
   /// 4. If invalid, halts submission.
   /// 5. If valid, invokes [onSubmit] and handles success/failure.
   Future<void> submit() async {
-    if (isClosed || state.isSubmitting) return;
+    // `state.isSubmitting` only flips once validation has finished, so a
+    // dedicated flag is needed to reject calls made while validating.
+    if (isClosed || _isSubmitInFlight || state.isSubmitting) return;
+    _isSubmitInFlight = true;
+    try {
+      await _submit();
+    } finally {
+      _isSubmitInFlight = false;
+    }
+  }
 
+  Future<void> _submit() async {
     // Mark submitted across all fields so errors become visible to user
     emit(state.copyWith(wasSubmitted: true));
     _rootGroup.markFormSubmitted();

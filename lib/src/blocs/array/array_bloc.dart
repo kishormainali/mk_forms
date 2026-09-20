@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../batched_aggregate.dart';
 import '../control_bloc.dart';
 import 'array_state.dart';
 
@@ -6,7 +7,7 @@ export 'array_state.dart';
 
 /// A form control bloc managing a dynamic list/array of [MkControlBloc] children.
 class MkArrayBloc<C extends MkControlBloc<dynamic>>
-    extends MkControlBloc<MkArrayState<C>> {
+    extends MkControlBloc<MkArrayState<C>> with MkBatchedAggregate {
   MkArrayBloc([List<C> initialControls = const []])
       : _controls = List<C>.of(initialControls),
         super(
@@ -34,16 +35,20 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
   List<dynamic> get value => _controls.map((c) => c.value).toList();
 
   @override
-  bool get isValid => _controls.every((c) => c.isValid);
+  List<dynamic> get snapshotValue => state.values;
+
+  // Kept up to date by the child listeners; O(1) instead of walking children.
+  @override
+  bool get isValid => state.isValid;
 
   @override
-  bool get isValidating => _controls.any((c) => c.isValidating);
+  bool get isValidating => state.isValidating;
 
   @override
-  bool get isDirty => _controls.any((c) => c.isDirty);
+  bool get isDirty => state.isDirty;
 
   @override
-  bool get isTouched => _controls.any((c) => c.isTouched);
+  bool get isTouched => state.isTouched;
 
   int get length => _controls.length;
 
@@ -114,55 +119,77 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
 
   @override
   void touch() {
-    for (final control in _controls) {
-      control.touch();
-    }
-    _recalculateState();
+    runBatched(() {
+      for (final control in _controls) {
+        control.touch();
+      }
+    }, _recalculateState);
   }
 
   /// Marks that the enclosing form has attempted submission.
   @override
   void markFormSubmitted([bool submitted = true]) {
-    for (final control in _controls) {
-      control.markFormSubmitted(submitted);
-    }
+    runBatched(() {
+      for (final control in _controls) {
+        control.markFormSubmitted(submitted);
+      }
+    }, _recalculateState);
   }
 
   @override
   void reset() {
-    for (final control in _controls) {
-      control.reset();
-    }
-    _recalculateState();
+    runBatched(() {
+      for (final control in _controls) {
+        control.reset();
+      }
+    }, _recalculateState);
   }
 
   @override
   Future<bool> validate() async {
-    final results = await Future.wait(_controls.map((c) => c.validate()));
-    _recalculateState();
+    final pending = <Future<bool>>[];
+    runBatched(() {
+      for (final control in List.of(_controls)) {
+        pending.add(control.validate());
+      }
+    }, _recalculateState);
+    final results = await Future.wait(pending);
     return results.every((v) => v);
   }
 
   void _listenToControl(C control) {
     void callback() {
-      if (!isClosed) {
-        _recalculateState();
-      }
+      if (isClosed || deferIfBatching()) return;
+      _recalculateState();
     }
 
     _listenerCallbacks[control] = callback;
     control.addStateListener(callback);
   }
 
+  /// Recomputes the aggregate in a single pass over the children.
   void _recalculateState() {
+    if (isClosed) return;
+    var isValid = true;
+    var isValidating = false;
+    var isDirty = false;
+    var isTouched = false;
+    final values = <dynamic>[];
+    for (final control in _controls) {
+      values.add(control.snapshotValue);
+      isValid = isValid && control.isValid;
+      isValidating = isValidating || control.isValidating;
+      isDirty = isDirty || control.isDirty;
+      isTouched = isTouched || control.isTouched;
+    }
     emit(
       MkArrayState<C>(
         controls: List.unmodifiable(_controls),
-        values: _controls.map((c) => c.value).toList(),
-        isValid: _controls.every((c) => c.isValid),
-        isValidating: _controls.any((c) => c.isValidating),
-        isDirty: _controls.any((c) => c.isDirty),
-        isTouched: _controls.any((c) => c.isTouched),
+        values: values,
+        isValid: isValid,
+        isValidating: isValidating,
+        isDirty: isDirty,
+        isTouched: isTouched,
       ),
     );
   }

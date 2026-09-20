@@ -27,4 +27,8 @@ class MkSpanishMessages extends MkFormMessages {
 
   @override
   String match() => 'Los valores no coinciden';
+
+  @override
+  String asyncValidationFailed() =>
+      'No se pudo verificar este valor. Inténtelo de nuevo.';
 }

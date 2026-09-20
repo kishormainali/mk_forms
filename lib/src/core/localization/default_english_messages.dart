@@ -27,4 +27,8 @@ class MkDefaultEnglishMessages extends MkFormMessages {
 
   @override
   String match() => 'Values do not match';
+
+  @override
+  String asyncValidationFailed() =>
+      'Could not verify this value. Please try again.';
 }

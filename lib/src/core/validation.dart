@@ -37,9 +37,15 @@ typedef AsyncValidator<T> = Future<String?> Function(T? value);
 class MkValidators {
   const MkValidators._();
 
-  /// Standard email regex conforming to HTML5 spec.
+  /// Email regex based on the WHATWG/HTML5 `type="email"` rule, additionally
+  /// requiring a dotted domain (`user@localhost` is rejected).
+  ///
+  /// The whole string must match; each domain label is 1-63 characters of
+  /// letters, digits or hyphens and cannot start or end with a hyphen.
   static final RegExp emailRegex = RegExp(
-    r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+    r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+"
+    r'@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?'
+    r'(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$',
   );
 
   /// Validates that the value is not null, not empty (for strings/iterables/maps),

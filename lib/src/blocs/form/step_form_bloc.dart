@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../core/status.dart';
 import '../control_bloc.dart';
-import '../group_bloc.dart';
 import 'form_bloc.dart';
 import 'form_state.dart';
 import 'step_form_state.dart';
@@ -55,7 +54,6 @@ abstract class MkStepFormBloc extends MkFormBloc {
   ) {
     final validInitialStep =
         steps.isEmpty ? 0 : initialStep.clamp(0, steps.length - 1);
-    final group = MkGroupBloc(controls);
     return MkStepFormState(
       submissionStatus: const MkSubmissionStatus.idle(),
       isValid: controls.values.every((c) => c.isValid),
@@ -63,7 +61,9 @@ abstract class MkStepFormBloc extends MkFormBloc {
       isDirty: controls.values.any((c) => c.isDirty),
       isTouched: controls.values.any((c) => c.isTouched),
       wasSubmitted: false,
-      values: group.value,
+      values: {
+        for (final entry in controls.entries) entry.key: entry.value.value,
+      },
       currentStep: validInitialStep,
       totalSteps: steps.length,
       completedSteps: const {},
@@ -118,6 +118,7 @@ abstract class MkStepFormBloc extends MkFormBloc {
 
     final stepConfig = _steps[stepIndex];
     final isValid = await validateControls(stepConfig.controlNames);
+    if (isClosed) return false;
 
     final updatedCompleted = Set<int>.from(state.completedSteps);
     if (isValid) {
@@ -181,7 +182,7 @@ abstract class MkStepFormBloc extends MkFormBloc {
     // Navigating forward: validate all steps between current and target
     for (int i = currentStep; i < targetStep; i++) {
       final valid = await validateStep(i);
-      if (!valid) return false;
+      if (!valid || isClosed) return false;
     }
 
     emit(state.copyWith(currentStep: targetStep));
@@ -238,6 +239,7 @@ abstract class MkStepFormBloc extends MkFormBloc {
         // Preceding step has validation issues!
         // Touch/validate the invalid step's controls so errors are immediately visible.
         await validateControls(_steps[firstInvalidStep].controlNames);
+        if (isClosed) return;
 
         emit(
           state.copyWith(

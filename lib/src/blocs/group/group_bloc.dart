@@ -1,3 +1,4 @@
+import '../batched_aggregate.dart';
 import '../control_bloc.dart';
 import '../field/field_bloc.dart';
 import 'group_state.dart';
@@ -5,7 +6,7 @@ import 'group_state.dart';
 export 'group_state.dart';
 
 /// A form control bloc that aggregates a map of named [MkControlBloc] children.
-class MkGroupBloc extends MkControlBloc<MkGroupState> {
+class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
   MkGroupBloc(Map<String, MkControlBloc<dynamic>> controls)
       : _controls = Map.of(controls),
         super(
@@ -33,16 +34,21 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> {
   Map<String, dynamic> get value => _extractValues(_controls);
 
   @override
-  bool get isValid => _controls.values.every((c) => c.isValid);
+  Map<String, dynamic> get snapshotValue => state.values;
+
+  // The aggregate flags are kept up to date by the child listeners, so reading
+  // them from the cached state is O(1) instead of walking the whole subtree.
+  @override
+  bool get isValid => state.isValid;
 
   @override
-  bool get isValidating => _controls.values.any((c) => c.isValidating);
+  bool get isValidating => state.isValidating;
 
   @override
-  bool get isDirty => _controls.values.any((c) => c.isDirty);
+  bool get isDirty => state.isDirty;
 
   @override
-  bool get isTouched => _controls.values.any((c) => c.isTouched);
+  bool get isTouched => state.isTouched;
 
   /// Retrieves a child control of type [C] by [name].
   C? control<C extends MkControlBloc<dynamic>>(String name) {
@@ -82,56 +88,79 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> {
 
   @override
   void touch() {
-    for (final control in _controls.values) {
-      control.touch();
-    }
-    _recalculateState();
+    runBatched(() {
+      for (final control in _controls.values) {
+        control.touch();
+      }
+    }, _recalculateState);
   }
 
   /// Marks that the enclosing form has attempted submission across all child controls.
   @override
   void markFormSubmitted([bool submitted = true]) {
-    for (final control in _controls.values) {
-      control.markFormSubmitted(submitted);
-    }
+    runBatched(() {
+      for (final control in _controls.values) {
+        control.markFormSubmitted(submitted);
+      }
+    }, _recalculateState);
   }
 
   @override
   void reset() {
-    for (final control in _controls.values) {
-      control.reset();
-    }
-    _recalculateState();
+    runBatched(() {
+      for (final control in _controls.values) {
+        control.reset();
+      }
+    }, _recalculateState);
   }
 
   @override
   Future<bool> validate() async {
-    final results = await Future.wait(
-      _controls.values.map((c) => c.validate()),
-    );
-    _recalculateState();
+    final pending = <Future<bool>>[];
+    // Synchronous validators finish (and emit) inside this loop; batching folds
+    // them into a single recalculation. Async ones recalculate as they settle.
+    runBatched(() {
+      for (final control in List.of(_controls.values)) {
+        pending.add(control.validate());
+      }
+    }, _recalculateState);
+    final results = await Future.wait(pending);
     return results.every((valid) => valid);
   }
 
   void _listenToControl(String name, MkControlBloc<dynamic> control) {
     void callback() {
-      if (!isClosed) {
-        _recalculateState();
-      }
+      if (isClosed || deferIfBatching()) return;
+      _recalculateState();
     }
 
     _listenerCallbacks[name] = callback;
     control.addStateListener(callback);
   }
 
+  /// Recomputes the aggregate in a single pass over the children.
   void _recalculateState() {
+    if (isClosed) return;
+    var isValid = true;
+    var isValidating = false;
+    var isDirty = false;
+    var isTouched = false;
+    final values = <String, dynamic>{};
+    for (final entry in _controls.entries) {
+      final control = entry.value;
+      values[entry.key] = control.snapshotValue;
+      isValid = isValid && control.isValid;
+      isValidating = isValidating || control.isValidating;
+      isDirty = isDirty || control.isDirty;
+      isTouched = isTouched || control.isTouched;
+    }
     emit(
       MkGroupState(
-        values: _extractValues(_controls),
-        isValid: _controls.values.every((c) => c.isValid),
-        isValidating: _controls.values.any((c) => c.isValidating),
-        isDirty: _controls.values.any((c) => c.isDirty),
-        isTouched: _controls.values.any((c) => c.isTouched),
+        values: values,
+        isValid: isValid,
+        isValidating: isValidating,
+        isDirty: isDirty,
+        isTouched: isTouched,
       ),
     );
   }

@@ -18,14 +18,27 @@ abstract class MkControlBloc<State> extends Cubit<State> {
     _stateListeners.remove(listener);
   }
 
+  /// Emits [state] and notifies state listeners, but only if it actually
+  /// changed. Emitting after [close] is a silent no-op, so in-flight async work
+  /// finishing late cannot throw.
   @protected
   @override
   void emit(State state) {
+    if (isClosed) return;
+    final changed = state != this.state;
     super.emit(state);
+    if (!changed || _stateListeners.isEmpty) return;
     for (final listener in List.of(_stateListeners)) {
       listener();
     }
   }
+
+  /// This control's value as last aggregated, without recomputing children.
+  ///
+  /// Aggregating controls override it to return their cached state so parents
+  /// do not walk the whole subtree on every change.
+  @internal
+  dynamic get snapshotValue => value;
 
   /// Whether the control and all its children are valid.
   bool get isValid;

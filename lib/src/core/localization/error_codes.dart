@@ -10,4 +10,5 @@ class MkErrorCodes {
   static const String max = 'max';
   static const String pattern = 'pattern';
   static const String match = 'match';
+  static const String asyncValidationFailed = 'asyncValidationFailed';
 }

@@ -1,4 +1,6 @@
 import 'dart:async';
+import '../../core/deep_equals.dart';
+import '../../core/localization.dart';
 import '../../core/validation.dart';
 import '../control_bloc.dart';
 import 'field_state.dart';
@@ -31,7 +33,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
           ),
         ) {
     // Initial validation check to establish validity status without displaying error
-    _initialValidate();
+    _syncRevalidate();
 
     // Setup dependencies
     for (final dependency in dependsOn) {
@@ -45,7 +47,6 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
 
   final List<(MkControlBloc<dynamic>, void Function())> _dependencyCallbacks =
       [];
-  final List<MkFieldBloc<dynamic>> _dependents = [];
   Timer? _debounceTimer;
   int _latestAsyncToken = 0;
 
@@ -73,90 +74,95 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   /// Whether this field is visible.
   bool get isVisible => state.isVisible;
 
-  bool _isValidatingInternal = false;
-
-  /// Adds a dependency on [otherControl]. When [otherControl] changes value,
-  /// this field will automatically revalidate.
+  /// Adds a dependency on [otherControl]. When the *value* of [otherControl]
+  /// changes, this field is automatically revalidated (async validators are
+  /// debounced, exactly like after [changeValue]).
+  ///
+  /// Adding a dependency only re-runs synchronous validation, so it never
+  /// triggers an async validator (a network call) by itself.
   void addDependency(MkControlBloc<dynamic> otherControl) {
-    if (otherControl is MkFieldBloc) {
-      otherControl._dependents.add(this);
-    }
-    dynamic previousValue = otherControl.value;
+    if (isClosed) return;
+    dynamic previousValue = otherControl.snapshotValue;
 
     void callback() {
       if (isClosed) return;
-      final currentValue = otherControl.value;
-      if (currentValue != previousValue) {
-        previousValue = currentValue;
-        if (!_isValidatingInternal) {
-          _isValidatingInternal = true;
-          try {
-            unawaited(validate(cascadeDependents: false));
-          } finally {
-            _isValidatingInternal = false;
-          }
-        }
-      }
+      final currentValue = otherControl.snapshotValue;
+      if (mkDeepEquals(currentValue, previousValue)) return;
+      previousValue = currentValue;
+      _revalidate();
     }
 
     _dependencyCallbacks.add((otherControl, callback));
     otherControl.addStateListener(callback);
 
-    // Initial validation against current state of dependency
-    if (!_isValidatingInternal) {
-      _isValidatingInternal = true;
-      try {
-        unawaited(validate(cascadeDependents: false));
-      } finally {
-        _isValidatingInternal = false;
-      }
-    }
+    _syncRevalidate();
   }
 
   /// Changes the value of this field.
   ///
   /// Recomputes [isDirty], runs synchronous validation, and triggers
   /// debounced async validation if synchronous validation passes.
-  void changeValue(T? newValue) {
+  ///
+  /// Pass [markTouched] to also mark the field as touched in the same state
+  /// emission (one rebuild instead of two), e.g. for taps on checkboxes,
+  /// radios and dropdowns.
+  void changeValue(T? newValue, {bool markTouched = false}) {
     if (isClosed) return;
 
-    _debounceTimer?.cancel();
-    _latestAsyncToken++;
+    _cancelPendingValidation();
+    _validateAndEmit(
+      state.copyWith(
+        value: () => newValue,
+        isDirty: !mkDeepEquals(newValue, state.initialValue),
+        isTouched: markTouched ? true : null,
+      ),
+    );
+  }
 
-    final isDirty = newValue != state.initialValue;
-    final (syncError, syncCode, syncParams) = _runSyncValidation(newValue);
+  /// Revalidates the current value after a dependency changed.
+  void _revalidate() {
+    if (isClosed) return;
+    _cancelPendingValidation();
+    _validateAndEmit(state);
+  }
+
+  /// Runs sync validation on [next]'s value and emits it. If sync validation
+  /// passes and async validators exist, starts the debounced async run.
+  void _validateAndEmit(MkFieldState<T> next) {
+    final value = next.value;
+    final (syncError, syncCode, syncParams) = _runSyncValidation(value);
 
     if (syncError != null || _asyncValidators.isEmpty) {
       emit(
-        state.copyWith(
-          value: () => newValue,
-          isDirty: isDirty,
+        next.copyWith(
           error: () => syncError,
           errorCode: () => syncCode,
           errorParams: () => syncParams,
           isValidating: false,
         ),
       );
-      _notifyDependents();
-    } else {
-      // Sync passed, start async debounced validation
-      emit(
-        state.copyWith(
-          value: () => newValue,
-          isDirty: isDirty,
-          error: () => null,
-          errorCode: () => null,
-          errorParams: () => null,
-          isValidating: true,
-        ),
-      );
-      _notifyDependents();
-
-      final currentToken = _latestAsyncToken;
-      _debounceTimer = Timer(_debounceTime, () {
-        unawaited(_runAsyncValidation(newValue, currentToken));
-      });
+      return;
     }
+
+    // Sync passed, start async debounced validation
+    emit(
+      next.copyWith(
+        error: () => null,
+        errorCode: () => null,
+        errorParams: () => null,
+        isValidating: true,
+      ),
+    );
+    final token = _latestAsyncToken;
+    _debounceTimer = Timer(_debounceTime, () {
+      unawaited(_runAsyncValidation(value, token));
+    });
+  }
+
+  /// Cancels the debounce timer and invalidates any in-flight async run.
+  void _cancelPendingValidation() {
+    _debounceTimer?.cancel();
+    _latestAsyncToken++;
   }
 
   /// Marks this field as touched (e.g. on blur or focus lost).
@@ -220,8 +226,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   void reset([T? newInitialValue]) {
     if (isClosed) return;
 
-    _debounceTimer?.cancel();
-    _latestAsyncToken++;
+    _cancelPendingValidation();
 
     final resetValue = newInitialValue ?? state.initialValue;
     final (initialError, initialCode, initialParams) =
@@ -242,19 +247,20 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
         errorParams: initialParams,
       ),
     );
-    _notifyDependents();
   }
 
   /// Runs all validations on the current field value.
   ///
-  /// Set [cascadeDependents] to false when called from a dependency update
-  /// to prevent circular cascade loops.
+  /// [cascadeDependents] is ignored: dependents are revalidated whenever this
+  /// field's *value* changes, not whenever it validates.
   @override
-  Future<bool> validate({bool cascadeDependents = true}) async {
+  Future<bool> validate({
+    @Deprecated('No longer needed; it has no effect.')
+    bool cascadeDependents = true,
+  }) async {
     if (isClosed) return isValid;
 
-    _debounceTimer?.cancel();
-    _latestAsyncToken++;
+    _cancelPendingValidation();
 
     final (syncError, syncCode, syncParams) = _runSyncValidation(state.value);
 
@@ -267,7 +273,6 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
           isValidating: false,
         ),
       );
-      if (cascadeDependents) _notifyDependents();
       return false;
     }
 
@@ -280,7 +285,6 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
           isValidating: false,
         ),
       );
-      if (cascadeDependents) _notifyDependents();
       return true;
     }
 
@@ -297,7 +301,9 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
         await _executeAsyncValidators(state.value);
 
     if (token != _latestAsyncToken || isClosed) {
-      return isValid;
+      // Superseded by a newer value or validation run. Report the outcome of
+      // that run instead of the in-flight (and therefore "invalid") state.
+      return _settledValidity();
     }
 
     emit(
@@ -308,11 +314,22 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
         isValidating: false,
       ),
     );
-    if (cascadeDependents) _notifyDependents();
     return asyncError == null;
   }
 
-  void _initialValidate() {
+  /// Waits for any in-flight validation to finish, then returns [isValid].
+  Future<bool> _settledValidity() async {
+    if (!isClosed && state.isValidating) {
+      await stream.firstWhere((s) => !s.isValidating, orElse: () => state);
+    }
+    return isValid;
+  }
+
+  /// Re-runs synchronous validation only, without touching async state.
+  ///
+  /// Used to establish the initial validity (errors stay hidden until the
+  /// field is touched) and when a dependency is added.
+  void _syncRevalidate() {
     final (syncError, syncCode, syncParams) = _runSyncValidation(state.value);
     if (syncError != null) {
       emit(
@@ -320,6 +337,14 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
           error: () => syncError,
           errorCode: () => syncCode,
           errorParams: () => syncParams,
+        ),
+      );
+    } else if (_asyncValidators.isEmpty && state.error != null) {
+      emit(
+        state.copyWith(
+          error: () => null,
+          errorCode: () => null,
+          errorParams: () => null,
         ),
       );
     }
@@ -361,17 +386,18 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
         if (error != null) {
           return (error, null, null);
         }
-      } catch (e) {
-        return (e.toString(), null, null);
+      } catch (error, stackTrace) {
+        // Never surface raw exception text (hostnames, stack details) to the
+        // user. Report it to the bloc observer and show a generic message.
+        addError(error, stackTrace);
+        return (
+          MkFormLocalizations.current.asyncValidationFailed(),
+          MkErrorCodes.asyncValidationFailed,
+          null,
+        );
       }
     }
     return (null, null, null);
-  }
-
-  void _notifyDependents() {
-    for (final dependent in _dependents) {
-      unawaited(dependent.validate(cascadeDependents: false));
-    }
   }
 
   @override
@@ -381,7 +407,6 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
       pair.$1.removeStateListener(pair.$2);
     }
     _dependencyCallbacks.clear();
-    _dependents.clear();
     return super.close();
   }
 }

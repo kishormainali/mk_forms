@@ -31,6 +31,13 @@ abstract class MkFormMessages {
   /// Message when two fields do not match (e.g. password confirmation).
   String match();
 
+  /// Message when an async validator threw instead of returning a result
+  /// (e.g. the network was down), so the value could not be verified.
+  ///
+  /// Not abstract so existing [MkFormMessages] implementations keep compiling.
+  String asyncValidationFailed() =>
+      'Could not verify this value. Please try again.';
+
   /// Resolves an error code and optional parameter map to a localized string.
   String? resolve(String errorCode, [Map<String, dynamic> params = const {}]) {
     switch (errorCode) {
@@ -50,6 +57,8 @@ abstract class MkFormMessages {
         return pattern();
       case MkErrorCodes.match:
         return match();
+      case MkErrorCodes.asyncValidationFailed:
+        return asyncValidationFailed();
       default:
         return null;
     }
