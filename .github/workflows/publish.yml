@@ -69,6 +69,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Provisions the OIDC token pub.dev needs: it requests a GitHub-signed ID
+      # token for https://pub.dev, exports it as PUB_TOKEN and registers it with
+      # `dart pub token add`. Without this step `dart pub publish` finds no
+      # credentials and asks for an interactive login. It must run BEFORE the
+      # Flutter step: the `dart` binary from the Flutter SDK below shadows this
+      # one (needed to publish Flutter packages), but reuses the token.
+      - name: Set up Dart and pub.dev OIDC token
+        uses: dart-lang/setup-dart@v1
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -77,6 +86,9 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Publish - dry run
+        run: dart pub publish --dry-run
 
       - name: Publish
         run: dart pub publish --force
