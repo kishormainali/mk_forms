@@ -34,8 +34,8 @@ A reactive, type-safe, and highly performant Flutter form management library pow
 dependencies:
   flutter:
     sdk: flutter
-  flutter_bloc: ^8.1.6
-  mk_forms: ^0.1.0
+  flutter_bloc: ^9.1.1
+  mk_forms: ^1.0.1
 ```
 
 For i18n support, add `flutter_localizations` and configure your `MaterialApp`:

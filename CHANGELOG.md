@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.0.1] - 2026-09-20
 
 ### Added
 - **`MkFormBuilder`** — Rebuilds from `MkFormState` (with optional `formBloc` and `buildWhen`), mirroring `MkFormListener`.
@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `MkFieldBloc.changeValue(value, markTouched: true)`; checkbox, radio and dropdown widgets use it to emit (and rebuild) once per interaction instead of twice.
 
 ### Changed
+- **Minimum versions corrected to Flutter `>=3.41.0` / Dart `>=3.9.0`.** The code already required them (`AutovalidateMode.onUserInteractionIfError` ships in 3.41, `RadioGroup` and the dropdown's `initialValue` in 3.35); the previous `>=3.10.0` made older Flutter fail at compile time instead of at version resolution.
 - **`MkFormScope`** is now a `StatelessWidget` built on `BlocProvider` instead of a custom `InheritedWidget`, with the same two constructors: `MkFormScope(create:, lazy:)` creates and closes the bloc, `MkFormScope.value(value:)` exposes an existing one without closing it. **Breaking:** `MkFormScope(formBloc: x)` is now `MkFormScope.value(value: x)`.
 - `MkFormScope.of` no longer registers a rebuild dependency (use `MkFormBuilder`).
 - `MkFieldBloc.validate({cascadeDependents})`: the parameter is deprecated and ignored; dependents are revalidated when the dependency's value changes.

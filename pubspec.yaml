@@ -1,13 +1,13 @@
 name: mk_forms
 description: A flexible, reactive, and type-safe Flutter form management library powered by flutter_bloc. Handles minimal to complex forms with ease.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/kishormainali/mk_forms
 repository: https://github.com/kishormainali/mk_forms
 issue_tracker: https://github.com/kishormainali/mk_forms/issues
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
-  flutter: '>=3.10.0'
+  sdk: '>=3.9.0 <4.0.0'
+  flutter: '>=3.41.0'
 
 dependencies:
   flutter:
