@@ -65,8 +65,8 @@ class _I18nDemoScreenState extends State<I18nDemoScreen> {
             ),
           ],
         ),
-        body: MkFormScope(
-          formBloc: _formBloc,
+        body: MkFormScope.value(
+          value: _formBloc,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(

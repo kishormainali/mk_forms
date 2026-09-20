@@ -16,8 +16,8 @@ class PreferencesStepScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MkFormScope(
-      formBloc: formBloc,
+    return MkFormScope.value(
+      value: formBloc,
       child: MkFormListener(
         formBloc: formBloc,
         onSubmitting: (context) {

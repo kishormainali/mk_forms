@@ -60,8 +60,8 @@ class _AutovalidateScreenState extends State<AutovalidateScreen> {
       appBar: AppBar(
         title: const Text('Autovalidate Modes'),
       ),
-      body: MkFormScope(
-        formBloc: _formBloc,
+      body: MkFormScope.value(
+        value: _formBloc,
         autovalidateMode: _currentMode,
         child: MkFormListener(
           formBloc: _formBloc,

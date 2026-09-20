@@ -49,8 +49,8 @@ class _DynamicTodosScreenState extends State<DynamicTodosScreen> {
           ),
         ],
       ),
-      body: MkFormScope(
-        formBloc: _formBloc,
+      body: MkFormScope.value(
+        value: _formBloc,
         child: MkFormListener(
           formBloc: _formBloc,
           onSuccess: (context, response) {

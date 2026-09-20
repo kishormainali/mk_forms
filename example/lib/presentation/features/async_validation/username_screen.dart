@@ -42,8 +42,8 @@ class _UsernameScreenState extends State<UsernameScreen> {
       appBar: AppBar(
         title: const Text('Async Validation'),
       ),
-      body: MkFormScope(
-        formBloc: _formBloc,
+      body: MkFormScope.value(
+        value: _formBloc,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(

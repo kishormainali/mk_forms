@@ -21,6 +21,10 @@ class MkMultiSelectModalContent<T> extends StatefulWidget {
     required this.searchPredicate,
     required this.onSelectionChanged,
     this.itemTitleBuilder,
+    this.doneLabel = 'Done',
+    this.selectAllLabel = 'Select All',
+    this.clearAllLabel = 'Clear All',
+    this.showSelectAll = true,
   });
 
   final List<T> items;
@@ -32,6 +36,10 @@ class MkMultiSelectModalContent<T> extends StatefulWidget {
   final ValueChanged<List<T>> onSelectionChanged;
   final Widget Function(BuildContext context, T item, bool isSelected)?
       itemTitleBuilder;
+  final String doneLabel;
+  final String selectAllLabel;
+  final String clearAllLabel;
+  final bool showSelectAll;
 
   @override
   State<MkMultiSelectModalContent<T>> createState() =>
@@ -47,6 +55,13 @@ class _MkMultiSelectModalContentState<T>
   void initState() {
     super.initState();
     _selected = List<T>.from(widget.currentSelection);
+  }
+
+  /// Reports a snapshot of the selection. The modal keeps mutating [_selected],
+  /// so handing out the live list would alias the value already stored in the
+  /// field state and make later changes look like no-ops to the bloc.
+  void _notifySelectionChanged() {
+    widget.onSelectionChanged(List<T>.of(_selected));
   }
 
   @override
@@ -67,17 +82,20 @@ class _MkMultiSelectModalContentState<T>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.modalTitle,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                Expanded(
+                  child: Text(
+                    widget.modalTitle,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
                 ),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Done'),
+                  child: Text(widget.doneLabel),
                 ),
               ],
             ),
@@ -100,30 +118,31 @@ class _MkMultiSelectModalContentState<T>
               },
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _selected = List<T>.from(widget.items);
-                  });
-                  widget.onSelectionChanged(_selected);
-                },
-                child: const Text('Select All'),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _selected.clear();
-                  });
-                  widget.onSelectionChanged(_selected);
-                },
-                child: const Text('Clear All'),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
+          if (widget.showSelectAll)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _selected = List<T>.from(widget.items);
+                    });
+                    _notifySelectionChanged();
+                  },
+                  child: Text(widget.selectAllLabel),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _selected.clear();
+                    });
+                    _notifySelectionChanged();
+                  },
+                  child: Text(widget.clearAllLabel),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
           const Divider(height: 1),
           Flexible(
             child: ListView.builder(
@@ -143,7 +162,7 @@ class _MkMultiSelectModalContentState<T>
                         _selected.remove(item);
                       }
                     });
-                    widget.onSelectionChanged(_selected);
+                    _notifySelectionChanged();
                   },
                   title: widget.itemTitleBuilder != null
                       ? widget.itemTitleBuilder!(context, item, isSelected)

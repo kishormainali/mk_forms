@@ -41,8 +41,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       appBar: AppBar(
         title: const Text('Dependent Fields'),
       ),
-      body: MkFormScope(
-        formBloc: _formBloc,
+      body: MkFormScope.value(
+        value: _formBloc,
         child: MkFormListener(
           formBloc: _formBloc,
           onSuccess: (context, response) {

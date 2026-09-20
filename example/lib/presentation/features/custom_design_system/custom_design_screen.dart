@@ -46,8 +46,8 @@ class _CustomDesignScreenState extends State<CustomDesignScreen> {
       appBar: AppBar(
         title: const Text('Custom Design System'),
       ),
-      body: MkFormScope(
-        formBloc: _formBloc,
+      body: MkFormScope.value(
+        value: _formBloc,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(

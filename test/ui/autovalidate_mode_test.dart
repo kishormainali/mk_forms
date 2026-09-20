@@ -18,8 +18,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MkFormScope(
-              formBloc: formBloc,
+            body: MkFormScope.value(
+              value: formBloc,
               autovalidateMode: AutovalidateMode.always,
               child: const MkTextField(name: 'username'),
             ),
@@ -44,8 +44,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MkFormScope(
-              formBloc: formBloc,
+            body: MkFormScope.value(
+              value: formBloc,
               child: const MkTextField(name: 'username'),
             ),
           ),
@@ -77,8 +77,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MkFormScope(
-              formBloc: formBloc,
+            body: MkFormScope.value(
+              value: formBloc,
               autovalidateMode: AutovalidateMode.disabled,
               child: const MkTextField(name: 'username'),
             ),
@@ -100,6 +100,33 @@ void main() {
       expect(find.text('Username is required'), findsOneWidget);
     });
 
+    testWidgets('changing MkFormScope.autovalidateMode updates fields',
+        (tester) async {
+      final nameField = MkFieldBloc<String>(
+        validators: [MkValidators.required('Username is required')],
+      );
+      final formBloc = MkSimpleFormBloc(
+        controls: {'username': nameField},
+        onSubmit: (v) async => true,
+      );
+
+      Widget app(AutovalidateMode mode) => MaterialApp(
+            home: Scaffold(
+              body: MkFormScope.value(
+                value: formBloc,
+                autovalidateMode: mode,
+                child: const MkTextField(name: 'username'),
+              ),
+            ),
+          );
+
+      await tester.pumpWidget(app(AutovalidateMode.disabled));
+      expect(find.text('Username is required'), findsNothing);
+
+      await tester.pumpWidget(app(AutovalidateMode.always));
+      expect(find.text('Username is required'), findsOneWidget);
+    });
+
     testWidgets('Widget-level autovalidateMode overrides MkFormScope',
         (tester) async {
       final emailField = MkFieldBloc<String>(
@@ -113,8 +140,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MkFormScope(
-              formBloc: formBloc,
+            body: MkFormScope.value(
+              value: formBloc,
               // Form scope is disabled:
               autovalidateMode: AutovalidateMode.disabled,
               // But widget explicitly requests always:

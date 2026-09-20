@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mk_forms/mk_forms.dart';
+
+String shownText(WidgetTester tester) =>
+    tester.widget<TextField>(find.byType(TextField)).controller!.text;
 
 void main() {
   group('MkFieldBuilder & Form Widgets', () {
@@ -63,8 +67,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: MkFormScope(
-            formBloc: formBloc,
+          home: MkFormScope.value(
+            value: formBloc,
             child: Builder(
               builder: (context) {
                 final field = context.mkField<String>('name');
@@ -137,6 +141,189 @@ void main() {
       expect(roleField.value, 'admin');
     });
 
+    testWidgets('MkFormScope is backed by BlocProvider', (tester) async {
+      final formBloc = MkSimpleFormBloc(
+        controls: {'name': MkFieldBloc<String>()},
+        onSubmit: (values) async => true,
+      );
+
+      MkFormBloc? viaBlocProvider;
+      MkFormBloc? viaMaybeOf;
+      MkFormBloc? outside;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              outside = MkFormScope.maybeOf(context);
+              return MkFormScope.value(
+                value: formBloc,
+                child: Builder(
+                  builder: (context) {
+                    viaBlocProvider = BlocProvider.of<MkFormBloc>(context);
+                    viaMaybeOf = MkFormScope.maybeOf(context);
+                    return const SizedBox();
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      expect(viaBlocProvider, same(formBloc));
+      expect(viaMaybeOf, same(formBloc));
+      expect(outside, isNull);
+    });
+
+    testWidgets(
+        'MkFormScope(create:) creates the bloc and closes it on dispose',
+        (tester) async {
+      var created = 0;
+      late MkFormBloc formBloc;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MkFormScope(
+            create: (context) {
+              created++;
+              return MkSimpleFormBloc(
+                controls: {'name': MkFieldBloc<String>(initialValue: 'Bob')},
+                onSubmit: (values) async => true,
+              );
+            },
+            child: Builder(
+              builder: (context) {
+                formBloc = context.mkForm;
+                return Text(context.mkField<String>('name')!.value ?? '');
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(created, 1);
+      expect(find.text('Bob'), findsOneWidget);
+      expect(formBloc.isClosed, isFalse);
+
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      expect(formBloc.isClosed, isTrue);
+    });
+
+    testWidgets(
+        'MkFormScope(create:) is lazy by default and honours lazy: false',
+        (tester) async {
+      var created = 0;
+      MkFormBloc make(BuildContext _) {
+        created++;
+        return MkSimpleFormBloc(
+          controls: {'name': MkFieldBloc<String>()},
+          onSubmit: (values) async => true,
+        );
+      }
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MkFormScope(create: make, child: const SizedBox()),
+        ),
+      );
+      expect(created, 0);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MkFormScope(
+            key: const ValueKey('eager'),
+            create: make,
+            lazy: false,
+            child: const SizedBox(),
+          ),
+        ),
+      );
+      expect(created, 1);
+    });
+
+    testWidgets('MkFormScope.value does not close the supplied bloc',
+        (tester) async {
+      final formBloc = MkSimpleFormBloc(
+        controls: {'name': MkFieldBloc<String>()},
+        onSubmit: (values) async => true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MkFormScope.value(value: formBloc, child: const SizedBox()),
+        ),
+      );
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+
+      expect(formBloc.isClosed, isFalse);
+    });
+
+    testWidgets('MkFormBuilder rebuilds on form state changes', (tester) async {
+      final field = MkFieldBloc<String>(
+        validators: [MkValidators.required()],
+      );
+      final form = MkSimpleFormBloc(
+        controls: {'name': field},
+        onSubmit: (values) async => true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MkFormScope.value(
+            value: form,
+            child: MkFormBuilder(
+              builder: (context, state, bloc) =>
+                  Text(state.isValid ? 'valid' : 'invalid'),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('invalid'), findsOneWidget);
+
+      field.changeValue('Alice');
+      await tester.pump();
+      expect(find.text('valid'), findsOneWidget);
+    });
+
+    testWidgets('MkFormBuilder honours explicit formBloc and buildWhen',
+        (tester) async {
+      final field = MkFieldBloc<String>(
+        validators: [MkValidators.required()],
+      );
+      final form = MkSimpleFormBloc(
+        controls: {'name': field},
+        onSubmit: (values) async => true,
+      );
+      var builds = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MkFormBuilder(
+            formBloc: form,
+            buildWhen: (p, c) => p.isValid != c.isValid,
+            builder: (context, state, bloc) {
+              builds++;
+              expect(bloc, same(form));
+              return Text(state.isValid ? 'valid' : 'invalid');
+            },
+          ),
+        ),
+      );
+      final initial = builds;
+
+      field.changeValue('A');
+      await tester.pump();
+      expect(find.text('valid'), findsOneWidget);
+      final afterValid = builds;
+      expect(afterValid, greaterThan(initial));
+
+      // isValid unchanged -> no rebuild
+      field.changeValue('AB');
+      await tester.pump();
+      expect(builds, afterValid);
+    });
+
     testWidgets('MkFormListener triggers callbacks on state transitions',
         (tester) async {
       bool submittingCalled = false;
@@ -174,6 +361,176 @@ void main() {
 
       await tester.pump(const Duration(milliseconds: 50));
       expect(successCalled, isTrue);
+    });
+
+    testWidgets('MkMultiSelectSearchDropdown shows every picked item as a chip',
+        (tester) async {
+      final field = MkFieldBloc<List<String>>(initialValue: const []);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MkMultiSelectSearchDropdown<String>(
+              fieldBloc: field,
+              items: const ['Apple', 'Banana', 'Cherry'],
+              itemToString: (s) => s,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(InkWell).first);
+      await tester.pumpAndSettle();
+      for (final item in ['Apple', 'Banana', 'Cherry']) {
+        await tester.tap(find.widgetWithText(CheckboxListTile, item));
+        await tester.pump();
+      }
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+
+      expect(field.value, ['Apple', 'Banana', 'Cherry']);
+      for (final item in ['Apple', 'Banana', 'Cherry']) {
+        expect(find.widgetWithText(InputChip, item), findsOneWidget);
+      }
+    });
+
+    testWidgets(
+        'MkTextField does not rebuild while typing when nothing '
+        'visible changes', (tester) async {
+      final field = MkFieldBloc<String>();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: MkTextField(fieldBloc: field)),
+        ),
+      );
+
+      final before = tester.widget<TextField>(find.byType(TextField));
+      await tester.enterText(find.byType(TextField), 'abc');
+      await tester.pump();
+      final after = tester.widget<TextField>(find.byType(TextField));
+
+      expect(field.value, 'abc');
+      expect(identical(before, after), isTrue);
+    });
+
+    testWidgets('MkTextField still rebuilds when the error changes',
+        (tester) async {
+      final field = MkFieldBloc<String>(
+        validators: [MkValidators.required('Required')],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: MkTextField(fieldBloc: field)),
+        ),
+      );
+      field.touch();
+      await tester.pump();
+      expect(find.text('Required'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'abc');
+      await tester.pump();
+      expect(find.text('Required'), findsNothing);
+    });
+
+    testWidgets('MkTextField reflects programmatic value changes',
+        (tester) async {
+      final field = MkFieldBloc<String>(initialValue: 'one');
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: MkTextField(fieldBloc: field)),
+        ),
+      );
+      expect(shownText(tester), 'one');
+
+      field.changeValue('two');
+      await tester.pump();
+      expect(shownText(tester), 'two');
+
+      field.reset();
+      await tester.pumpAndSettle();
+      expect(shownText(tester), 'one');
+    });
+
+    testWidgets('MkCheckboxField emits a single state per tap', (tester) async {
+      final field = MkFieldBloc<bool>(initialValue: false);
+      var emissions = 0;
+      final sub = field.stream.listen((_) => emissions++);
+      addTearDown(sub.cancel);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MkCheckboxField(fieldBloc: field, title: const Text('T')),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(CheckboxListTile));
+      await tester.pump();
+
+      expect(field.value, isTrue);
+      expect(field.isTouched, isTrue);
+      expect(emissions, 1);
+    });
+
+    testWidgets('MkRadioGroup emits a single state per selection',
+        (tester) async {
+      final field = MkFieldBloc<String>();
+      var emissions = 0;
+      final sub = field.stream.listen((_) => emissions++);
+      addTearDown(sub.cancel);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MkRadioGroup<String>(
+              fieldBloc: field,
+              options: const [
+                MkRadioOption(value: 'a', label: Text('Option A')),
+                MkRadioOption(value: 'b', label: Text('Option B')),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Option B'));
+      await tester.pump();
+
+      expect(field.value, 'b');
+      expect(field.isTouched, isTrue);
+      expect(emissions, 1);
+    });
+
+    testWidgets('MkDropdownField emits a single state per selection',
+        (tester) async {
+      final field = MkFieldBloc<String>(initialValue: 'user');
+      var emissions = 0;
+      final sub = field.stream.listen((_) => emissions++);
+      addTearDown(sub.cancel);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MkDropdownField<String>(
+              fieldBloc: field,
+              items: const [
+                DropdownMenuItem(value: 'user', child: Text('Standard User')),
+                DropdownMenuItem(value: 'admin', child: Text('Administrator')),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Administrator').last);
+      await tester.pumpAndSettle();
+
+      expect(field.value, 'admin');
+      expect(field.isTouched, isTrue);
+      expect(emissions, 1);
     });
 
     testWidgets('MkEmailField renders email input and triggers change',

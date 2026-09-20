@@ -6,6 +6,7 @@ class MkRadioOption<T> {
     required this.value,
     required this.label,
     this.subtitle,
+    this.secondary,
     this.enabled = true,
   });
 
@@ -17,6 +18,9 @@ class MkRadioOption<T> {
 
   /// Optional subtitle widget.
   final Widget? subtitle;
+
+  /// Optional widget shown on the opposite side of the radio (vertical layout only).
+  final Widget? secondary;
 
   /// Whether this specific option is enabled.
   final bool enabled;

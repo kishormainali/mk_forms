@@ -40,8 +40,8 @@ class _AllFieldsScreenState extends State<AllFieldsScreen> {
       appBar: AppBar(
         title: const Text('All Fields Showcase'),
       ),
-      body: MkFormScope(
-        formBloc: _formBloc,
+      body: MkFormScope.value(
+        value: _formBloc,
         child: MkFormListener(
           formBloc: _formBloc,
           onSuccess: (context, response) {

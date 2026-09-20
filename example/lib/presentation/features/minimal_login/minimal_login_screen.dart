@@ -46,8 +46,8 @@ class _MinimalLoginScreenState extends State<MinimalLoginScreen> {
       appBar: AppBar(
         title: const Text('Minimal Form (Login)'),
       ),
-      body: MkFormScope(
-        formBloc: _formBloc,
+      body: MkFormScope.value(
+        value: _formBloc,
         child: MkFormListener(
           formBloc: _formBloc,
           onSubmitting: (context) {

@@ -17,8 +17,8 @@ class ProfileStepScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MkFormScope(
-      formBloc: formBloc,
+    return MkFormScope.value(
+      value: formBloc,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Onboarding: Step 2 / 3'),
