@@ -68,10 +68,10 @@ class AccountStepRoute extends _i15.PageRouteInfo<AccountStepRouteArgs> {
     required _i17.OnboardingFormBloc formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          AccountStepRoute.name,
-          args: AccountStepRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         AccountStepRoute.name,
+         args: AccountStepRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'AccountStepRoute';
 
@@ -115,10 +115,10 @@ class AllFieldsRoute extends _i15.PageRouteInfo<AllFieldsRouteArgs> {
     _i18.AllFieldsFormBloc? formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          AllFieldsRoute.name,
-          args: AllFieldsRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         AllFieldsRoute.name,
+         args: AllFieldsRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'AllFieldsRoute';
 
@@ -164,10 +164,10 @@ class AutovalidateRoute extends _i15.PageRouteInfo<AutovalidateRouteArgs> {
     _i19.AutovalidateFormBloc? formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          AutovalidateRoute.name,
-          args: AutovalidateRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         AutovalidateRoute.name,
+         args: AutovalidateRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'AutovalidateRoute';
 
@@ -213,10 +213,10 @@ class CheckoutRoute extends _i15.PageRouteInfo<CheckoutRouteArgs> {
     _i20.CheckoutFormBloc? formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          CheckoutRoute.name,
-          args: CheckoutRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         CheckoutRoute.name,
+         args: CheckoutRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'CheckoutRoute';
 
@@ -262,10 +262,10 @@ class CustomDesignRoute extends _i15.PageRouteInfo<CustomDesignRouteArgs> {
     _i21.CustomDesignFormBloc? formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          CustomDesignRoute.name,
-          args: CustomDesignRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         CustomDesignRoute.name,
+         args: CustomDesignRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'CustomDesignRoute';
 
@@ -311,10 +311,10 @@ class DynamicTodosRoute extends _i15.PageRouteInfo<DynamicTodosRouteArgs> {
     _i22.DynamicTodosFormBloc? formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          DynamicTodosRoute.name,
-          args: DynamicTodosRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         DynamicTodosRoute.name,
+         args: DynamicTodosRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'DynamicTodosRoute';
 
@@ -356,7 +356,7 @@ class DynamicTodosRouteArgs {
 /// [_i7.HomeScreen]
 class HomeRoute extends _i15.PageRouteInfo<void> {
   const HomeRoute({List<_i15.PageRouteInfo>? children})
-      : super(HomeRoute.name, initialChildren: children);
+    : super(HomeRoute.name, initialChildren: children);
 
   static const String name = 'HomeRoute';
 
@@ -376,10 +376,10 @@ class I18nDemoRoute extends _i15.PageRouteInfo<I18nDemoRouteArgs> {
     _i23.I18nDemoFormBloc? formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          I18nDemoRoute.name,
-          args: I18nDemoRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         I18nDemoRoute.name,
+         args: I18nDemoRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'I18nDemoRoute';
 
@@ -425,10 +425,10 @@ class MinimalLoginRoute extends _i15.PageRouteInfo<MinimalLoginRouteArgs> {
     _i24.LoginFormBloc? formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          MinimalLoginRoute.name,
-          args: MinimalLoginRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         MinimalLoginRoute.name,
+         args: MinimalLoginRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'MinimalLoginRoute';
 
@@ -470,7 +470,7 @@ class MinimalLoginRouteArgs {
 /// [_i10.OnboardingFlowScreen]
 class OnboardingFlowRoute extends _i15.PageRouteInfo<void> {
   const OnboardingFlowRoute({List<_i15.PageRouteInfo>? children})
-      : super(OnboardingFlowRoute.name, initialChildren: children);
+    : super(OnboardingFlowRoute.name, initialChildren: children);
 
   static const String name = 'OnboardingFlowRoute';
 
@@ -491,10 +491,10 @@ class PreferencesStepRoute
     required _i17.OnboardingFormBloc formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          PreferencesStepRoute.name,
-          args: PreferencesStepRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         PreferencesStepRoute.name,
+         args: PreferencesStepRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'PreferencesStepRoute';
 
@@ -538,10 +538,10 @@ class ProfileStepRoute extends _i15.PageRouteInfo<ProfileStepRouteArgs> {
     required _i17.OnboardingFormBloc formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          ProfileStepRoute.name,
-          args: ProfileStepRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         ProfileStepRoute.name,
+         args: ProfileStepRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'ProfileStepRoute';
 
@@ -585,10 +585,10 @@ class RegistrationRoute extends _i15.PageRouteInfo<RegistrationRouteArgs> {
     _i25.RegistrationFormBloc? formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          RegistrationRoute.name,
-          args: RegistrationRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         RegistrationRoute.name,
+         args: RegistrationRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'RegistrationRoute';
 
@@ -634,10 +634,10 @@ class UsernameRoute extends _i15.PageRouteInfo<UsernameRouteArgs> {
     _i26.UsernameFormBloc? formBloc,
     List<_i15.PageRouteInfo>? children,
   }) : super(
-          UsernameRoute.name,
-          args: UsernameRouteArgs(key: key, formBloc: formBloc),
-          initialChildren: children,
-        );
+         UsernameRoute.name,
+         args: UsernameRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
 
   static const String name = 'UsernameRoute';
 

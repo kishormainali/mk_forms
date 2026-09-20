@@ -8,10 +8,8 @@ import 'bloc/all_fields_form_bloc.dart';
 /// Complete showcase screen featuring all built-in mk_forms fields powered by [AllFieldsFormBloc].
 @RoutePage()
 class AllFieldsScreen extends StatefulWidget {
-  const AllFieldsScreen({
-    super.key,
-    AllFieldsFormBloc? formBloc,
-  }) : _formBloc = formBloc;
+  const AllFieldsScreen({super.key, AllFieldsFormBloc? formBloc})
+    : _formBloc = formBloc;
 
   final AllFieldsFormBloc? _formBloc;
 
@@ -37,9 +35,7 @@ class _AllFieldsScreenState extends State<AllFieldsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('All Fields Showcase'),
-      ),
+      appBar: AppBar(title: const Text('All Fields Showcase')),
       body: MkFormScope.value(
         value: _formBloc,
         child: MkFormListener(
@@ -60,8 +56,8 @@ class _AllFieldsScreenState extends State<AllFieldsScreen> {
                 Text(
                   'Text Inputs',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const MkTextField(
@@ -79,8 +75,8 @@ class _AllFieldsScreenState extends State<AllFieldsScreen> {
                 Text(
                   'Dropdowns & Selectors',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const MkDropdownField<String>(
@@ -93,7 +89,9 @@ class _AllFieldsScreenState extends State<AllFieldsScreen> {
                   items: [
                     DropdownMenuItem(value: 'US', child: Text('United States')),
                     DropdownMenuItem(
-                        value: 'UK', child: Text('United Kingdom')),
+                      value: 'UK',
+                      child: Text('United Kingdom'),
+                    ),
                     DropdownMenuItem(value: 'DE', child: Text('Germany')),
                     DropdownMenuItem(value: 'JP', child: Text('Japan')),
                     DropdownMenuItem(value: 'NP', child: Text('Nepal')),
@@ -126,8 +124,8 @@ class _AllFieldsScreenState extends State<AllFieldsScreen> {
                 Text(
                   'Radio Groups',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const MkRadioGroup<String>(
@@ -175,14 +173,15 @@ class _AllFieldsScreenState extends State<AllFieldsScreen> {
                 Text(
                   'Checkboxes',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const MkCheckboxField(
                   name: 'agreeTerms',
-                  title:
-                      Text('I agree to the Terms of Service & Privacy Policy'),
+                  title: Text(
+                    'I agree to the Terms of Service & Privacy Policy',
+                  ),
                 ),
                 const SizedBox(height: 24),
                 FilledButton(

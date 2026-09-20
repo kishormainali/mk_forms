@@ -7,19 +7,20 @@ export 'array_state.dart';
 
 /// A form control bloc managing a dynamic list/array of [MkControlBloc] children.
 class MkArrayBloc<C extends MkControlBloc<dynamic>>
-    extends MkControlBloc<MkArrayState<C>> with MkBatchedAggregate {
+    extends MkControlBloc<MkArrayState<C>>
+    with MkBatchedAggregate {
   MkArrayBloc([List<C> initialControls = const []])
-      : _controls = List<C>.of(initialControls),
-        super(
-          MkArrayState<C>(
-            controls: List.unmodifiable(initialControls),
-            values: initialControls.map((c) => c.value).toList(),
-            isValid: initialControls.every((c) => c.isValid),
-            isValidating: initialControls.any((c) => c.isValidating),
-            isDirty: initialControls.any((c) => c.isDirty),
-            isTouched: initialControls.any((c) => c.isTouched),
-          ),
-        ) {
+    : _controls = List<C>.of(initialControls),
+      super(
+        MkArrayState<C>(
+          controls: List.unmodifiable(initialControls),
+          values: initialControls.map((c) => c.value).toList(),
+          isValid: initialControls.every((c) => c.isValid),
+          isValidating: initialControls.any((c) => c.isValidating),
+          isDirty: initialControls.any((c) => c.isDirty),
+          isTouched: initialControls.any((c) => c.isTouched),
+        ),
+      ) {
     for (final control in _controls) {
       _listenToControl(control);
     }

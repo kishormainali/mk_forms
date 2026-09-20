@@ -5,103 +5,108 @@ import 'package:mk_forms/mk_forms.dart';
 void main() {
   group('AutovalidateMode Widget Integration', () {
     testWidgets(
-        'AutovalidateMode.always displays error immediately on pristine load',
-        (tester) async {
-      final nameField = MkFieldBloc<String>(
-        validators: [MkValidators.required('Username is required')],
-      );
-      final formBloc = MkSimpleFormBloc(
-        controls: {'username': nameField},
-        onSubmit: (v) async => true,
-      );
+      'AutovalidateMode.always displays error immediately on pristine load',
+      (tester) async {
+        final nameField = MkFieldBloc<String>(
+          validators: [MkValidators.required('Username is required')],
+        );
+        final formBloc = MkSimpleFormBloc(
+          controls: {'username': nameField},
+          onSubmit: (v) async => true,
+        );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MkFormScope.value(
-              value: formBloc,
-              autovalidateMode: AutovalidateMode.always,
-              child: const MkTextField(name: 'username'),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: MkFormScope.value(
+                value: formBloc,
+                autovalidateMode: AutovalidateMode.always,
+                child: const MkTextField(name: 'username'),
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Error must be visible immediately without any touch/focus interaction
-      expect(find.text('Username is required'), findsOneWidget);
-    });
-
-    testWidgets('AutovalidateMode.onUserInteraction hides error until touched',
-        (tester) async {
-      final nameField = MkFieldBloc<String>(
-        validators: [MkValidators.required('Username is required')],
-      );
-      final formBloc = MkSimpleFormBloc(
-        controls: {'username': nameField},
-        onSubmit: (v) async => true,
-      );
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MkFormScope.value(
-              value: formBloc,
-              child: const MkTextField(name: 'username'),
-            ),
-          ),
-        ),
-      );
-
-      // Initially pristine -> no error
-      expect(find.text('Username is required'), findsNothing);
-
-      // Touch field
-      nameField.touch();
-      await tester.pump();
-
-      // Now error should be visible
-      expect(find.text('Username is required'), findsOneWidget);
-    });
+        // Error must be visible immediately without any touch/focus interaction
+        expect(find.text('Username is required'), findsOneWidget);
+      },
+    );
 
     testWidgets(
-        'AutovalidateMode.disabled hides error even after touch until form submission',
-        (tester) async {
-      final nameField = MkFieldBloc<String>(
-        validators: [MkValidators.required('Username is required')],
-      );
-      final formBloc = MkSimpleFormBloc(
-        controls: {'username': nameField},
-        onSubmit: (v) async => true,
-      );
+      'AutovalidateMode.onUserInteraction hides error until touched',
+      (tester) async {
+        final nameField = MkFieldBloc<String>(
+          validators: [MkValidators.required('Username is required')],
+        );
+        final formBloc = MkSimpleFormBloc(
+          controls: {'username': nameField},
+          onSubmit: (v) async => true,
+        );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MkFormScope.value(
-              value: formBloc,
-              autovalidateMode: AutovalidateMode.disabled,
-              child: const MkTextField(name: 'username'),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: MkFormScope.value(
+                value: formBloc,
+                child: const MkTextField(name: 'username'),
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Initially pristine -> no error
-      expect(find.text('Username is required'), findsNothing);
+        // Initially pristine -> no error
+        expect(find.text('Username is required'), findsNothing);
 
-      // Touch field -> still no error in disabled mode
-      nameField.touch();
-      await tester.pump();
-      expect(find.text('Username is required'), findsNothing);
+        // Touch field
+        nameField.touch();
+        await tester.pump();
 
-      // Attempt form submission -> error finally appears
-      await formBloc.submit();
-      await tester.pumpAndSettle();
-      expect(find.text('Username is required'), findsOneWidget);
-    });
+        // Now error should be visible
+        expect(find.text('Username is required'), findsOneWidget);
+      },
+    );
 
-    testWidgets('changing MkFormScope.autovalidateMode updates fields',
-        (tester) async {
+    testWidgets(
+      'AutovalidateMode.disabled hides error even after touch until form submission',
+      (tester) async {
+        final nameField = MkFieldBloc<String>(
+          validators: [MkValidators.required('Username is required')],
+        );
+        final formBloc = MkSimpleFormBloc(
+          controls: {'username': nameField},
+          onSubmit: (v) async => true,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: MkFormScope.value(
+                value: formBloc,
+                autovalidateMode: AutovalidateMode.disabled,
+                child: const MkTextField(name: 'username'),
+              ),
+            ),
+          ),
+        );
+
+        // Initially pristine -> no error
+        expect(find.text('Username is required'), findsNothing);
+
+        // Touch field -> still no error in disabled mode
+        nameField.touch();
+        await tester.pump();
+        expect(find.text('Username is required'), findsNothing);
+
+        // Attempt form submission -> error finally appears
+        await formBloc.submit();
+        await tester.pumpAndSettle();
+        expect(find.text('Username is required'), findsOneWidget);
+      },
+    );
+
+    testWidgets('changing MkFormScope.autovalidateMode updates fields', (
+      tester,
+    ) async {
       final nameField = MkFieldBloc<String>(
         validators: [MkValidators.required('Username is required')],
       );
@@ -111,14 +116,14 @@ void main() {
       );
 
       Widget app(AutovalidateMode mode) => MaterialApp(
-            home: Scaffold(
-              body: MkFormScope.value(
-                value: formBloc,
-                autovalidateMode: mode,
-                child: const MkTextField(name: 'username'),
-              ),
-            ),
-          );
+        home: Scaffold(
+          body: MkFormScope.value(
+            value: formBloc,
+            autovalidateMode: mode,
+            child: const MkTextField(name: 'username'),
+          ),
+        ),
+      );
 
       await tester.pumpWidget(app(AutovalidateMode.disabled));
       expect(find.text('Username is required'), findsNothing);
@@ -127,8 +132,9 @@ void main() {
       expect(find.text('Username is required'), findsOneWidget);
     });
 
-    testWidgets('Widget-level autovalidateMode overrides MkFormScope',
-        (tester) async {
+    testWidgets('Widget-level autovalidateMode overrides MkFormScope', (
+      tester,
+    ) async {
       final emailField = MkFieldBloc<String>(
         validators: [MkValidators.required('Email is required')],
       );

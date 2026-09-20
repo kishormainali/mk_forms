@@ -28,10 +28,7 @@ class MkFormLocalizations {
   static MkFormMessages current = const MkDefaultEnglishMessages();
 
   /// List of built-in supported locales: English ('en') and Spanish ('es').
-  static const List<Locale> supportedLocales = [
-    Locale('en'),
-    Locale('es'),
-  ];
+  static const List<Locale> supportedLocales = [Locale('en'), Locale('es')];
 
   /// Standard [LocalizationsDelegate] to pass into `MaterialApp.localizationsDelegates`.
   ///
@@ -57,16 +54,15 @@ class MkFormLocalizations {
   /// ```
   static LocalizationsDelegate<MkFormLocalizations> createDelegate(
     Map<String, MkFormMessages> overrides,
-  ) =>
-      MkFormLocalizationsDelegate(overrides: overrides);
+  ) => MkFormLocalizationsDelegate(overrides: overrides);
 
   /// Retrieves the active [MkFormMessages] by context.
   static MkFormMessages of(BuildContext? context) {
     if (context == null) return current;
 
     // 1. Check MkLocalizationScope first (highest priority)
-    final scope =
-        context.dependOnInheritedWidgetOfExactType<MkLocalizationScope>();
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<MkLocalizationScope>();
     if (scope != null) return scope.messages;
 
     // 2. Check Flutter standard Localizations

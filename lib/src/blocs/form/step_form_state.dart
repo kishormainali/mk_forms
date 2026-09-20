@@ -83,8 +83,9 @@ class MkStepFormState extends MkFormState {
       isTouched: isTouched ?? this.isTouched,
       wasSubmitted: wasSubmitted ?? this.wasSubmitted,
       values: values ?? this.values,
-      submissionError:
-          submissionError != null ? submissionError() : this.submissionError,
+      submissionError: submissionError != null
+          ? submissionError()
+          : this.submissionError,
       currentStep: currentStep ?? this.currentStep,
       totalSteps: totalSteps ?? this.totalSteps,
       completedSteps: completedSteps ?? this.completedSteps,
@@ -92,19 +93,20 @@ class MkStepFormState extends MkFormState {
       redirectedFromStep: redirectedFromStep != null
           ? redirectedFromStep()
           : this.redirectedFromStep,
-      invalidStepIndex:
-          invalidStepIndex != null ? invalidStepIndex() : this.invalidStepIndex,
+      invalidStepIndex: invalidStepIndex != null
+          ? invalidStepIndex()
+          : this.invalidStepIndex,
     );
   }
 
   @override
   List<Object?> get props => [
-        ...super.props,
-        currentStep,
-        totalSteps,
-        completedSteps,
-        isLoadingInitialData,
-        redirectedFromStep,
-        invalidStepIndex,
-      ];
+    ...super.props,
+    currentStep,
+    totalSteps,
+    completedSteps,
+    isLoadingInitialData,
+    redirectedFromStep,
+    invalidStepIndex,
+  ];
 }

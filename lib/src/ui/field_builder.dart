@@ -4,11 +4,12 @@ import '../blocs/field_bloc.dart';
 import 'form_scope.dart';
 
 /// Function signature for building a widget based on [MkFieldState].
-typedef MkFieldWidgetBuilder<T> = Widget Function(
-  BuildContext context,
-  MkFieldState<T> state,
-  MkFieldBloc<T> fieldBloc,
-);
+typedef MkFieldWidgetBuilder<T> =
+    Widget Function(
+      BuildContext context,
+      MkFieldState<T> state,
+      MkFieldBloc<T> fieldBloc,
+    );
 
 /// A widget that rebuilds exclusively when the associated [MkFieldBloc] changes.
 ///
@@ -23,9 +24,9 @@ class MkFieldBuilder<T> extends StatelessWidget {
     required this.builder,
     this.hideWhenInvisible = true,
   }) : assert(
-          fieldBloc != null || name != null,
-          'Either fieldBloc or name must be provided to MkFieldBuilder',
-        );
+         fieldBloc != null || name != null,
+         'Either fieldBloc or name must be provided to MkFieldBuilder',
+       );
 
   /// The target field bloc.
   final MkFieldBloc<T>? fieldBloc;
@@ -35,7 +36,7 @@ class MkFieldBuilder<T> extends StatelessWidget {
 
   /// Optional condition determining whether the builder should be called.
   final bool Function(MkFieldState<T> previous, MkFieldState<T> current)?
-      buildWhen;
+  buildWhen;
 
   /// The builder function called when the field state changes.
   final MkFieldWidgetBuilder<T> builder;

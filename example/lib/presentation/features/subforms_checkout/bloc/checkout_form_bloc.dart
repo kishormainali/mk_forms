@@ -7,66 +7,58 @@ import '../../../../data/repositories/checkout_repository.dart';
 @injectable
 class CheckoutFormBloc extends MkFormBloc {
   CheckoutFormBloc(this._checkoutRepository)
-      : super(
-          controls: {
-            'shipping': MkGroupBloc({
-              'street': MkFieldBloc<String>(
-                initialValue: '',
-                validators: [
-                  MkValidators.required('Shipping street is required')
-                ],
-              ),
-              'city': MkFieldBloc<String>(
-                initialValue: '',
-                validators: [
-                  MkValidators.required('Shipping city is required')
-                ],
-              ),
-              'state': MkFieldBloc<String>(
-                initialValue: '',
-                validators: [
-                  MkValidators.required('Shipping state is required')
-                ],
-              ),
-              'zipCode': MkFieldBloc<String>(
-                initialValue: '',
-                validators: [
-                  MkValidators.required('Zip code is required'),
-                  MkValidators.minLength(5, 'Zip must be at least 5 digits'),
-                ],
-              ),
-            }),
-            'billing': MkGroupBloc({
-              'street': MkFieldBloc<String>(
-                initialValue: '',
-                validators: [
-                  MkValidators.required('Billing street is required')
-                ],
-              ),
-              'city': MkFieldBloc<String>(
-                initialValue: '',
-                validators: [MkValidators.required('Billing city is required')],
-              ),
-              'state': MkFieldBloc<String>(
-                initialValue: '',
-                validators: [
-                  MkValidators.required('Billing state is required')
-                ],
-              ),
-              'zipCode': MkFieldBloc<String>(
-                initialValue: '',
-                validators: [
-                  MkValidators.required('Zip code is required'),
-                  MkValidators.minLength(5, 'Zip must be at least 5 digits'),
-                ],
-              ),
-            }),
-            'paymentMethod': MkFieldBloc<String>(
-              initialValue: 'credit_card',
-              validators: [MkValidators.required('Payment method required')],
+    : super(
+        controls: {
+          'shipping': MkGroupBloc({
+            'street': MkFieldBloc<String>(
+              initialValue: '',
+              validators: [
+                MkValidators.required('Shipping street is required'),
+              ],
             ),
-          },
-        );
+            'city': MkFieldBloc<String>(
+              initialValue: '',
+              validators: [MkValidators.required('Shipping city is required')],
+            ),
+            'state': MkFieldBloc<String>(
+              initialValue: '',
+              validators: [MkValidators.required('Shipping state is required')],
+            ),
+            'zipCode': MkFieldBloc<String>(
+              initialValue: '',
+              validators: [
+                MkValidators.required('Zip code is required'),
+                MkValidators.minLength(5, 'Zip must be at least 5 digits'),
+              ],
+            ),
+          }),
+          'billing': MkGroupBloc({
+            'street': MkFieldBloc<String>(
+              initialValue: '',
+              validators: [MkValidators.required('Billing street is required')],
+            ),
+            'city': MkFieldBloc<String>(
+              initialValue: '',
+              validators: [MkValidators.required('Billing city is required')],
+            ),
+            'state': MkFieldBloc<String>(
+              initialValue: '',
+              validators: [MkValidators.required('Billing state is required')],
+            ),
+            'zipCode': MkFieldBloc<String>(
+              initialValue: '',
+              validators: [
+                MkValidators.required('Zip code is required'),
+                MkValidators.minLength(5, 'Zip must be at least 5 digits'),
+              ],
+            ),
+          }),
+          'paymentMethod': MkFieldBloc<String>(
+            initialValue: 'credit_card',
+            validators: [MkValidators.required('Payment method required')],
+          ),
+        },
+      );
 
   final CheckoutRepository _checkoutRepository;
 

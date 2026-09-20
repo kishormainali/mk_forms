@@ -10,11 +10,7 @@ export 'step_form_state.dart';
 
 /// Configuration for a single step in an [MkStepFormBloc].
 class MkFormStep {
-  const MkFormStep({
-    required this.controlNames,
-    this.title,
-    this.subtitle,
-  });
+  const MkFormStep({required this.controlNames, this.title, this.subtitle});
 
   /// Names of the controls that belong to this step.
   final List<String> controlNames;
@@ -41,19 +37,20 @@ abstract class MkStepFormBloc extends MkFormBloc {
     required Map<String, MkControlBloc<dynamic>> controls,
     required List<MkFormStep> steps,
     int initialStep = 0,
-  })  : _steps = List.unmodifiable(steps),
-        super(
-          controls: controls,
-          initialState: _buildInitialState(controls, steps, initialStep),
-        );
+  }) : _steps = List.unmodifiable(steps),
+       super(
+         controls: controls,
+         initialState: _buildInitialState(controls, steps, initialStep),
+       );
 
   static MkStepFormState _buildInitialState(
     Map<String, MkControlBloc<dynamic>> controls,
     List<MkFormStep> steps,
     int initialStep,
   ) {
-    final validInitialStep =
-        steps.isEmpty ? 0 : initialStep.clamp(0, steps.length - 1);
+    final validInitialStep = steps.isEmpty
+        ? 0
+        : initialStep.clamp(0, steps.length - 1);
     return MkStepFormState(
       submissionStatus: const MkSubmissionStatus.idle(),
       isValid: controls.values.every((c) => c.isValid),
@@ -127,11 +124,7 @@ abstract class MkStepFormBloc extends MkFormBloc {
       updatedCompleted.remove(stepIndex);
     }
 
-    emit(
-      state.copyWith(
-        completedSteps: updatedCompleted,
-      ),
-    );
+    emit(state.copyWith(completedSteps: updatedCompleted));
 
     return isValid;
   }
@@ -146,11 +139,7 @@ abstract class MkStepFormBloc extends MkFormBloc {
     if (!isStepValid) return false;
 
     if (state.currentStep < totalSteps - 1) {
-      emit(
-        state.copyWith(
-          currentStep: state.currentStep + 1,
-        ),
-      );
+      emit(state.copyWith(currentStep: state.currentStep + 1));
       return true;
     }
 
@@ -160,11 +149,7 @@ abstract class MkStepFormBloc extends MkFormBloc {
   /// Navigates to the previous step if not already on the first step.
   void previousStep() {
     if (isClosed || state.currentStep <= 0) return;
-    emit(
-      state.copyWith(
-        currentStep: state.currentStep - 1,
-      ),
-    );
+    emit(state.copyWith(currentStep: state.currentStep - 1));
   }
 
   /// Navigates directly to a target step.
@@ -300,9 +285,9 @@ class MkSimpleStepFormBloc extends MkStepFormBloc {
     required Future<dynamic> Function(Map<String, dynamic> values) onSubmit,
     void Function(dynamic response)? onSubmitSuccess,
     void Function(Object error)? onSubmitFailure,
-  })  : _submitHandler = onSubmit,
-        _successHandler = onSubmitSuccess,
-        _failureHandler = onSubmitFailure;
+  }) : _submitHandler = onSubmit,
+       _successHandler = onSubmitSuccess,
+       _failureHandler = onSubmitFailure;
 
   final Future<dynamic> Function(Map<String, dynamic> values) _submitHandler;
   final void Function(dynamic response)? _successHandler;

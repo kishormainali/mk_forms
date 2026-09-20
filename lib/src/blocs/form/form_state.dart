@@ -65,20 +65,21 @@ class MkFormState extends Equatable {
       isTouched: isTouched ?? this.isTouched,
       wasSubmitted: wasSubmitted ?? this.wasSubmitted,
       values: values ?? this.values,
-      submissionError:
-          submissionError != null ? submissionError() : this.submissionError,
+      submissionError: submissionError != null
+          ? submissionError()
+          : this.submissionError,
     );
   }
 
   @override
   List<Object?> get props => [
-        submissionStatus,
-        isValid,
-        isValidating,
-        isDirty,
-        isTouched,
-        wasSubmitted,
-        values,
-        submissionError,
-      ];
+    submissionStatus,
+    isValid,
+    isValidating,
+    isDirty,
+    isTouched,
+    wasSubmitted,
+    values,
+    submissionError,
+  ];
 }

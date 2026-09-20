@@ -23,8 +23,9 @@ void main() {
 
   Widget createTestApp() => MkFormsExampleApp(appRouter: AppRouter());
 
-  testWidgets('App boots into HomeScreen with all feature cards',
-      (tester) async {
+  testWidgets('App boots into HomeScreen with all feature cards', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -46,8 +47,9 @@ void main() {
     expect(find.text('Autovalidate Modes'), findsOneWidget);
   });
 
-  testWidgets('Navigates into MinimalLoginScreen and validates input',
-      (tester) async {
+  testWidgets('Navigates into MinimalLoginScreen and validates input', (
+    tester,
+  ) async {
     await tester.pumpWidget(createTestApp());
     await tester.pumpAndSettle();
 
@@ -69,94 +71,102 @@ void main() {
   });
 
   testWidgets(
-      'Multi-Route Onboarding Wizard navigates across steps and loads draft',
-      (tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    'Multi-Route Onboarding Wizard navigates across steps and loads draft',
+    (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
-    await tester.pumpWidget(createTestApp());
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(createTestApp());
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Multi-Route Onboarding Wizard'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Multi-Route Onboarding Wizard'));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(AccountStepScreen), findsOneWidget);
-    expect(find.text('Onboarding: Step 1 / 3'), findsOneWidget);
+      expect(find.byType(AccountStepScreen), findsOneWidget);
+      expect(find.text('Onboarding: Step 1 / 3'), findsOneWidget);
 
-    // Tap Load API Draft
-    await tester.tap(find.text('Load API Draft'));
-    await tester.pumpAndSettle();
+      // Tap Load API Draft
+      await tester.tap(find.text('Load API Draft'));
+      await tester.pumpAndSettle();
 
-    // Automatically jumped to Step 2 (Profile) route because draft step is 1
-    expect(find.byType(ProfileStepScreen), findsOneWidget);
-    expect(find.text('Onboarding: Step 2 / 3'), findsOneWidget);
+      // Automatically jumped to Step 2 (Profile) route because draft step is 1
+      expect(find.byType(ProfileStepScreen), findsOneWidget);
+      expect(find.text('Onboarding: Step 2 / 3'), findsOneWidget);
 
-    // Navigate back to Step 1
-    await tester.tap(find.text('← Back to Step 1'));
-    await tester.pumpAndSettle();
+      // Navigate back to Step 1
+      await tester.tap(find.text('← Back to Step 1'));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(AccountStepScreen), findsOneWidget);
-    // Value from draft is preserved!
-    expect(find.text('john_developer'), findsOneWidget);
-  });
+      expect(find.byType(AccountStepScreen), findsOneWidget);
+      // Value from draft is preserved!
+      expect(find.text('john_developer'), findsOneWidget);
+    },
+  );
 
   testWidgets(
-      'Multi-Route Onboarding Wizard redirects to step with validation issue on API draft load and highlights errors',
-      (tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    'Multi-Route Onboarding Wizard redirects to step with validation issue on API draft load and highlights errors',
+    (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
-    await tester.pumpWidget(createTestApp());
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(createTestApp());
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Multi-Route Onboarding Wizard'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Multi-Route Onboarding Wizard'));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(AccountStepScreen), findsOneWidget);
+      expect(find.byType(AccountStepScreen), findsOneWidget);
 
-    // Open popup menu and tap 'Load Invalid Draft'
-    await tester.tap(find.byTooltip('Load Draft from API'));
-    await tester.pumpAndSettle();
+      // Open popup menu and tap 'Load Invalid Draft'
+      await tester.tap(find.byTooltip('Load Draft from API'));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Load Invalid Draft (Redirects to Step 1)'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Load Invalid Draft (Redirects to Step 1)'));
+      await tester.pumpAndSettle();
 
-    // Must stay on Step 1 (AccountStepScreen) instead of pushing Step 2
-    expect(find.byType(AccountStepScreen), findsOneWidget);
-    expect(find.byType(ProfileStepScreen), findsNothing);
+      // Must stay on Step 1 (AccountStepScreen) instead of pushing Step 2
+      expect(find.byType(AccountStepScreen), findsOneWidget);
+      expect(find.byType(ProfileStepScreen), findsNothing);
 
-    // Shows redirection snackbar warning
-    expect(
+      // Shows redirection snackbar warning
+      expect(
         find.textContaining(
-            'Draft requested Step 2, but Step 1 has validation errors'),
-        findsOneWidget);
+          'Draft requested Step 2, but Step 1 has validation errors',
+        ),
+        findsOneWidget,
+      );
 
-    // Step 1 invalid fields show error messages immediately
-    expect(find.text('Must be at least 3 characters'), findsOneWidget);
-    expect(find.text('Please enter a valid email'), findsOneWidget);
+      // Step 1 invalid fields show error messages immediately
+      expect(find.text('Must be at least 3 characters'), findsOneWidget);
+      expect(find.text('Please enter a valid email'), findsOneWidget);
 
-    // Step 2 values from the draft are fully preserved in the form state
-    // Let's verify by fixing Step 1 and proceeding to Step 2
-    await tester.enterText(
-        find.widgetWithText(TextField, 'ab'), 'jane_developer');
-    await tester.enterText(
+      // Step 2 values from the draft are fully preserved in the form state
+      // Let's verify by fixing Step 1 and proceeding to Step 2
+      await tester.enterText(
+        find.widgetWithText(TextField, 'ab'),
+        'jane_developer',
+      );
+      await tester.enterText(
         find.widgetWithText(TextField, 'invalid-email-address'),
-        'jane@example.com');
-    await tester.pumpAndSettle();
+        'jane@example.com',
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Continue to Profile →'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue to Profile →'));
+      await tester.pumpAndSettle();
 
-    // Now in Step 2: verify data loaded from draft ('Jane Incomplete', 'designer', bio) was preserved!
-    expect(find.byType(ProfileStepScreen), findsOneWidget);
-    expect(find.text('Jane Incomplete'), findsOneWidget);
-    expect(find.text('Designer with invalid account draft'), findsOneWidget);
-  });
+      // Now in Step 2: verify data loaded from draft ('Jane Incomplete', 'designer', bio) was preserved!
+      expect(find.byType(ProfileStepScreen), findsOneWidget);
+      expect(find.text('Jane Incomplete'), findsOneWidget);
+      expect(find.text('Designer with invalid account draft'), findsOneWidget);
+    },
+  );
 
-  testWidgets('Independent Subforms Checkout isolates group validation',
-      (tester) async {
+  testWidgets('Independent Subforms Checkout isolates group validation', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -204,8 +214,9 @@ void main() {
     expect(find.textContaining('Order placed! ID: ORD-'), findsOneWidget);
   });
 
-  testWidgets('Navigates into RegistrationScreen (dependent fields)',
-      (tester) async {
+  testWidgets('Navigates into RegistrationScreen (dependent fields)', (
+    tester,
+  ) async {
     await tester.pumpWidget(createTestApp());
     await tester.pumpAndSettle();
 
@@ -215,8 +226,9 @@ void main() {
     expect(find.byType(RegistrationScreen), findsOneWidget);
   });
 
-  testWidgets('Navigates into UsernameScreen (async validation)',
-      (tester) async {
+  testWidgets('Navigates into UsernameScreen (async validation)', (
+    tester,
+  ) async {
     await tester.pumpWidget(createTestApp());
     await tester.pumpAndSettle();
 
@@ -226,8 +238,9 @@ void main() {
     expect(find.byType(UsernameScreen), findsOneWidget);
   });
 
-  testWidgets('Navigates into DynamicTodosScreen (dynamic array)',
-      (tester) async {
+  testWidgets('Navigates into DynamicTodosScreen (dynamic array)', (
+    tester,
+  ) async {
     await tester.pumpWidget(createTestApp());
     await tester.pumpAndSettle();
 
@@ -247,8 +260,9 @@ void main() {
     expect(find.byType(AllFieldsScreen), findsOneWidget);
   });
 
-  testWidgets('Navigates into I18nDemoScreen and toggles locale',
-      (tester) async {
+  testWidgets('Navigates into I18nDemoScreen and toggles locale', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -270,8 +284,9 @@ void main() {
     expect(find.text('Validar y Enviar'), findsOneWidget);
   });
 
-  testWidgets('Navigates into CustomDesignScreen (custom cards & chips)',
-      (tester) async {
+  testWidgets('Navigates into CustomDesignScreen (custom cards & chips)', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -285,8 +300,9 @@ void main() {
     expect(find.byType(CustomDesignScreen), findsOneWidget);
   });
 
-  testWidgets('Navigates into AutovalidateScreen and interacts with modes',
-      (tester) async {
+  testWidgets('Navigates into AutovalidateScreen and interacts with modes', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);

@@ -17,7 +17,7 @@ class _SpyField extends MkFieldBloc<String> {
 /// Maps a "server" error onto a field from inside [onSubmitFailure].
 class _ServerErrorForm extends MkFormBloc {
   _ServerErrorForm(Map<String, MkControlBloc<dynamic>> controls)
-      : super(controls: controls);
+    : super(controls: controls);
 
   @override
   Future<dynamic> onSubmit(Map<String, dynamic> values) async =>
@@ -29,15 +29,15 @@ class _ServerErrorForm extends MkFormBloc {
 }
 
 MkFieldBloc<String> _slowAsyncField() => MkFieldBloc<String>(
-      initialValue: 'x',
-      debounceTime: Duration.zero,
-      asyncValidators: [
-        (v) async {
-          await Future<void>.delayed(const Duration(milliseconds: 30));
-          return null;
-        },
-      ],
-    );
+  initialValue: 'x',
+  debounceTime: Duration.zero,
+  asyncValidators: [
+    (v) async {
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      return null;
+    },
+  ],
+);
 
 void main() {
   _closeRegressions();
@@ -115,8 +115,7 @@ void main() {
       await form.close();
     });
 
-    test(
-        'editing a field while async validation is in flight still submits '
+    test('editing a field while async validation is in flight still submits '
         'the latest value', () async {
       Map<String, dynamic>? submitted;
       final field = _slowAsyncField();
@@ -136,41 +135,45 @@ void main() {
       await form.close();
     });
 
-    test('an in-flight validate() resolves to the outcome of the newer one',
-        () async {
-      final field = MkFieldBloc<String>(
-        initialValue: 'x',
-        asyncValidators: [
-          (v) async {
-            await Future<void>.delayed(const Duration(milliseconds: 20));
-            return v == 'bad' ? 'rejected' : null;
-          },
-        ],
-      );
+    test(
+      'an in-flight validate() resolves to the outcome of the newer one',
+      () async {
+        final field = MkFieldBloc<String>(
+          initialValue: 'x',
+          asyncValidators: [
+            (v) async {
+              await Future<void>.delayed(const Duration(milliseconds: 20));
+              return v == 'bad' ? 'rejected' : null;
+            },
+          ],
+        );
 
-      final first = field.validate();
-      await Future<void>.delayed(const Duration(milliseconds: 5));
-      final second = field.validate(); // supersedes `first`
+        final first = field.validate();
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        final second = field.validate(); // supersedes `first`
 
-      expect(await second, isTrue);
-      expect(await first, isTrue);
-      await field.close();
-    });
+        expect(await second, isTrue);
+        expect(await first, isTrue);
+        await field.close();
+      },
+    );
   });
 
   group('submission failure state', () {
-    test('mapping server errors in onSubmitFailure keeps the failure',
-        () async {
-      final email = MkFieldBloc<String>(initialValue: 'a@b.com');
-      final form = _ServerErrorForm({'email': email});
+    test(
+      'mapping server errors in onSubmitFailure keeps the failure',
+      () async {
+        final email = MkFieldBloc<String>(initialValue: 'a@b.com');
+        final form = _ServerErrorForm({'email': email});
 
-      await form.submit();
+        await form.submit();
 
-      expect(email.error, 'Email is already taken');
-      expect(form.state.isFailure, isTrue);
-      expect(form.state.submissionError, isA<Exception>());
-      await form.close();
-    });
+        expect(email.error, 'Email is already taken');
+        expect(form.state.isFailure, isTrue);
+        expect(form.state.submissionError, isA<Exception>());
+        await form.close();
+      },
+    );
 
     test('touching a field does not clear the failure', () async {
       final email = MkFieldBloc<String>(initialValue: 'a@b.com');
@@ -215,28 +218,28 @@ void main() {
 }
 
 MkFieldBloc<String> _slowField() => MkFieldBloc<String>(
-      initialValue: 'x',
-      debounceTime: Duration.zero,
-      asyncValidators: [
-        (v) async {
-          await Future<void>.delayed(const Duration(milliseconds: 20));
-          return null;
-        },
-      ],
-    );
+  initialValue: 'x',
+  debounceTime: Duration.zero,
+  asyncValidators: [
+    (v) async {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      return null;
+    },
+  ],
+);
 
 MkSimpleStepFormBloc _stepForm() => MkSimpleStepFormBloc(
-      controls: {
-        'a': _slowField(),
-        'b': MkFieldBloc<String>(initialValue: 'y')
-      },
-      steps: const [
-        MkFormStep(controlNames: ['a']),
-        MkFormStep(controlNames: ['b']),
-        MkFormStep(controlNames: []),
-      ],
-      onSubmit: (v) async => null,
-    );
+  controls: {
+    'a': _slowField(),
+    'b': MkFieldBloc<String>(initialValue: 'y'),
+  },
+  steps: const [
+    MkFormStep(controlNames: ['a']),
+    MkFormStep(controlNames: ['b']),
+    MkFormStep(controlNames: []),
+  ],
+  onSubmit: (v) async => null,
+);
 
 void _closeRegressions() {
   group('closing while work is in flight', () {
@@ -283,13 +286,10 @@ void _closeRegressions() {
         ],
         onSubmit: (v) async => null,
       );
-      final pending = form.loadInitialData(
-        () async {
-          await Future<void>.delayed(const Duration(milliseconds: 10));
-          return {'b': 'x'};
-        },
-        resolveInitialStep: (_) => 1,
-      );
+      final pending = form.loadInitialData(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        return {'b': 'x'};
+      }, resolveInitialStep: (_) => 1);
       await form.close();
       await expectLater(pending, completes);
     });

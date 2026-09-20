@@ -36,8 +36,8 @@ class MkFormScope extends StatelessWidget {
     this.lazy = true,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
     required this.child,
-  })  : _create = create,
-        _value = null;
+  }) : _create = create,
+       _value = null;
 
   /// Exposes an existing [value] without taking ownership of it: the scope
   /// never closes it.
@@ -46,9 +46,9 @@ class MkFormScope extends StatelessWidget {
     required MkFormBloc value,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
     required this.child,
-  })  : _value = value,
-        _create = null,
-        lazy = true;
+  }) : _value = value,
+       _create = null,
+       lazy = true;
 
   final MkFormBloc Function(BuildContext context)? _create;
   final MkFormBloc? _value;
@@ -93,11 +93,7 @@ class MkFormScope extends StatelessWidget {
     );
     return value != null
         ? BlocProvider<MkFormBloc>.value(value: value, child: inner)
-        : BlocProvider<MkFormBloc>(
-            create: _create!,
-            lazy: lazy,
-            child: inner,
-          );
+        : BlocProvider<MkFormBloc>(create: _create!, lazy: lazy, child: inner);
   }
 }
 

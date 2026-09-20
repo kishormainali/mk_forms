@@ -47,16 +47,12 @@ import 'package:mk_forms_example/presentation/features/subforms_checkout/bloc/ch
     as _i257;
 
 extension GetItInjectableX on _i174.GetIt {
-// initializes the registration of main-scope dependencies inside of GetIt
+  // initializes the registration of main-scope dependencies inside of GetIt
   _i174.GetIt init({
     String? environment,
     _i526.EnvironmentFilter? environmentFilter,
   }) {
-    final gh = _i526.GetItHelper(
-      this,
-      environment,
-      environmentFilter,
-    );
+    final gh = _i526.GetItHelper(this, environment, environmentFilter);
     gh.factory<_i591.AllFieldsFormBloc>(() => _i591.AllFieldsFormBloc());
     gh.factory<_i975.AutovalidateFormBloc>(() => _i975.AutovalidateFormBloc());
     gh.factory<_i717.CustomDesignFormBloc>(() => _i717.CustomDesignFormBloc());
@@ -65,25 +61,35 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i855.ApiClient>(() => _i503.MockApiClient());
     gh.lazySingleton<_i123.TaskRepository>(() => _i123.TaskRepositoryImpl());
     gh.lazySingleton<_i994.CheckoutRepository>(
-        () => _i994.CheckoutRepositoryImpl(gh<_i855.ApiClient>()));
+      () => _i994.CheckoutRepositoryImpl(gh<_i855.ApiClient>()),
+    );
     gh.lazySingleton<_i133.OnboardingRepository>(
-        () => _i133.OnboardingRepositoryImpl(gh<_i855.ApiClient>()));
+      () => _i133.OnboardingRepositoryImpl(gh<_i855.ApiClient>()),
+    );
     gh.lazySingleton<_i874.UserRepository>(
-        () => _i874.UserRepositoryImpl(gh<_i855.ApiClient>()));
+      () => _i874.UserRepositoryImpl(gh<_i855.ApiClient>()),
+    );
     gh.lazySingleton<_i723.AuthRepository>(
-        () => _i723.AuthRepositoryImpl(gh<_i855.ApiClient>()));
+      () => _i723.AuthRepositoryImpl(gh<_i855.ApiClient>()),
+    );
     gh.factory<_i171.DynamicTodosFormBloc>(
-        () => _i171.DynamicTodosFormBloc(gh<_i123.TaskRepository>()));
+      () => _i171.DynamicTodosFormBloc(gh<_i123.TaskRepository>()),
+    );
     gh.factory<_i257.CheckoutFormBloc>(
-        () => _i257.CheckoutFormBloc(gh<_i994.CheckoutRepository>()));
+      () => _i257.CheckoutFormBloc(gh<_i994.CheckoutRepository>()),
+    );
     gh.factory<_i0.RegistrationFormBloc>(
-        () => _i0.RegistrationFormBloc(gh<_i874.UserRepository>()));
+      () => _i0.RegistrationFormBloc(gh<_i874.UserRepository>()),
+    );
     gh.factory<_i212.UsernameFormBloc>(
-        () => _i212.UsernameFormBloc(gh<_i874.UserRepository>()));
+      () => _i212.UsernameFormBloc(gh<_i874.UserRepository>()),
+    );
     gh.factory<_i951.OnboardingFormBloc>(
-        () => _i951.OnboardingFormBloc(gh<_i133.OnboardingRepository>()));
+      () => _i951.OnboardingFormBloc(gh<_i133.OnboardingRepository>()),
+    );
     gh.factory<_i782.LoginFormBloc>(
-        () => _i782.LoginFormBloc(gh<_i723.AuthRepository>()));
+      () => _i782.LoginFormBloc(gh<_i723.AuthRepository>()),
+    );
     return this;
   }
 }

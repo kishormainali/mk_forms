@@ -7,25 +7,27 @@ import '../../../../data/repositories/auth_repository.dart';
 @injectable
 class LoginFormBloc extends MkFormBloc {
   LoginFormBloc(this._authRepository)
-      : super(
-          controls: {
-            'email': MkFieldBloc<String>(
-              initialValue: '',
-              validators: [
-                MkValidators.required('Email is required'),
-                MkValidators.email('Please enter a valid email address'),
-              ],
-            ),
-            'password': MkFieldBloc<String>(
-              initialValue: '',
-              validators: [
-                MkValidators.required('Password is required'),
-                MkValidators.minLength(
-                    6, 'Password must be at least 6 characters'),
-              ],
-            ),
-          },
-        );
+    : super(
+        controls: {
+          'email': MkFieldBloc<String>(
+            initialValue: '',
+            validators: [
+              MkValidators.required('Email is required'),
+              MkValidators.email('Please enter a valid email address'),
+            ],
+          ),
+          'password': MkFieldBloc<String>(
+            initialValue: '',
+            validators: [
+              MkValidators.required('Password is required'),
+              MkValidators.minLength(
+                6,
+                'Password must be at least 6 characters',
+              ),
+            ],
+          ),
+        },
+      );
 
   final AuthRepository _authRepository;
 

@@ -9,10 +9,8 @@ import 'bloc/registration_form_bloc.dart';
 /// powered by [RegistrationFormBloc].
 @RoutePage()
 class RegistrationScreen extends StatefulWidget {
-  const RegistrationScreen({
-    super.key,
-    RegistrationFormBloc? formBloc,
-  }) : _formBloc = formBloc;
+  const RegistrationScreen({super.key, RegistrationFormBloc? formBloc})
+    : _formBloc = formBloc;
 
   final RegistrationFormBloc? _formBloc;
 
@@ -38,9 +36,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dependent Fields'),
-      ),
+      appBar: AppBar(title: const Text('Dependent Fields')),
       body: MkFormScope.value(
         value: _formBloc,
         child: MkFormListener(

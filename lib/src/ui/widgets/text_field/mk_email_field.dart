@@ -86,9 +86,9 @@ class MkEmailField extends StatelessWidget {
     this.autovalidateMode,
     this.showValidatingIndicator = true,
   }) : assert(
-          fieldBloc != null || name != null,
-          'Either fieldBloc or name must be provided',
-        );
+         fieldBloc != null || name != null,
+         'Either fieldBloc or name must be provided',
+       );
 
   /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
   final MkFieldBloc<String>? fieldBloc;
@@ -299,12 +299,13 @@ class MkEmailField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveDecoration =
-        (decoration ?? const InputDecoration()).copyWith(
-      labelText: decoration?.labelText ?? 'Email',
-      hintText: decoration?.hintText ?? 'example@domain.com',
-      prefixIcon: decoration?.prefixIcon ?? const Icon(Icons.email_outlined),
-    );
+    final effectiveDecoration = (decoration ?? const InputDecoration())
+        .copyWith(
+          labelText: decoration?.labelText ?? 'Email',
+          hintText: decoration?.hintText ?? 'example@domain.com',
+          prefixIcon:
+              decoration?.prefixIcon ?? const Icon(Icons.email_outlined),
+        );
 
     return MkTextField(
       fieldBloc: fieldBloc,

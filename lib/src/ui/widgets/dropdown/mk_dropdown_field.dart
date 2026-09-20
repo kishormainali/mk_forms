@@ -47,9 +47,9 @@ class MkDropdownField<T> extends StatelessWidget {
     this.enabled,
     this.autovalidateMode,
   }) : assert(
-          fieldBloc != null || name != null,
-          'Either fieldBloc or name must be provided',
-        );
+         fieldBloc != null || name != null,
+         'Either fieldBloc or name must be provided',
+       );
 
   /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
   final MkFieldBloc<T>? fieldBloc;
@@ -153,7 +153,8 @@ class MkDropdownField<T> extends StatelessWidget {
       fieldBloc: fieldBloc,
       name: name,
       builder: (context, state, bloc) {
-        final effectiveMode = autovalidateMode ??
+        final effectiveMode =
+            autovalidateMode ??
             MkFormScope.maybeAutovalidateModeOf(context) ??
             AutovalidateMode.onUserInteraction;
         final isErrorVisible = state.shouldShowError(effectiveMode);

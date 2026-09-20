@@ -6,14 +6,14 @@ import '../../../../data/repositories/task_repository.dart';
 @injectable
 class DynamicTodosFormBloc extends MkFormBloc {
   DynamicTodosFormBloc(this._taskRepository)
-      : super(
-          controls: {
-            'tasks': MkArrayBloc<MkFieldBloc<String>>([
-              _createTaskField('Design system tokens'),
-              _createTaskField('Write unit tests'),
-            ]),
-          },
-        );
+    : super(
+        controls: {
+          'tasks': MkArrayBloc<MkFieldBloc<String>>([
+            _createTaskField('Design system tokens'),
+            _createTaskField('Write unit tests'),
+          ]),
+        },
+      );
 
   final TaskRepository _taskRepository;
 

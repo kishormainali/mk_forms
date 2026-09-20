@@ -20,23 +20,23 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
   MkFormBloc({
     Map<String, MkControlBloc<dynamic>>? controls,
     MkFormState? initialState,
-  })  : _rootGroup = MkGroupBloc(controls ?? {}),
-        super(
-          initialState ??
-              MkFormState(
-                submissionStatus: const MkSubmissionStatus.idle(),
-                isValid: controls?.values.every((c) => c.isValid) ?? true,
-                isValidating:
-                    controls?.values.any((c) => c.isValidating) ?? false,
-                isDirty: controls?.values.any((c) => c.isDirty) ?? false,
-                isTouched: controls?.values.any((c) => c.isTouched) ?? false,
-                wasSubmitted: false,
-                values: {
-                  for (final entry in (controls ?? const {}).entries)
-                    entry.key: entry.value.value,
-                },
-              ),
-        ) {
+  }) : _rootGroup = MkGroupBloc(controls ?? {}),
+       super(
+         initialState ??
+             MkFormState(
+               submissionStatus: const MkSubmissionStatus.idle(),
+               isValid: controls?.values.every((c) => c.isValid) ?? true,
+               isValidating:
+                   controls?.values.any((c) => c.isValidating) ?? false,
+               isDirty: controls?.values.any((c) => c.isDirty) ?? false,
+               isTouched: controls?.values.any((c) => c.isTouched) ?? false,
+               wasSubmitted: false,
+               values: {
+                 for (final entry in (controls ?? const {}).entries)
+                   entry.key: entry.value.value,
+               },
+             ),
+       ) {
     _initControlListeners();
   }
 

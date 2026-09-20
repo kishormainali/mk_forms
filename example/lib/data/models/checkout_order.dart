@@ -13,11 +13,11 @@ class Address {
   final String zipCode;
 
   Map<String, dynamic> toJson() => {
-        'street': street,
-        'city': city,
-        'state': state,
-        'zipCode': zipCode,
-      };
+    'street': street,
+    'city': city,
+    'state': state,
+    'zipCode': zipCode,
+  };
 }
 
 /// Complete checkout order containing multiple subforms.
@@ -35,9 +35,9 @@ class CheckoutOrder {
   final String paymentMethod;
 
   Map<String, dynamic> toJson() => {
-        'shipping': shippingAddress.toJson(),
-        'billing': billingAddress.toJson(),
-        'useSameAddressForBilling': useSameAddressForBilling,
-        'paymentMethod': paymentMethod,
-      };
+    'shipping': shippingAddress.toJson(),
+    'billing': billingAddress.toJson(),
+    'useSameAddressForBilling': useSameAddressForBilling,
+    'paymentMethod': paymentMethod,
+  };
 }

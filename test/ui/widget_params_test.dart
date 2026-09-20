@@ -33,8 +33,7 @@ void main() {
         required int currentLength,
         required bool isFocused,
         required int? maxLength,
-      }) =>
-          const Text('counter');
+      }) => const Text('counter');
       final insertion = ContentInsertionConfiguration(
         onContentInserted: _noContent,
       );
@@ -43,64 +42,66 @@ void main() {
       const hintLocales = [Locale('en', 'GB')];
       final key = Object();
 
-      await tester.pumpWidget(_host(
-        MkTextField(
-          fieldBloc: field,
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.search,
-          textCapitalization: TextCapitalization.words,
-          style: style,
-          strutStyle: strut,
-          textAlign: TextAlign.center,
-          textAlignVertical: TextAlignVertical.bottom,
-          textDirection: TextDirection.rtl,
-          showCursor: false,
-          obscureText: true,
-          obscuringCharacter: '*',
-          autocorrect: false,
-          smartDashesType: SmartDashesType.disabled,
-          smartQuotesType: SmartQuotesType.disabled,
-          enableSuggestions: false,
-          maxLength: 12,
-          maxLengthEnforcement: MaxLengthEnforcement.none,
-          onEditingComplete: onEditingComplete,
-          onAppPrivateCommand: onAppPrivateCommand,
-          inputFormatters: formatters,
-          ignorePointers: false,
-          cursorWidth: 4,
-          cursorHeight: 21,
-          cursorRadius: cursorRadius,
-          cursorOpacityAnimates: true,
-          cursorColor: Colors.red,
-          cursorErrorColor: Colors.orange,
-          selectionHeightStyle: ui.BoxHeightStyle.max,
-          selectionWidthStyle: ui.BoxWidthStyle.max,
-          keyboardAppearance: Brightness.dark,
-          scrollPadding: const EdgeInsets.all(7),
-          enableInteractiveSelection: false,
-          selectAllOnFocus: true,
-          dragStartBehavior: DragStartBehavior.down,
-          onTapAlwaysCalled: true,
-          onTapOutside: onTapOutside,
-          onTapUpOutside: onTapUpOutside,
-          mouseCursor: SystemMouseCursors.text,
-          buildCounter: counter,
-          scrollController: scroll,
-          scrollPhysics: const ClampingScrollPhysics(),
-          autofillHints: const [AutofillHints.username],
-          contentInsertionConfiguration: insertion,
-          clipBehavior: Clip.none,
-          restorationId: 'restoration',
-          stylusHandwritingEnabled: false,
-          enableIMEPersonalizedLearning: false,
-          undoController: undo,
-          spellCheckConfiguration: spell,
-          magnifierConfiguration: magnifier,
-          hintLocales: hintLocales,
-          groupId: key,
-          statesController: states,
+      await tester.pumpWidget(
+        _host(
+          MkTextField(
+            fieldBloc: field,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.search,
+            textCapitalization: TextCapitalization.words,
+            style: style,
+            strutStyle: strut,
+            textAlign: TextAlign.center,
+            textAlignVertical: TextAlignVertical.bottom,
+            textDirection: TextDirection.rtl,
+            showCursor: false,
+            obscureText: true,
+            obscuringCharacter: '*',
+            autocorrect: false,
+            smartDashesType: SmartDashesType.disabled,
+            smartQuotesType: SmartQuotesType.disabled,
+            enableSuggestions: false,
+            maxLength: 12,
+            maxLengthEnforcement: MaxLengthEnforcement.none,
+            onEditingComplete: onEditingComplete,
+            onAppPrivateCommand: onAppPrivateCommand,
+            inputFormatters: formatters,
+            ignorePointers: false,
+            cursorWidth: 4,
+            cursorHeight: 21,
+            cursorRadius: cursorRadius,
+            cursorOpacityAnimates: true,
+            cursorColor: Colors.red,
+            cursorErrorColor: Colors.orange,
+            selectionHeightStyle: ui.BoxHeightStyle.max,
+            selectionWidthStyle: ui.BoxWidthStyle.max,
+            keyboardAppearance: Brightness.dark,
+            scrollPadding: const EdgeInsets.all(7),
+            enableInteractiveSelection: false,
+            selectAllOnFocus: true,
+            dragStartBehavior: DragStartBehavior.down,
+            onTapAlwaysCalled: true,
+            onTapOutside: onTapOutside,
+            onTapUpOutside: onTapUpOutside,
+            mouseCursor: SystemMouseCursors.text,
+            buildCounter: counter,
+            scrollController: scroll,
+            scrollPhysics: const ClampingScrollPhysics(),
+            autofillHints: const [AutofillHints.username],
+            contentInsertionConfiguration: insertion,
+            clipBehavior: Clip.none,
+            restorationId: 'restoration',
+            stylusHandwritingEnabled: false,
+            enableIMEPersonalizedLearning: false,
+            undoController: undo,
+            spellCheckConfiguration: spell,
+            magnifierConfiguration: magnifier,
+            hintLocales: hintLocales,
+            groupId: key,
+            statesController: states,
+          ),
         ),
-      ));
+      );
 
       final tf = _textField(tester);
       expect(tf.keyboardType, TextInputType.number);
@@ -162,25 +163,30 @@ void main() {
       expect(field.value, '1234');
     });
 
-    testWidgets('multiline options: maxLines / minLines / expands',
-        (tester) async {
-      await tester.pumpWidget(_host(
-        MkTextField(
-          fieldBloc: MkFieldBloc<String>(),
-          maxLines: 5,
-          minLines: 2,
+    testWidgets('multiline options: maxLines / minLines / expands', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          MkTextField(
+            fieldBloc: MkFieldBloc<String>(),
+            maxLines: 5,
+            minLines: 2,
+          ),
         ),
-      ));
+      );
       expect(_textField(tester).maxLines, 5);
       expect(_textField(tester).minLines, 2);
 
-      await tester.pumpWidget(_host(
-        MkTextField(
-          fieldBloc: MkFieldBloc<String>(),
-          maxLines: null,
-          expands: true,
+      await tester.pumpWidget(
+        _host(
+          MkTextField(
+            fieldBloc: MkFieldBloc<String>(),
+            maxLines: null,
+            expands: true,
+          ),
         ),
-      ));
+      );
       expect(_textField(tester).expands, isTrue);
       expect(_textField(tester).maxLines, isNull);
     });
@@ -202,22 +208,23 @@ void main() {
       expect(tf.contextMenuBuilder, isNotNull);
     });
 
-    testWidgets(
-        'callbacks fire: onTap, onChanged (after the bloc), '
+    testWidgets('callbacks fire: onTap, onChanged (after the bloc), '
         'onSubmitted', (tester) async {
       final field = MkFieldBloc<String>();
       var taps = 0;
       String? seenByOnChanged;
       String? submitted;
 
-      await tester.pumpWidget(_host(
-        MkTextField(
-          fieldBloc: field,
-          onTap: () => taps++,
-          onChanged: (v) => seenByOnChanged = field.value,
-          onSubmitted: (v) => submitted = v,
+      await tester.pumpWidget(
+        _host(
+          MkTextField(
+            fieldBloc: field,
+            onTap: () => taps++,
+            onChanged: (v) => seenByOnChanged = field.value,
+            onSubmitted: (v) => submitted = v,
+          ),
         ),
-      ));
+      );
 
       await tester.tap(find.byType(TextField));
       await tester.enterText(find.byType(TextField), 'hi');
@@ -232,17 +239,20 @@ void main() {
     testWidgets('custom contextMenuBuilder is used', (tester) async {
       Widget builder(BuildContext c, EditableTextState s) =>
           const SizedBox.shrink();
-      await tester.pumpWidget(_host(
-        MkTextField(
-          fieldBloc: MkFieldBloc<String>(),
-          contextMenuBuilder: builder,
+      await tester.pumpWidget(
+        _host(
+          MkTextField(
+            fieldBloc: MkFieldBloc<String>(),
+            contextMenuBuilder: builder,
+          ),
         ),
-      ));
+      );
       expect(_textField(tester).contextMenuBuilder, same(builder));
     });
 
-    testWidgets('enabled combines the parameter with the bloc state',
-        (tester) async {
+    testWidgets('enabled combines the parameter with the bloc state', (
+      tester,
+    ) async {
       final field = MkFieldBloc<String>();
       await tester.pumpWidget(_host(MkTextField(fieldBloc: field)));
       expect(_textField(tester).enabled, isTrue);
@@ -259,8 +269,7 @@ void main() {
       expect(_textField(tester).enabled, isFalse);
     });
 
-    testWidgets(
-        'a supplied focusNode is used, marks touched on blur and '
+    testWidgets('a supplied focusNode is used, marks touched on blur and '
         'is not disposed', (tester) async {
       final field = MkFieldBloc<String>();
       final node = FocusNode();
@@ -268,10 +277,16 @@ void main() {
       addTearDown(node.dispose);
       addTearDown(other.dispose);
 
-      await tester.pumpWidget(_host(Column(children: [
-        MkTextField(fieldBloc: field, focusNode: node),
-        Focus(focusNode: other, child: const SizedBox()),
-      ])));
+      await tester.pumpWidget(
+        _host(
+          Column(
+            children: [
+              MkTextField(fieldBloc: field, focusNode: node),
+              Focus(focusNode: other, child: const SizedBox()),
+            ],
+          ),
+        ),
+      );
       expect(_textField(tester).focusNode, same(node));
 
       node.requestFocus();
@@ -286,8 +301,9 @@ void main() {
       expect(() => node.addListener(() {}), returnsNormally);
     });
 
-    testWidgets('swapping the focusNode moves the blur listener',
-        (tester) async {
+    testWidgets('swapping the focusNode moves the blur listener', (
+      tester,
+    ) async {
       final field = MkFieldBloc<String>();
       final a = FocusNode();
       final b = FocusNode();
@@ -296,10 +312,14 @@ void main() {
       addTearDown(b.dispose);
       addTearDown(other.dispose);
 
-      Widget build(FocusNode? node) => _host(Column(children: [
+      Widget build(FocusNode? node) => _host(
+        Column(
+          children: [
             MkTextField(fieldBloc: field, focusNode: node),
             Focus(focusNode: other, child: const SizedBox()),
-          ]));
+          ],
+        ),
+      );
 
       await tester.pumpWidget(build(a));
       await tester.pumpWidget(build(b));
@@ -318,8 +338,9 @@ void main() {
   });
 
   group('MkEmailField', () {
-    testWidgets('keeps its defaults and lets them be overridden',
-        (tester) async {
+    testWidgets('keeps its defaults and lets them be overridden', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _host(MkEmailField(fieldBloc: MkFieldBloc<String>())),
       );
@@ -328,21 +349,23 @@ void main() {
       expect(tf.textInputAction, TextInputAction.next);
       expect(find.byIcon(Icons.email_outlined), findsOneWidget);
 
-      await tester.pumpWidget(_host(
-        MkEmailField(
-          fieldBloc: MkFieldBloc<String>(),
-          keyboardType: TextInputType.text,
-          textInputAction: TextInputAction.done,
-          autocorrect: false,
-          autofillHints: const [AutofillHints.email],
-          inputFormatters: [FilteringTextInputFormatter.deny(' ')],
-          cursorColor: Colors.green,
-          textAlign: TextAlign.end,
-          maxLength: 40,
-          enableInteractiveSelection: false,
-          mouseCursor: SystemMouseCursors.click,
+      await tester.pumpWidget(
+        _host(
+          MkEmailField(
+            fieldBloc: MkFieldBloc<String>(),
+            keyboardType: TextInputType.text,
+            textInputAction: TextInputAction.done,
+            autocorrect: false,
+            autofillHints: const [AutofillHints.email],
+            inputFormatters: [FilteringTextInputFormatter.deny(' ')],
+            cursorColor: Colors.green,
+            textAlign: TextAlign.end,
+            maxLength: 40,
+            enableInteractiveSelection: false,
+            mouseCursor: SystemMouseCursors.click,
+          ),
         ),
-      ));
+      );
       tf = _textField(tester);
       expect(tf.keyboardType, TextInputType.text);
       expect(tf.textInputAction, TextInputAction.done);
@@ -356,17 +379,20 @@ void main() {
       expect(tf.mouseCursor, SystemMouseCursors.click);
     });
 
-    testWidgets('a custom decoration keeps its own label and icon',
-        (tester) async {
-      await tester.pumpWidget(_host(
-        MkEmailField(
-          fieldBloc: MkFieldBloc<String>(),
-          decoration: const InputDecoration(
-            labelText: 'Work email',
-            prefixIcon: Icon(Icons.work),
+    testWidgets('a custom decoration keeps its own label and icon', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          MkEmailField(
+            fieldBloc: MkFieldBloc<String>(),
+            decoration: const InputDecoration(
+              labelText: 'Work email',
+              prefixIcon: Icon(Icons.work),
+            ),
           ),
         ),
-      ));
+      );
       expect(find.text('Work email'), findsOneWidget);
       expect(find.byIcon(Icons.work), findsOneWidget);
       expect(find.byIcon(Icons.email_outlined), findsNothing);
@@ -374,18 +400,21 @@ void main() {
   });
 
   group('MkPasswordField', () {
-    testWidgets('keeps its defaults, forwards parameters and toggles',
-        (tester) async {
-      await tester.pumpWidget(_host(
-        MkPasswordField(
-          fieldBloc: MkFieldBloc<String>(),
-          obscuringCharacter: '#',
-          cursorColor: Colors.purple,
-          autofillHints: const [AutofillHints.password],
-          enableSuggestions: false,
-          maxLength: 64,
+    testWidgets('keeps its defaults, forwards parameters and toggles', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          MkPasswordField(
+            fieldBloc: MkFieldBloc<String>(),
+            obscuringCharacter: '#',
+            cursorColor: Colors.purple,
+            autofillHints: const [AutofillHints.password],
+            enableSuggestions: false,
+            maxLength: 64,
+          ),
         ),
-      ));
+      );
       var tf = _textField(tester);
       expect(tf.keyboardType, TextInputType.visiblePassword);
       expect(tf.textInputAction, TextInputAction.done);
@@ -402,12 +431,14 @@ void main() {
     });
 
     testWidgets('initiallyObscured: false starts visible', (tester) async {
-      await tester.pumpWidget(_host(
-        MkPasswordField(
-          fieldBloc: MkFieldBloc<String>(),
-          initiallyObscured: false,
+      await tester.pumpWidget(
+        _host(
+          MkPasswordField(
+            fieldBloc: MkFieldBloc<String>(),
+            initiallyObscured: false,
+          ),
         ),
-      ));
+      );
       expect(_textField(tester).obscureText, isFalse);
       expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
     });
@@ -425,47 +456,50 @@ void main() {
       final overlay = WidgetStateProperty.all<Color?>(Colors.green);
       void onFocusChange(bool _) {}
 
-      await tester.pumpWidget(_host(
-        MkCheckboxField(
-          fieldBloc: field,
-          title: const Text('T'),
-          subtitle: const Text('S'),
-          secondary: const Icon(Icons.info),
-          mouseCursor: SystemMouseCursors.help,
-          activeColor: Colors.teal,
-          fillColor: fill,
-          checkColor: Colors.white,
-          hoverColor: Colors.amber,
-          overlayColor: overlay,
-          splashRadius: 11,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
-          focusNode: node,
-          shape: shape,
-          side: side,
-          isError: true,
-          tileColor: Colors.grey,
-          isThreeLine: true,
-          dense: true,
-          selected: true,
-          controlAffinity: ListTileControlAffinity.trailing,
-          contentPadding: const EdgeInsets.all(3),
-          checkboxShape: checkboxShape,
-          selectedTileColor: Colors.pink,
-          onFocusChange: onFocusChange,
-          enableFeedback: false,
-          horizontalTitleGap: 9,
-          minVerticalPadding: 4,
-          minLeadingWidth: 30,
-          minTileHeight: 70,
-          checkboxSemanticLabel: 'semantic',
-          checkboxScaleFactor: 1.5,
-          titleAlignment: ListTileTitleAlignment.top,
+      await tester.pumpWidget(
+        _host(
+          MkCheckboxField(
+            fieldBloc: field,
+            title: const Text('T'),
+            subtitle: const Text('S'),
+            secondary: const Icon(Icons.info),
+            mouseCursor: SystemMouseCursors.help,
+            activeColor: Colors.teal,
+            fillColor: fill,
+            checkColor: Colors.white,
+            hoverColor: Colors.amber,
+            overlayColor: overlay,
+            splashRadius: 11,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            visualDensity: VisualDensity.compact,
+            focusNode: node,
+            shape: shape,
+            side: side,
+            isError: true,
+            tileColor: Colors.grey,
+            isThreeLine: true,
+            dense: true,
+            selected: true,
+            controlAffinity: ListTileControlAffinity.trailing,
+            contentPadding: const EdgeInsets.all(3),
+            checkboxShape: checkboxShape,
+            selectedTileColor: Colors.pink,
+            onFocusChange: onFocusChange,
+            enableFeedback: false,
+            horizontalTitleGap: 9,
+            minVerticalPadding: 4,
+            minLeadingWidth: 30,
+            minTileHeight: 70,
+            checkboxSemanticLabel: 'semantic',
+            checkboxScaleFactor: 1.5,
+            titleAlignment: ListTileTitleAlignment.top,
+          ),
         ),
-      ));
+      );
 
-      final tile =
-          tester.widget<CheckboxListTile>(find.byType(CheckboxListTile));
+      final tile = tester.widget<CheckboxListTile>(
+        find.byType(CheckboxListTile),
+      );
       expect(tile.value, isTrue);
       expect(tile.mouseCursor, SystemMouseCursors.help);
       expect(tile.activeColor, Colors.teal);
@@ -501,15 +535,16 @@ void main() {
       expect(find.byIcon(Icons.info), findsOneWidget);
     });
 
-    testWidgets('defaults: leading affinity, error state follows the bloc',
-        (tester) async {
+    testWidgets('defaults: leading affinity, error state follows the bloc', (
+      tester,
+    ) async {
       final field = MkFieldBloc<bool>(
         initialValue: false,
         validators: [MkValidators.required('Must accept')],
       );
-      await tester.pumpWidget(_host(
-        MkCheckboxField(fieldBloc: field, title: const Text('T')),
-      ));
+      await tester.pumpWidget(
+        _host(MkCheckboxField(fieldBloc: field, title: const Text('T'))),
+      );
       var tile = tester.widget<CheckboxListTile>(find.byType(CheckboxListTile));
       expect(tile.controlAffinity, ListTileControlAffinity.leading);
       expect(tile.isError, isFalse);
@@ -521,20 +556,23 @@ void main() {
       expect(find.text('Must accept'), findsOneWidget);
     });
 
-    testWidgets('errorStyle and errorPadding customize the error text',
-        (tester) async {
+    testWidgets('errorStyle and errorPadding customize the error text', (
+      tester,
+    ) async {
       final field = MkFieldBloc<bool>(
         initialValue: false,
         validators: [MkValidators.required('Must accept')],
       );
-      await tester.pumpWidget(_host(
-        MkCheckboxField(
-          fieldBloc: field,
-          title: const Text('T'),
-          errorStyle: const TextStyle(fontSize: 31),
-          errorPadding: const EdgeInsets.all(9),
+      await tester.pumpWidget(
+        _host(
+          MkCheckboxField(
+            fieldBloc: field,
+            title: const Text('T'),
+            errorStyle: const TextStyle(fontSize: 31),
+            errorPadding: const EdgeInsets.all(9),
+          ),
         ),
-      ));
+      );
       field.touch();
       await tester.pumpAndSettle();
 
@@ -555,16 +593,18 @@ void main() {
       final field = MkFieldBloc<bool>(initialValue: false);
       bool? seenInBloc;
       bool? received;
-      await tester.pumpWidget(_host(
-        MkCheckboxField(
-          fieldBloc: field,
-          title: const Text('T'),
-          onChanged: (v) {
-            received = v;
-            seenInBloc = field.value;
-          },
+      await tester.pumpWidget(
+        _host(
+          MkCheckboxField(
+            fieldBloc: field,
+            title: const Text('T'),
+            onChanged: (v) {
+              received = v;
+              seenInBloc = field.value;
+            },
+          ),
         ),
-      ));
+      );
       await tester.tap(find.byType(CheckboxListTile));
       await tester.pump();
 
@@ -572,23 +612,26 @@ void main() {
       expect(seenInBloc, isTrue);
     });
 
-    testWidgets('enabled: false or a disabled bloc blocks input',
-        (tester) async {
+    testWidgets('enabled: false or a disabled bloc blocks input', (
+      tester,
+    ) async {
       final field = MkFieldBloc<bool>(initialValue: false);
-      await tester.pumpWidget(_host(
-        MkCheckboxField(
-          fieldBloc: field,
-          title: const Text('T'),
-          enabled: false,
+      await tester.pumpWidget(
+        _host(
+          MkCheckboxField(
+            fieldBloc: field,
+            title: const Text('T'),
+            enabled: false,
+          ),
         ),
-      ));
+      );
       var tile = tester.widget<CheckboxListTile>(find.byType(CheckboxListTile));
       expect(tile.onChanged, isNull);
       expect(tile.enabled, isFalse);
 
-      await tester.pumpWidget(_host(
-        MkCheckboxField(fieldBloc: field, title: const Text('T')),
-      ));
+      await tester.pumpWidget(
+        _host(MkCheckboxField(fieldBloc: field, title: const Text('T'))),
+      );
       field.setEnabled(false);
       await tester.pumpAndSettle();
       tile = tester.widget<CheckboxListTile>(find.byType(CheckboxListTile));
@@ -597,20 +640,22 @@ void main() {
 
     testWidgets('tristate shows a null value as indeterminate', (tester) async {
       final field = MkFieldBloc<bool>();
-      await tester.pumpWidget(_host(
-        MkCheckboxField(
-          fieldBloc: field,
-          title: const Text('T'),
-          tristate: true,
+      await tester.pumpWidget(
+        _host(
+          MkCheckboxField(
+            fieldBloc: field,
+            title: const Text('T'),
+            tristate: true,
+          ),
         ),
-      ));
+      );
       var tile = tester.widget<CheckboxListTile>(find.byType(CheckboxListTile));
       expect(tile.tristate, isTrue);
       expect(tile.value, isNull);
 
-      await tester.pumpWidget(_host(
-        MkCheckboxField(fieldBloc: field, title: const Text('T')),
-      ));
+      await tester.pumpWidget(
+        _host(MkCheckboxField(fieldBloc: field, title: const Text('T'))),
+      );
       tile = tester.widget<CheckboxListTile>(find.byType(CheckboxListTile));
       expect(tile.value, isFalse);
     });
@@ -624,41 +669,45 @@ void main() {
       const icon = Icon(Icons.arrow_downward);
       const hint = Text('hint');
       void onTap() {}
-      List<Widget> selectedBuilder(BuildContext c) =>
-          [const Text('A!'), const Text('B!')];
+      List<Widget> selectedBuilder(BuildContext c) => [
+        const Text('A!'),
+        const Text('B!'),
+      ];
 
-      await tester.pumpWidget(_host(
-        MkDropdownField<String>(
-          fieldBloc: field,
-          items: const [
-            DropdownMenuItem(value: 'a', child: Text('A')),
-            DropdownMenuItem(value: 'b', child: Text('B')),
-          ],
-          selectedItemBuilder: selectedBuilder,
-          hint: hint,
-          onTap: onTap,
-          elevation: 3,
-          style: const TextStyle(fontSize: 19),
-          icon: icon,
-          iconDisabledColor: Colors.grey,
-          iconEnabledColor: Colors.red,
-          iconSize: 30,
-          isDense: false,
-          isExpanded: true,
-          itemHeight: 60,
-          focusColor: Colors.yellow,
-          focusNode: node,
-          dropdownColor: Colors.black,
-          menuMaxHeight: 200,
-          enableFeedback: false,
-          alignment: AlignmentDirectional.centerEnd,
-          borderRadius: BorderRadius.circular(9),
-          padding: const EdgeInsets.all(2),
-          barrierDismissible: false,
-          mouseCursor: SystemMouseCursors.grab,
-          dropdownMenuItemMouseCursor: SystemMouseCursors.copy,
+      await tester.pumpWidget(
+        _host(
+          MkDropdownField<String>(
+            fieldBloc: field,
+            items: const [
+              DropdownMenuItem(value: 'a', child: Text('A')),
+              DropdownMenuItem(value: 'b', child: Text('B')),
+            ],
+            selectedItemBuilder: selectedBuilder,
+            hint: hint,
+            onTap: onTap,
+            elevation: 3,
+            style: const TextStyle(fontSize: 19),
+            icon: icon,
+            iconDisabledColor: Colors.grey,
+            iconEnabledColor: Colors.red,
+            iconSize: 30,
+            isDense: false,
+            isExpanded: true,
+            itemHeight: 60,
+            focusColor: Colors.yellow,
+            focusNode: node,
+            dropdownColor: Colors.black,
+            menuMaxHeight: 200,
+            enableFeedback: false,
+            alignment: AlignmentDirectional.centerEnd,
+            borderRadius: BorderRadius.circular(9),
+            padding: const EdgeInsets.all(2),
+            barrierDismissible: false,
+            mouseCursor: SystemMouseCursors.grab,
+            dropdownMenuItemMouseCursor: SystemMouseCursors.copy,
+          ),
         ),
-      ));
+      );
 
       final dd = tester.widget<DropdownButton<String>>(
         find.byType(DropdownButton<String>),
@@ -688,21 +737,22 @@ void main() {
       expect(dd.dropdownMenuItemMouseCursor, SystemMouseCursors.copy);
     });
 
-    testWidgets('onChanged fires after the bloc; enabled: false blocks it',
-        (tester) async {
+    testWidgets('onChanged fires after the bloc; enabled: false blocks it', (
+      tester,
+    ) async {
       final field = MkFieldBloc<String>(initialValue: 'a');
       String? seenInBloc;
       Widget build({bool? enabled}) => _host(
-            MkDropdownField<String>(
-              fieldBloc: field,
-              enabled: enabled,
-              items: const [
-                DropdownMenuItem(value: 'a', child: Text('A')),
-                DropdownMenuItem(value: 'b', child: Text('B')),
-              ],
-              onChanged: (v) => seenInBloc = field.value,
-            ),
-          );
+        MkDropdownField<String>(
+          fieldBloc: field,
+          enabled: enabled,
+          items: const [
+            DropdownMenuItem(value: 'a', child: Text('A')),
+            DropdownMenuItem(value: 'b', child: Text('B')),
+          ],
+          onChanged: (v) => seenInBloc = field.value,
+        ),
+      );
 
       await tester.pumpWidget(build());
       await tester.tap(find.byType(DropdownButtonFormField<String>));
@@ -735,8 +785,9 @@ void main() {
       ),
     ];
 
-    testWidgets('vertical layout: parameters reach every RadioListTile',
-        (tester) async {
+    testWidgets('vertical layout: parameters reach every RadioListTile', (
+      tester,
+    ) async {
       final fill = WidgetStateProperty.all<Color?>(Colors.blue);
       final overlay = WidgetStateProperty.all<Color?>(Colors.green);
       final background = WidgetStateProperty.all<Color?>(Colors.pink);
@@ -745,41 +796,43 @@ void main() {
       const side = BorderSide(color: Colors.red);
       void onFocusChange(bool _) {}
 
-      await tester.pumpWidget(_host(
-        MkRadioGroup<String>(
-          fieldBloc: MkFieldBloc<String>(initialValue: 'a'),
-          options: options,
-          mouseCursor: SystemMouseCursors.help,
-          toggleable: true,
-          activeColor: Colors.teal,
-          fillColor: fill,
-          hoverColor: Colors.amber,
-          overlayColor: overlay,
-          splashRadius: 11,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
-          autofocus: true,
-          radioBackgroundColor: background,
-          radioSide: side,
-          radioInnerRadius: inner,
-          contentPadding: const EdgeInsets.all(3),
-          dense: false,
-          isThreeLine: true,
-          controlAffinity: ListTileControlAffinity.trailing,
-          shape: shape,
-          tileColor: Colors.grey,
-          selectedTileColor: Colors.pink,
-          highlightSelected: true,
-          onFocusChange: onFocusChange,
-          enableFeedback: false,
-          horizontalTitleGap: 9,
-          minVerticalPadding: 4,
-          minLeadingWidth: 30,
-          minTileHeight: 70,
-          radioScaleFactor: 1.4,
-          titleAlignment: ListTileTitleAlignment.top,
+      await tester.pumpWidget(
+        _host(
+          MkRadioGroup<String>(
+            fieldBloc: MkFieldBloc<String>(initialValue: 'a'),
+            options: options,
+            mouseCursor: SystemMouseCursors.help,
+            toggleable: true,
+            activeColor: Colors.teal,
+            fillColor: fill,
+            hoverColor: Colors.amber,
+            overlayColor: overlay,
+            splashRadius: 11,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            visualDensity: VisualDensity.compact,
+            autofocus: true,
+            radioBackgroundColor: background,
+            radioSide: side,
+            radioInnerRadius: inner,
+            contentPadding: const EdgeInsets.all(3),
+            dense: false,
+            isThreeLine: true,
+            controlAffinity: ListTileControlAffinity.trailing,
+            shape: shape,
+            tileColor: Colors.grey,
+            selectedTileColor: Colors.pink,
+            highlightSelected: true,
+            onFocusChange: onFocusChange,
+            enableFeedback: false,
+            horizontalTitleGap: 9,
+            minVerticalPadding: 4,
+            minLeadingWidth: 30,
+            minTileHeight: 70,
+            radioScaleFactor: 1.4,
+            titleAlignment: ListTileTitleAlignment.top,
+          ),
         ),
-      ));
+      );
 
       final tiles = tester
           .widgetList<RadioListTile<String>>(find.byType(RadioListTile<String>))
@@ -826,8 +879,9 @@ void main() {
       expect(find.byIcon(Icons.star), findsOneWidget);
     });
 
-    testWidgets('horizontal and wrap layouts: parameters reach every Radio',
-        (tester) async {
+    testWidgets('horizontal and wrap layouts: parameters reach every Radio', (
+      tester,
+    ) async {
       final fill = WidgetStateProperty.all<Color?>(Colors.blue);
       final overlay = WidgetStateProperty.all<Color?>(Colors.green);
       final background = WidgetStateProperty.all<Color?>(Colors.pink);
@@ -835,27 +889,29 @@ void main() {
       const side = BorderSide(color: Colors.red);
 
       for (final layout in [MkRadioLayout.horizontal, MkRadioLayout.wrap]) {
-        await tester.pumpWidget(_host(
-          MkRadioGroup<String>(
-            fieldBloc: MkFieldBloc<String>(initialValue: 'a'),
-            options: options,
-            layout: layout,
-            mouseCursor: SystemMouseCursors.help,
-            toggleable: true,
-            activeColor: Colors.teal,
-            fillColor: fill,
-            focusColor: Colors.yellow,
-            hoverColor: Colors.amber,
-            overlayColor: overlay,
-            splashRadius: 11,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            visualDensity: VisualDensity.compact,
-            autofocus: true,
-            radioBackgroundColor: background,
-            radioSide: side,
-            radioInnerRadius: inner,
+        await tester.pumpWidget(
+          _host(
+            MkRadioGroup<String>(
+              fieldBloc: MkFieldBloc<String>(initialValue: 'a'),
+              options: options,
+              layout: layout,
+              mouseCursor: SystemMouseCursors.help,
+              toggleable: true,
+              activeColor: Colors.teal,
+              fillColor: fill,
+              focusColor: Colors.yellow,
+              hoverColor: Colors.amber,
+              overlayColor: overlay,
+              splashRadius: 11,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+              autofocus: true,
+              radioBackgroundColor: background,
+              radioSide: side,
+              radioInnerRadius: inner,
+            ),
           ),
-        ));
+        );
 
         final radios = tester
             .widgetList<Radio<String>>(find.byType(Radio<String>))
@@ -883,18 +939,25 @@ void main() {
       }
     });
 
-    testWidgets('isThreeLine is only applied to options with a subtitle',
-        (tester) async {
-      await tester.pumpWidget(_host(
-        MkRadioGroup<String>(
-          fieldBloc: MkFieldBloc<String>(initialValue: 'a'),
-          isThreeLine: true,
-          options: const [
-            MkRadioOption(value: 'a', label: Text('A'), subtitle: Text('sub')),
-            MkRadioOption(value: 'b', label: Text('B')),
-          ],
+    testWidgets('isThreeLine is only applied to options with a subtitle', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          MkRadioGroup<String>(
+            fieldBloc: MkFieldBloc<String>(initialValue: 'a'),
+            isThreeLine: true,
+            options: const [
+              MkRadioOption(
+                value: 'a',
+                label: Text('A'),
+                subtitle: Text('sub'),
+              ),
+              MkRadioOption(value: 'b', label: Text('B')),
+            ],
+          ),
         ),
-      ));
+      );
 
       final tiles = tester
           .widgetList<RadioListTile<String>>(find.byType(RadioListTile<String>))
@@ -903,14 +966,17 @@ void main() {
       expect(tiles[1].isThreeLine, isNull);
     });
 
-    testWidgets('defaults are unchanged: dense tiles, no highlight',
-        (tester) async {
-      await tester.pumpWidget(_host(
-        MkRadioGroup<String>(
-          fieldBloc: MkFieldBloc<String>(initialValue: 'a'),
-          options: options,
+    testWidgets('defaults are unchanged: dense tiles, no highlight', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          MkRadioGroup<String>(
+            fieldBloc: MkFieldBloc<String>(initialValue: 'a'),
+            options: options,
+          ),
         ),
-      ));
+      );
       final tile = tester
           .widgetList<RadioListTile<String>>(find.byType(RadioListTile<String>))
           .first;
@@ -919,25 +985,24 @@ void main() {
       expect(tile.toggleable, isFalse);
     });
 
-    testWidgets(
-        'onChanged fires after the bloc; a disabled option or group '
+    testWidgets('onChanged fires after the bloc; a disabled option or group '
         'cannot be selected', (tester) async {
       final field = MkFieldBloc<String>();
       final changes = <String?>[];
       Widget build({bool? enabled}) => _host(
-            MkRadioGroup<String>(
-              fieldBloc: field,
-              enabled: enabled,
-              options: const [
-                MkRadioOption(value: 'a', label: Text('Option A')),
-                MkRadioOption(value: 'b', label: Text('Option B')),
-              ],
-              onChanged: (v) {
-                expect(field.value, v);
-                changes.add(v);
-              },
-            ),
-          );
+        MkRadioGroup<String>(
+          fieldBloc: field,
+          enabled: enabled,
+          options: const [
+            MkRadioOption(value: 'a', label: Text('Option A')),
+            MkRadioOption(value: 'b', label: Text('Option B')),
+          ],
+          onChanged: (v) {
+            expect(field.value, v);
+            changes.add(v);
+          },
+        ),
+      );
 
       await tester.pumpWidget(build());
       await tester.tap(find.text('Option B'));
@@ -955,13 +1020,15 @@ void main() {
       final field = MkFieldBloc<String>(
         validators: [MkValidators.required('Pick one')],
       );
-      await tester.pumpWidget(_host(
-        MkRadioGroup<String>(
-          fieldBloc: field,
-          options: const [MkRadioOption(value: 'a', label: Text('A'))],
-          errorStyle: const TextStyle(fontSize: 33),
+      await tester.pumpWidget(
+        _host(
+          MkRadioGroup<String>(
+            fieldBloc: field,
+            options: const [MkRadioOption(value: 'a', label: Text('A'))],
+            errorStyle: const TextStyle(fontSize: 33),
+          ),
         ),
-      ));
+      );
       field.touch();
       await tester.pumpAndSettle();
       expect(tester.widget<Text>(find.text('Pick one')).style?.fontSize, 33);
@@ -979,41 +1046,41 @@ void main() {
       String Function(int)? moreLabel,
       BoxConstraints? dialogConstraints,
       bool? showDragHandle,
-    }) =>
-        _host(
-          MkMultiSelectSearchDropdown<String>(
-            fieldBloc: field,
-            items: const ['Apple', 'Banana', 'Cherry'],
-            itemToString: (s) => s,
-            enabled: enabled,
-            modalType: modalType,
-            onChanged: onChanged,
-            showSelectAll: showSelectAll,
-            maxChipsDisplayed: maxChips,
-            moreLabelBuilder: moreLabel,
-            doneLabel: 'Listo',
-            selectAllLabel: 'Todos',
-            clearAllLabel: 'Ninguno',
-            hintText: 'Elegir',
-            hintStyle: const TextStyle(fontSize: 21),
-            icon: const Icon(Icons.expand_more),
-            chipSpacing: 13,
-            chipRunSpacing: 7,
-            chipLabelStyle: const TextStyle(fontSize: 17),
-            chipBackgroundColor: Colors.amber,
-            chipVisualDensity: VisualDensity.compact,
-            chipDeleteIcon: const Icon(Icons.close, key: Key('del')),
-            chipDeleteIconColor: Colors.red,
-            borderRadius: BorderRadius.circular(6),
-            mouseCursor: SystemMouseCursors.help,
-            splashColor: Colors.cyan,
-            hoverColor: Colors.lime,
-            enableFeedback: false,
-            dialogConstraints: dialogConstraints ??
-                const BoxConstraints(maxWidth: 450, maxHeight: 600),
-            sheetShowDragHandle: showDragHandle,
-          ),
-        );
+    }) => _host(
+      MkMultiSelectSearchDropdown<String>(
+        fieldBloc: field,
+        items: const ['Apple', 'Banana', 'Cherry'],
+        itemToString: (s) => s,
+        enabled: enabled,
+        modalType: modalType,
+        onChanged: onChanged,
+        showSelectAll: showSelectAll,
+        maxChipsDisplayed: maxChips,
+        moreLabelBuilder: moreLabel,
+        doneLabel: 'Listo',
+        selectAllLabel: 'Todos',
+        clearAllLabel: 'Ninguno',
+        hintText: 'Elegir',
+        hintStyle: const TextStyle(fontSize: 21),
+        icon: const Icon(Icons.expand_more),
+        chipSpacing: 13,
+        chipRunSpacing: 7,
+        chipLabelStyle: const TextStyle(fontSize: 17),
+        chipBackgroundColor: Colors.amber,
+        chipVisualDensity: VisualDensity.compact,
+        chipDeleteIcon: const Icon(Icons.close, key: Key('del')),
+        chipDeleteIconColor: Colors.red,
+        borderRadius: BorderRadius.circular(6),
+        mouseCursor: SystemMouseCursors.help,
+        splashColor: Colors.cyan,
+        hoverColor: Colors.lime,
+        enableFeedback: false,
+        dialogConstraints:
+            dialogConstraints ??
+            const BoxConstraints(maxWidth: 450, maxHeight: 600),
+        sheetShowDragHandle: showDragHandle,
+      ),
+    );
 
     testWidgets('texts, icon and hint style are configurable', (tester) async {
       final field = MkFieldBloc<List<String>>(initialValue: const []);
@@ -1048,11 +1115,13 @@ void main() {
       final field = MkFieldBloc<List<String>>(
         initialValue: const ['Apple', 'Banana', 'Cherry'],
       );
-      await tester
-          .pumpWidget(build(field, maxChips: 2, moreLabel: (n) => '+$n mas'));
+      await tester.pumpWidget(
+        build(field, maxChips: 2, moreLabel: (n) => '+$n mas'),
+      );
 
-      final chips =
-          tester.widgetList<InputChip>(find.byType(InputChip)).toList();
+      final chips = tester
+          .widgetList<InputChip>(find.byType(InputChip))
+          .toList();
       expect(chips, hasLength(2));
       expect(chips.first.labelStyle?.fontSize, 17);
       expect(chips.first.backgroundColor, Colors.amber);
@@ -1066,14 +1135,20 @@ void main() {
       expect(wrap.runSpacing, 7);
     });
 
-    testWidgets('onChanged fires after the bloc for chip removal and picks',
-        (tester) async {
+    testWidgets('onChanged fires after the bloc for chip removal and picks', (
+      tester,
+    ) async {
       final field = MkFieldBloc<List<String>>(initialValue: const ['Apple']);
       final seen = <List<String>>[];
-      await tester.pumpWidget(build(field, onChanged: (v) {
-        expect(field.value, v);
-        seen.add(List.of(v));
-      }));
+      await tester.pumpWidget(
+        build(
+          field,
+          onChanged: (v) {
+            expect(field.value, v);
+            seen.add(List.of(v));
+          },
+        ),
+      );
 
       await tester.tap(find.byKey(const Key('del')));
       await tester.pumpAndSettle();
@@ -1087,10 +1162,12 @@ void main() {
     });
 
     testWidgets('showSelectAll: false hides the bulk buttons', (tester) async {
-      await tester.pumpWidget(build(
-        MkFieldBloc<List<String>>(initialValue: const []),
-        showSelectAll: false,
-      ));
+      await tester.pumpWidget(
+        build(
+          MkFieldBloc<List<String>>(initialValue: const []),
+          showSelectAll: false,
+        ),
+      );
       await tester.tap(find.byType(InkWell).first);
       await tester.pumpAndSettle();
       expect(find.text('Todos'), findsNothing);
@@ -1098,8 +1175,9 @@ void main() {
       expect(find.text('Listo'), findsOneWidget);
     });
 
-    testWidgets('enabled: false or a disabled bloc does not open the picker',
-        (tester) async {
+    testWidgets('enabled: false or a disabled bloc does not open the picker', (
+      tester,
+    ) async {
       final field = MkFieldBloc<List<String>>(initialValue: const []);
       await tester.pumpWidget(build(field, enabled: false));
       await tester.tap(find.byType(InkWell).first);
@@ -1115,11 +1193,16 @@ void main() {
     });
 
     testWidgets('dialog mode honours the dialog constraints', (tester) async {
-      await tester.pumpWidget(build(
-        MkFieldBloc<List<String>>(initialValue: const []),
-        modalType: MkMultiSelectModalType.dialog,
-        dialogConstraints: const BoxConstraints(maxWidth: 300, maxHeight: 400),
-      ));
+      await tester.pumpWidget(
+        build(
+          MkFieldBloc<List<String>>(initialValue: const []),
+          modalType: MkMultiSelectModalType.dialog,
+          dialogConstraints: const BoxConstraints(
+            maxWidth: 300,
+            maxHeight: 400,
+          ),
+        ),
+      );
       await tester.tap(find.byType(InkWell).first);
       await tester.pumpAndSettle();
 
@@ -1134,12 +1217,15 @@ void main() {
       expect(size.height, lessThanOrEqualTo(400));
     });
 
-    testWidgets('sheet parameters are forwarded to the bottom sheet',
-        (tester) async {
-      await tester.pumpWidget(build(
-        MkFieldBloc<List<String>>(initialValue: const []),
-        showDragHandle: true,
-      ));
+    testWidgets('sheet parameters are forwarded to the bottom sheet', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build(
+          MkFieldBloc<List<String>>(initialValue: const []),
+          showDragHandle: true,
+        ),
+      );
       await tester.tap(find.byType(InkWell).first);
       await tester.pumpAndSettle();
 

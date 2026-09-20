@@ -25,17 +25,17 @@ class OnboardingData {
   final int currentStep;
 
   Map<String, dynamic> toJson() => {
-        'username': username,
-        'email': email,
-        'password': password,
-        'fullName': fullName,
-        'role': role,
-        'bio': bio,
-        'interests': interests,
-        'notificationEmails': notificationEmails,
-        'agreeTerms': agreeTerms,
-        'step': currentStep,
-      };
+    'username': username,
+    'email': email,
+    'password': password,
+    'fullName': fullName,
+    'role': role,
+    'bio': bio,
+    'interests': interests,
+    'notificationEmails': notificationEmails,
+    'agreeTerms': agreeTerms,
+    'step': currentStep,
+  };
 
   factory OnboardingData.fromJson(Map<String, dynamic> json) {
     return OnboardingData(

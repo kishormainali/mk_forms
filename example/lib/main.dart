@@ -11,10 +11,8 @@ void main() {
 }
 
 class MkFormsExampleApp extends StatelessWidget {
-  const MkFormsExampleApp({
-    super.key,
-    AppRouter? appRouter,
-  }) : _appRouter = appRouter;
+  const MkFormsExampleApp({super.key, AppRouter? appRouter})
+    : _appRouter = appRouter;
 
   final AppRouter? _appRouter;
 

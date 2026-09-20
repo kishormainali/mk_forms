@@ -9,10 +9,8 @@ import 'bloc/autovalidate_form_bloc.dart';
 /// Interactive showcase demonstrating [AutovalidateMode] behaviors in `mk_forms`.
 @RoutePage()
 class AutovalidateScreen extends StatefulWidget {
-  const AutovalidateScreen({
-    super.key,
-    AutovalidateFormBloc? formBloc,
-  }) : _formBloc = formBloc;
+  const AutovalidateScreen({super.key, AutovalidateFormBloc? formBloc})
+    : _formBloc = formBloc;
 
   final AutovalidateFormBloc? _formBloc;
 
@@ -57,9 +55,7 @@ class _AutovalidateScreenState extends State<AutovalidateScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Autovalidate Modes'),
-      ),
+      appBar: AppBar(title: const Text('Autovalidate Modes')),
       body: MkFormScope.value(
         value: _formBloc,
         autovalidateMode: _currentMode,
@@ -206,8 +202,9 @@ class _AutovalidateScreenState extends State<AutovalidateScreen> {
                     const SizedBox(height: 16),
                     MkEmailField(
                       name: 'email',
-                      autovalidateMode:
-                          _overrideEmailMode ? AutovalidateMode.always : null,
+                      autovalidateMode: _overrideEmailMode
+                          ? AutovalidateMode.always
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     const MkTextField(

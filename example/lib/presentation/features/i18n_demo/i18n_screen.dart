@@ -9,10 +9,8 @@ import 'bloc/i18n_demo_form_bloc.dart';
 /// and per-app message overrides powered by [I18nDemoFormBloc].
 @RoutePage()
 class I18nDemoScreen extends StatefulWidget {
-  const I18nDemoScreen({
-    super.key,
-    I18nDemoFormBloc? formBloc,
-  }) : _formBloc = formBloc;
+  const I18nDemoScreen({super.key, I18nDemoFormBloc? formBloc})
+    : _formBloc = formBloc;
 
   final I18nDemoFormBloc? _formBloc;
 
@@ -84,9 +82,9 @@ class _I18nDemoScreenState extends State<I18nDemoScreen> {
                           'Dynamic Language Switching (No UI Jank)',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onTertiaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onTertiaryContainer,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -96,9 +94,9 @@ class _I18nDemoScreenState extends State<I18nDemoScreen> {
                           '3. Watch errors instantly update between English and Spanish.\n'
                           '4. Fully compatible with flutter_localizations and per-app custom overrides.',
                           style: TextStyle(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onTertiaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onTertiaryContainer,
                           ),
                         ),
                       ],

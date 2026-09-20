@@ -17,21 +17,21 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
     Duration debounceTime = const Duration(milliseconds: 300),
     bool isEnabled = true,
     bool isVisible = true,
-  })  : _validators = List.unmodifiable(validators),
-        _asyncValidators = List.unmodifiable(asyncValidators),
-        _debounceTime = debounceTime,
-        super(
-          MkFieldState<T>(
-            value: initialValue,
-            initialValue: initialValue,
-            isDirty: false,
-            isTouched: false,
-            isValidating: false,
-            isEnabled: isEnabled,
-            isVisible: isVisible,
-            wasFormSubmitted: false,
-          ),
-        ) {
+  }) : _validators = List.unmodifiable(validators),
+       _asyncValidators = List.unmodifiable(asyncValidators),
+       _debounceTime = debounceTime,
+       super(
+         MkFieldState<T>(
+           value: initialValue,
+           initialValue: initialValue,
+           isDirty: false,
+           isTouched: false,
+           isValidating: false,
+           isEnabled: isEnabled,
+           isVisible: isVisible,
+           wasFormSubmitted: false,
+         ),
+       ) {
     // Initial validation check to establish validity status without displaying error
     _syncRevalidate();
 
@@ -180,11 +180,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   }
 
   /// Explicitly sets an external error message (e.g. server validation error).
-  void setError(
-    String? error, {
-    String? code,
-    Map<String, dynamic>? params,
-  }) {
+  void setError(String? error, {String? code, Map<String, dynamic>? params}) {
     if (isClosed) return;
     emit(
       state.copyWith(
@@ -229,8 +225,9 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
     _cancelPendingValidation();
 
     final resetValue = newInitialValue ?? state.initialValue;
-    final (initialError, initialCode, initialParams) =
-        _runSyncValidation(resetValue);
+    final (initialError, initialCode, initialParams) = _runSyncValidation(
+      resetValue,
+    );
 
     emit(
       MkFieldState<T>(
@@ -297,8 +294,9 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
       ),
     );
     final token = _latestAsyncToken;
-    final (asyncError, asyncCode, asyncParams) =
-        await _executeAsyncValidators(state.value);
+    final (asyncError, asyncCode, asyncParams) = await _executeAsyncValidators(
+      state.value,
+    );
 
     if (token != _latestAsyncToken || isClosed) {
       // Superseded by a newer value or validation run. Report the outcome of
@@ -363,8 +361,9 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
 
   Future<void> _runAsyncValidation(T? val, int token) async {
     if (token != _latestAsyncToken || isClosed) return;
-    final (asyncError, asyncCode, asyncParams) =
-        await _executeAsyncValidators(val);
+    final (asyncError, asyncCode, asyncParams) = await _executeAsyncValidators(
+      val,
+    );
     if (token != _latestAsyncToken || isClosed) return;
 
     emit(

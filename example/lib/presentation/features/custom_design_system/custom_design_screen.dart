@@ -14,10 +14,8 @@ import 'bloc/custom_design_form_bloc.dart';
 /// - Custom design styling adhering to modern UI guidelines.
 @RoutePage()
 class CustomDesignScreen extends StatefulWidget {
-  const CustomDesignScreen({
-    super.key,
-    CustomDesignFormBloc? formBloc,
-  }) : _formBloc = formBloc;
+  const CustomDesignScreen({super.key, CustomDesignFormBloc? formBloc})
+    : _formBloc = formBloc;
 
   final CustomDesignFormBloc? _formBloc;
 
@@ -43,9 +41,7 @@ class _CustomDesignScreenState extends State<CustomDesignScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Custom Design System'),
-      ),
+      appBar: AppBar(title: const Text('Custom Design System')),
       body: MkFormScope.value(
         value: _formBloc,
         child: SingleChildScrollView(
@@ -55,9 +51,9 @@ class _CustomDesignScreenState extends State<CustomDesignScreen> {
             children: [
               Text(
                 'Custom Card-Style Radio Selection',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               MkRadioGroup<String>(
@@ -139,9 +135,9 @@ class _CustomDesignScreenState extends State<CustomDesignScreen> {
               const SizedBox(height: 24),
               Text(
                 'Custom Pill Multi-Select Chips',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               MkMultiSelectSearchDropdown<String>(
@@ -171,8 +167,9 @@ class _CustomDesignScreenState extends State<CustomDesignScreen> {
                     ),
                     deleteIcon: const Icon(Icons.close, size: 16),
                     onDeleted: onRemove,
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),

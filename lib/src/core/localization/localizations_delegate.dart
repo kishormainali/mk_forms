@@ -8,9 +8,7 @@ import 'spanish_messages.dart';
 /// Flutter [LocalizationsDelegate] for integrating `mk_forms` into `MaterialApp.localizationsDelegates`.
 class MkFormLocalizationsDelegate
     extends LocalizationsDelegate<MkFormLocalizations> {
-  const MkFormLocalizationsDelegate({
-    this.overrides = const {},
-  });
+  const MkFormLocalizationsDelegate({this.overrides = const {}});
 
   /// Optional per-app language overrides by language code (e.g. `'fr': MyFrenchMessages()`).
   final Map<String, MkFormMessages> overrides;
@@ -21,7 +19,8 @@ class MkFormLocalizationsDelegate
   @override
   Future<MkFormLocalizations> load(Locale locale) {
     // 1. Check custom overrides provided by app
-    final custom = overrides[locale.languageCode] ??
+    final custom =
+        overrides[locale.languageCode] ??
         overrides['${locale.languageCode}_${locale.countryCode}'];
     if (custom != null) {
       return SynchronousFuture(MkFormLocalizations(custom));

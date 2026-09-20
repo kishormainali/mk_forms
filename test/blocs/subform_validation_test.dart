@@ -40,10 +40,7 @@ void main() {
       });
 
       formBloc = MkSimpleFormBloc(
-        controls: {
-          'shipping': shippingGroup,
-          'billing': billingGroup,
-        },
+        controls: {'shipping': shippingGroup, 'billing': billingGroup},
         onSubmit: (values) async => values,
       );
     });
@@ -70,28 +67,24 @@ void main() {
       expect(billingCity.state.isTouched, isFalse);
     });
 
-    test('populateValues sets values into nested groups and fields cleanly',
-        () {
-      formBloc.populateValues({
-        'shipping': {
-          'street': '123 Market St',
-          'city': 'San Francisco',
-        },
-        'billing': {
-          'street': '456 Wall St',
-          'city': 'New York',
-        },
-      });
+    test(
+      'populateValues sets values into nested groups and fields cleanly',
+      () {
+        formBloc.populateValues({
+          'shipping': {'street': '123 Market St', 'city': 'San Francisco'},
+          'billing': {'street': '456 Wall St', 'city': 'New York'},
+        });
 
-      expect(shippingStreet.value, '123 Market St');
-      expect(shippingCity.value, 'San Francisco');
-      expect(billingStreet.value, '456 Wall St');
-      expect(billingCity.value, 'New York');
+        expect(shippingStreet.value, '123 Market St');
+        expect(shippingCity.value, 'San Francisco');
+        expect(billingStreet.value, '456 Wall St');
+        expect(billingCity.value, 'New York');
 
-      // By default markPristine is true: controls should not be dirty
-      expect(shippingStreet.state.isDirty, isFalse);
-      expect(billingStreet.state.isDirty, isFalse);
-      expect(shippingStreet.state.showError, isFalse);
-    });
+        // By default markPristine is true: controls should not be dirty
+        expect(shippingStreet.state.isDirty, isFalse);
+        expect(billingStreet.state.isDirty, isFalse);
+        expect(shippingStreet.state.showError, isFalse);
+      },
+    );
   });
 }

@@ -70,9 +70,9 @@ class MkRadioGroup<T> extends StatelessWidget {
     this.itemBuilder,
     this.autovalidateMode,
   }) : assert(
-          fieldBloc != null || name != null,
-          'Either fieldBloc or name must be provided',
-        );
+         fieldBloc != null || name != null,
+         'Either fieldBloc or name must be provided',
+       );
 
   /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
   final MkFieldBloc<T>? fieldBloc;
@@ -210,7 +210,8 @@ class MkRadioGroup<T> extends StatelessWidget {
     MkRadioOption<T> option,
     bool isSelected,
     VoidCallback onSelect,
-  )? itemBuilder;
+  )?
+  itemBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -233,36 +234,32 @@ class MkRadioGroup<T> extends StatelessWidget {
         if (itemBuilder != null) {
           final items = options.map((option) {
             final isSelected = state.value == option.value;
-            return itemBuilder!(
-              context,
-              option,
-              isSelected,
-              () {
-                if (option.enabled) select(option.value);
-              },
-            );
+            return itemBuilder!(context, option, isSelected, () {
+              if (option.enabled) select(option.value);
+            });
           }).toList();
 
           content = switch (layout) {
             MkRadioLayout.vertical => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: items,
-              ),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: items,
+            ),
             MkRadioLayout.horizontal => SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(mainAxisSize: MainAxisSize.min, children: items),
-              ),
+              scrollDirection: Axis.horizontal,
+              child: Row(mainAxisSize: MainAxisSize.min, children: items),
+            ),
             MkRadioLayout.wrap => Wrap(
-                spacing: spacing,
-                runSpacing: runSpacing,
-                children: items,
-              ),
+              spacing: spacing,
+              runSpacing: runSpacing,
+              children: items,
+            ),
           };
         } else {
           // Only the first enabled option may autofocus.
-          final autofocusIndex =
-              autofocus ? options.indexWhere((o) => o.enabled) : -1;
+          final autofocusIndex = autofocus
+              ? options.indexWhere((o) => o.enabled)
+              : -1;
 
           Widget tile(int index, MkRadioOption<T> option) {
             return RadioListTile<T>(
@@ -377,7 +374,8 @@ class MkRadioGroup<T> extends StatelessWidget {
           );
         }
 
-        final effectiveMode = autovalidateMode ??
+        final effectiveMode =
+            autovalidateMode ??
             MkFormScope.maybeAutovalidateModeOf(context) ??
             AutovalidateMode.onUserInteraction;
         final isErrorVisible = state.shouldShowError(effectiveMode);
@@ -386,17 +384,15 @@ class MkRadioGroup<T> extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (title != null) ...[
-              title!,
-              const SizedBox(height: 4),
-            ],
+            if (title != null) ...[title!, const SizedBox(height: 4)],
             content,
             if (isErrorVisible && state.error != null)
               Padding(
                 padding: errorPadding,
                 child: Text(
                   state.getLocalizedError(context) ?? state.error!,
-                  style: errorStyle ??
+                  style:
+                      errorStyle ??
                       theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.error,
                       ),

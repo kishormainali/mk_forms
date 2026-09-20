@@ -28,9 +28,7 @@ void main() {
       // Override globally for the whole app
       MkFormLocalizations.current = const MkSpanishMessages();
 
-      final field = MkFieldBloc<String>(
-        validators: [MkValidators.required()],
-      );
+      final field = MkFieldBloc<String>(validators: [MkValidators.required()]);
 
       expect(field.state.error, 'Este campo es obligatorio');
       expect(field.state.getLocalizedError(), 'Este campo es obligatorio');
@@ -39,37 +37,38 @@ void main() {
       MkFormLocalizations.current = const MkDefaultEnglishMessages();
     });
 
-    testWidgets('scoped per-app localization override via MkLocalizationScope',
-        (tester) async {
-      final emailField = MkFieldBloc<String>(
-        validators: [MkValidators.required()],
-      );
+    testWidgets(
+      'scoped per-app localization override via MkLocalizationScope',
+      (tester) async {
+        final emailField = MkFieldBloc<String>(
+          validators: [MkValidators.required()],
+        );
 
-      emailField.touch();
+        emailField.touch();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MkLocalizationScope(
-              messages: const CustomFrenchMessages(),
-              child: MkTextField(
-                fieldBloc: emailField,
-                decoration: const InputDecoration(labelText: 'Email'),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: MkLocalizationScope(
+                messages: const CustomFrenchMessages(),
+                child: MkTextField(
+                  fieldBloc: emailField,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Scoped French message is rendered
-      expect(find.text('Ce champ est requis'), findsOneWidget);
-    });
+        // Scoped French message is rendered
+        expect(find.text('Ce champ est requis'), findsOneWidget);
+      },
+    );
 
-    testWidgets('dynamic language switching updates form errors at runtime',
-        (tester) async {
-      final field = MkFieldBloc<String>(
-        validators: [MkValidators.required()],
-      );
+    testWidgets('dynamic language switching updates form errors at runtime', (
+      tester,
+    ) async {
+      final field = MkFieldBloc<String>(validators: [MkValidators.required()]);
       field.touch();
 
       bool isSpanish = false;

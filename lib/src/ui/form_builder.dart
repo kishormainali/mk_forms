@@ -4,11 +4,12 @@ import '../blocs/form_bloc.dart';
 import 'form_scope.dart';
 
 /// Function signature for building a widget based on [MkFormState].
-typedef MkFormWidgetBuilder = Widget Function(
-  BuildContext context,
-  MkFormState state,
-  MkFormBloc formBloc,
-);
+typedef MkFormWidgetBuilder =
+    Widget Function(
+      BuildContext context,
+      MkFormState state,
+      MkFormBloc formBloc,
+    );
 
 /// A reactive widget that rebuilds when the state of an [MkFormBloc] changes.
 ///

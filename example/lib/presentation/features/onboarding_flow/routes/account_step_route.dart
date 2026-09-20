@@ -8,10 +8,7 @@ import '../bloc/onboarding_form_bloc.dart';
 /// Screen for Step 1 of onboarding: Account Credentials.
 @RoutePage()
 class AccountStepScreen extends StatelessWidget {
-  const AccountStepScreen({
-    super.key,
-    required this.formBloc,
-  });
+  const AccountStepScreen({super.key, required this.formBloc});
 
   final OnboardingFormBloc formBloc;
 
@@ -65,8 +62,10 @@ class AccountStepScreen extends StatelessWidget {
                 const PopupMenuItem(
                   value: 'valid',
                   child: ListTile(
-                    leading:
-                        Icon(Icons.check_circle_outline, color: Colors.green),
+                    leading: Icon(
+                      Icons.check_circle_outline,
+                      color: Colors.green,
+                    ),
                     title: Text('Load Valid Draft (Step 2)'),
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -74,8 +73,10 @@ class AccountStepScreen extends StatelessWidget {
                 const PopupMenuItem(
                   value: 'invalid',
                   child: ListTile(
-                    leading: Icon(Icons.warning_amber_outlined,
-                        color: Colors.orange),
+                    leading: Icon(
+                      Icons.warning_amber_outlined,
+                      color: Colors.orange,
+                    ),
                     title: Text('Load Invalid Draft (Redirects to Step 1)'),
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -96,8 +97,9 @@ class AccountStepScreen extends StatelessWidget {
                       backgroundColor: Colors.blue,
                     ),
                   );
-                  unawaited(context.router
-                      .push(ProfileStepRoute(formBloc: formBloc)));
+                  unawaited(
+                    context.router.push(ProfileStepRoute(formBloc: formBloc)),
+                  );
                 }
               },
             ),
@@ -142,8 +144,9 @@ class AccountStepScreen extends StatelessWidget {
                 onPressed: () async {
                   final canProceed = await formBloc.nextStep();
                   if (canProceed && context.mounted) {
-                    unawaited(context.router
-                        .push(ProfileStepRoute(formBloc: formBloc)));
+                    unawaited(
+                      context.router.push(ProfileStepRoute(formBloc: formBloc)),
+                    );
                   }
                 },
                 child: const Text('Continue to Profile →'),

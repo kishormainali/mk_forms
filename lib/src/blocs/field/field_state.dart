@@ -131,16 +131,16 @@ class MkFieldState<T> extends Equatable {
 
   @override
   List<Object?> get props => [
-        value,
-        initialValue,
-        error,
-        errorCode,
-        errorParams,
-        isDirty,
-        isTouched,
-        isValidating,
-        isEnabled,
-        isVisible,
-        wasFormSubmitted,
-      ];
+    value,
+    initialValue,
+    error,
+    errorCode,
+    errorParams,
+    isDirty,
+    isTouched,
+    isValidating,
+    isEnabled,
+    isVisible,
+    wasFormSubmitted,
+  ];
 }

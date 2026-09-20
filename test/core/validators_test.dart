@@ -63,18 +63,20 @@ void main() {
         expect(validator('first.last+tag@example.co.uk'), isNull);
       });
 
-      test('rejects trailing garbage, stray separators and malformed hosts',
-          () {
-        expect(validator('a@b.co garbage'), isNotNull);
-        expect(validator('a@b.c@@@'), isNotNull);
-        expect(validator('a,b@x.com'), isNotNull);
-        expect(validator('a b@x.com'), isNotNull);
-        expect(validator('@x.com'), isNotNull);
-        expect(validator('a@.com'), isNotNull);
-        expect(validator('a@b..com'), isNotNull);
-        expect(validator('a@-b.com'), isNotNull);
-        expect(validator('a@b-.com'), isNotNull);
-      });
+      test(
+        'rejects trailing garbage, stray separators and malformed hosts',
+        () {
+          expect(validator('a@b.co garbage'), isNotNull);
+          expect(validator('a@b.c@@@'), isNotNull);
+          expect(validator('a,b@x.com'), isNotNull);
+          expect(validator('a b@x.com'), isNotNull);
+          expect(validator('@x.com'), isNotNull);
+          expect(validator('a@.com'), isNotNull);
+          expect(validator('a@b..com'), isNotNull);
+          expect(validator('a@-b.com'), isNotNull);
+          expect(validator('a@b-.com'), isNotNull);
+        },
+      );
 
       test('returns null for valid email addresses', () {
         expect(validator('user@example.com'), isNull);

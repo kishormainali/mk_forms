@@ -4,9 +4,7 @@ import 'package:mk_forms/mk_forms.dart';
 void main() {
   group('MkFieldBloc', () {
     test('initializes with pristine state and does not show error on load', () {
-      final field = MkFieldBloc<String>(
-        validators: [MkValidators.required()],
-      );
+      final field = MkFieldBloc<String>(validators: [MkValidators.required()]);
 
       // Value is null, validator returns an error internally
       expect(field.value, isNull);
@@ -20,9 +18,7 @@ void main() {
     });
 
     test('showError becomes true when field is touched', () {
-      final field = MkFieldBloc<String>(
-        validators: [MkValidators.required()],
-      );
+      final field = MkFieldBloc<String>(validators: [MkValidators.required()]);
 
       expect(field.state.showError, isFalse);
 
@@ -33,9 +29,7 @@ void main() {
     });
 
     test('showError becomes true when form submission is attempted', () {
-      final field = MkFieldBloc<String>(
-        validators: [MkValidators.required()],
-      );
+      final field = MkFieldBloc<String>(validators: [MkValidators.required()]);
 
       expect(field.state.showError, isFalse);
 
@@ -116,10 +110,8 @@ void main() {
       expect(field.state.showError, isFalse);
     });
 
-    group('Cross-field dependent validation (e.g. password & confirmPassword)',
-        () {
-      test('confirmPassword automatically revalidates when password changes',
-          () {
+    group('Cross-field dependent validation (e.g. password & confirmPassword)', () {
+      test('confirmPassword automatically revalidates when password changes', () {
         final passwordField = MkFieldBloc<String>(
           validators: [MkValidators.required(), MkValidators.minLength(6)],
         );
@@ -127,10 +119,7 @@ void main() {
         final confirmPasswordField = MkFieldBloc<String>(
           validators: [
             MkValidators.required(),
-            MkValidators.matchControl(
-              passwordField,
-              'Passwords do not match',
-            ),
+            MkValidators.matchControl(passwordField, 'Passwords do not match'),
           ],
           dependsOn: [passwordField],
         );
@@ -167,16 +156,12 @@ void main() {
 
         fieldA = MkFieldBloc<String>(
           initialValue: 'alpha',
-          validators: [
-            MkValidators.match(() => fieldB.value, 'Must match B'),
-          ],
+          validators: [MkValidators.match(() => fieldB.value, 'Must match B')],
         );
 
         fieldB = MkFieldBloc<String>(
           initialValue: 'beta',
-          validators: [
-            MkValidators.match(() => fieldA.value, 'Must match A'),
-          ],
+          validators: [MkValidators.match(() => fieldA.value, 'Must match A')],
           dependsOn: [fieldA],
         );
 
@@ -222,33 +207,35 @@ void main() {
         expect(field.state.error, 'Username is taken');
       });
 
-      test('cancels stale async validation when a newer value is emitted',
-          () async {
-        final calls = <String>[];
-        final field = MkFieldBloc<String>(
-          asyncValidators: [
-            (val) async {
-              calls.add(val!);
-              await Future<void>.delayed(const Duration(milliseconds: 80));
-              return val == 'taken' ? 'Taken' : null;
-            },
-          ],
-          debounceTime: const Duration(milliseconds: 50),
-        );
+      test(
+        'cancels stale async validation when a newer value is emitted',
+        () async {
+          final calls = <String>[];
+          final field = MkFieldBloc<String>(
+            asyncValidators: [
+              (val) async {
+                calls.add(val!);
+                await Future<void>.delayed(const Duration(milliseconds: 80));
+                return val == 'taken' ? 'Taken' : null;
+              },
+            ],
+            debounceTime: const Duration(milliseconds: 50),
+          );
 
-        field.changeValue('taken');
-        // Type another character before debounce timer fires
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-        field.changeValue('available');
+          field.changeValue('taken');
+          // Type another character before debounce timer fires
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          field.changeValue('available');
 
-        await Future<void>.delayed(const Duration(milliseconds: 200));
+          await Future<void>.delayed(const Duration(milliseconds: 200));
 
-        expect(field.isValidating, isFalse);
-        expect(field.isValid, isTrue);
-        expect(field.state.error, isNull);
-        // Only the second value was validated
-        expect(calls, ['available']);
-      });
+          expect(field.isValidating, isFalse);
+          expect(field.isValid, isTrue);
+          expect(field.state.error, isNull);
+          // Only the second value was validated
+          expect(calls, ['available']);
+        },
+      );
     });
   });
 }

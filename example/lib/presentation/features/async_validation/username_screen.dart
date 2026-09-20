@@ -8,10 +8,8 @@ import 'bloc/username_form_bloc.dart';
 /// Screen demonstrating debounced async validation powered by [UsernameFormBloc].
 @RoutePage()
 class UsernameScreen extends StatefulWidget {
-  const UsernameScreen({
-    super.key,
-    UsernameFormBloc? formBloc,
-  }) : _formBloc = formBloc;
+  const UsernameScreen({super.key, UsernameFormBloc? formBloc})
+    : _formBloc = formBloc;
 
   final UsernameFormBloc? _formBloc;
 
@@ -39,9 +37,7 @@ class _UsernameScreenState extends State<UsernameScreen> {
     final usernameBloc = _formBloc.field<String>('username');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Async Validation'),
-      ),
+      appBar: AppBar(title: const Text('Async Validation')),
       body: MkFormScope.value(
         value: _formBloc,
         child: SingleChildScrollView(

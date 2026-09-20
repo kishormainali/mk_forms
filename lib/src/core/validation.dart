@@ -4,10 +4,7 @@ import 'localization.dart';
 
 /// Metadata associated with a validator for i18n resolution.
 class MkValidatorMetadata {
-  const MkValidatorMetadata({
-    required this.errorCode,
-    this.params = const {},
-  });
+  const MkValidatorMetadata({required this.errorCode, this.params = const {}});
 
   final String errorCode;
   final Map<String, dynamic> params;
@@ -244,9 +241,7 @@ class MkValidators {
   }
 
   /// Composes multiple async validators into a single async validator.
-  static AsyncValidator<T> composeAsync<T>(
-    List<AsyncValidator<T>> validators,
-  ) {
+  static AsyncValidator<T> composeAsync<T>(List<AsyncValidator<T>> validators) {
     return (T? value) async {
       for (final validator in validators) {
         final error = await validator(value);

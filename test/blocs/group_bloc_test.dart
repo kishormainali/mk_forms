@@ -12,10 +12,7 @@ void main() {
         validators: [MkValidators.required()],
       );
 
-      final group = MkGroupBloc({
-        'firstName': firstName,
-        'lastName': lastName,
-      });
+      final group = MkGroupBloc({'firstName': firstName, 'lastName': lastName});
 
       expect(group.value, {'firstName': 'John', 'lastName': null});
       expect(group.isValid, isFalse); // lastName is required and null
@@ -30,10 +27,7 @@ void main() {
       final street = MkFieldBloc<String>(initialValue: '123 Main St');
       final city = MkFieldBloc<String>(initialValue: 'Springfield');
 
-      final addressGroup = MkGroupBloc({
-        'street': street,
-        'city': city,
-      });
+      final addressGroup = MkGroupBloc({'street': street, 'city': city});
 
       final userGroup = MkGroupBloc({
         'name': MkFieldBloc<String>(initialValue: 'Alice'),
@@ -42,10 +36,7 @@ void main() {
 
       expect(userGroup.value, {
         'name': 'Alice',
-        'address': {
-          'street': '123 Main St',
-          'city': 'Springfield',
-        },
+        'address': {'street': '123 Main St', 'city': 'Springfield'},
       });
       expect(userGroup.isValid, isTrue);
     });

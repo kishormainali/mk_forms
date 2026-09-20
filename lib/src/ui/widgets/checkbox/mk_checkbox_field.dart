@@ -59,9 +59,9 @@ class MkCheckboxField extends StatelessWidget {
     this.errorPadding = const EdgeInsets.only(left: 16, top: 2),
     this.autovalidateMode,
   }) : assert(
-          fieldBloc != null || name != null,
-          'Either fieldBloc or name must be provided',
-        );
+         fieldBloc != null || name != null,
+         'Either fieldBloc or name must be provided',
+       );
 
   /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
   final MkFieldBloc<bool>? fieldBloc;
@@ -199,7 +199,8 @@ class MkCheckboxField extends StatelessWidget {
       fieldBloc: fieldBloc,
       name: name,
       builder: (context, state, bloc) {
-        final effectiveMode = autovalidateMode ??
+        final effectiveMode =
+            autovalidateMode ??
             MkFormScope.maybeAutovalidateModeOf(context) ??
             AutovalidateMode.onUserInteraction;
         final isErrorVisible =
@@ -260,7 +261,8 @@ class MkCheckboxField extends StatelessWidget {
                 padding: errorPadding,
                 child: Text(
                   state.getLocalizedError(context) ?? state.error!,
-                  style: errorStyle ??
+                  style:
+                      errorStyle ??
                       theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.error,
                       ),

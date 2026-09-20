@@ -14,10 +14,8 @@ import 'bloc/login_form_bloc.dart';
 /// - Submission lifecycle and error clearing upon user modification.
 @RoutePage()
 class MinimalLoginScreen extends StatefulWidget {
-  const MinimalLoginScreen({
-    super.key,
-    LoginFormBloc? formBloc,
-  }) : _formBloc = formBloc;
+  const MinimalLoginScreen({super.key, LoginFormBloc? formBloc})
+    : _formBloc = formBloc;
 
   final LoginFormBloc? _formBloc;
 
@@ -43,9 +41,7 @@ class _MinimalLoginScreenState extends State<MinimalLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Minimal Form (Login)'),
-      ),
+      appBar: AppBar(title: const Text('Minimal Form (Login)')),
       body: MkFormScope.value(
         value: _formBloc,
         child: MkFormListener(
@@ -85,18 +81,16 @@ class _MinimalLoginScreenState extends State<MinimalLoginScreen> {
                   children: [
                     Text(
                       'Welcome to mk_forms',
-                      style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Enter your credentials below. Errors only appear after interacting or attempting to submit.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
+                        color: Colors.grey.shade600,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),

@@ -98,9 +98,9 @@ class MkTextField extends StatefulWidget {
     this.showValidatingIndicator = true,
     this.autovalidateMode,
   }) : assert(
-          fieldBloc != null || name != null,
-          'Either fieldBloc or name must be provided',
-        );
+         fieldBloc != null || name != null,
+         'Either fieldBloc or name must be provided',
+       );
 
   /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
   final MkFieldBloc<String>? fieldBloc;
@@ -349,8 +349,9 @@ class _MkTextFieldState extends State<MkTextField> {
   void didUpdateWidget(MkTextField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.focusNode != widget.focusNode) {
-      (oldWidget.focusNode ?? _ownFocusNode)
-          ?.removeListener(_handleFocusChange);
+      (oldWidget.focusNode ?? _ownFocusNode)?.removeListener(
+        _handleFocusChange,
+      );
       if (widget.focusNode != null) {
         _ownFocusNode?.dispose();
         _ownFocusNode = null;
@@ -424,7 +425,8 @@ class _MkTextFieldState extends State<MkTextField> {
           );
         }
 
-        final effectiveAutovalidateMode = widget.autovalidateMode ??
+        final effectiveAutovalidateMode =
+            widget.autovalidateMode ??
             MkFormScope.maybeAutovalidateModeOf(context) ??
             AutovalidateMode.onUserInteraction;
 

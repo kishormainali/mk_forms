@@ -8,16 +8,16 @@ export 'group_state.dart';
 /// A form control bloc that aggregates a map of named [MkControlBloc] children.
 class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
   MkGroupBloc(Map<String, MkControlBloc<dynamic>> controls)
-      : _controls = Map.of(controls),
-        super(
-          MkGroupState(
-            values: _extractValues(controls),
-            isValid: controls.values.every((c) => c.isValid),
-            isValidating: controls.values.any((c) => c.isValidating),
-            isDirty: controls.values.any((c) => c.isDirty),
-            isTouched: controls.values.any((c) => c.isTouched),
-          ),
-        ) {
+    : _controls = Map.of(controls),
+      super(
+        MkGroupState(
+          values: _extractValues(controls),
+          isValid: controls.values.every((c) => c.isValid),
+          isValidating: controls.values.any((c) => c.isValidating),
+          isDirty: controls.values.any((c) => c.isDirty),
+          isTouched: controls.values.any((c) => c.isTouched),
+        ),
+      ) {
     for (final entry in _controls.entries) {
       _listenToControl(entry.key, entry.value);
     }
@@ -168,9 +168,7 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
   static Map<String, dynamic> _extractValues(
     Map<String, MkControlBloc<dynamic>> controls,
   ) {
-    return {
-      for (final entry in controls.entries) entry.key: entry.value.value,
-    };
+    return {for (final entry in controls.entries) entry.key: entry.value.value};
   }
 
   @override

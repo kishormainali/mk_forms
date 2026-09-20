@@ -10,19 +10,19 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
-        AutoRoute(page: HomeRoute.page, initial: true),
-        AutoRoute(page: MinimalLoginRoute.page),
-        AutoRoute(page: OnboardingFlowRoute.page),
-        AutoRoute(page: AccountStepRoute.page),
-        AutoRoute(page: ProfileStepRoute.page),
-        AutoRoute(page: PreferencesStepRoute.page),
-        AutoRoute(page: CheckoutRoute.page),
-        AutoRoute(page: RegistrationRoute.page),
-        AutoRoute(page: UsernameRoute.page),
-        AutoRoute(page: DynamicTodosRoute.page),
-        AutoRoute(page: AllFieldsRoute.page),
-        AutoRoute(page: I18nDemoRoute.page),
-        AutoRoute(page: CustomDesignRoute.page),
-        AutoRoute(page: AutovalidateRoute.page),
-      ];
+    AutoRoute(page: HomeRoute.page, initial: true),
+    AutoRoute(page: MinimalLoginRoute.page),
+    AutoRoute(page: OnboardingFlowRoute.page),
+    AutoRoute(page: AccountStepRoute.page),
+    AutoRoute(page: ProfileStepRoute.page),
+    AutoRoute(page: PreferencesStepRoute.page),
+    AutoRoute(page: CheckoutRoute.page),
+    AutoRoute(page: RegistrationRoute.page),
+    AutoRoute(page: UsernameRoute.page),
+    AutoRoute(page: DynamicTodosRoute.page),
+    AutoRoute(page: AllFieldsRoute.page),
+    AutoRoute(page: I18nDemoRoute.page),
+    AutoRoute(page: CustomDesignRoute.page),
+    AutoRoute(page: AutovalidateRoute.page),
+  ];
 }

@@ -8,10 +8,8 @@ import 'bloc/dynamic_todos_form_bloc.dart';
 /// Screen demonstrating dynamic array forms powered by [DynamicTodosFormBloc].
 @RoutePage()
 class DynamicTodosScreen extends StatefulWidget {
-  const DynamicTodosScreen({
-    super.key,
-    DynamicTodosFormBloc? formBloc,
-  }) : _formBloc = formBloc;
+  const DynamicTodosScreen({super.key, DynamicTodosFormBloc? formBloc})
+    : _formBloc = formBloc;
 
   final DynamicTodosFormBloc? _formBloc;
 
@@ -72,8 +70,9 @@ class _DynamicTodosScreenState extends State<DynamicTodosScreen> {
                 children: [
                   Card(
                     elevation: 0,
-                    color:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Text(

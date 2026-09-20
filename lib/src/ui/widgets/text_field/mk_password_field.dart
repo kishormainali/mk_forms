@@ -88,9 +88,9 @@ class MkPasswordField extends StatefulWidget {
     this.autovalidateMode,
     this.showValidatingIndicator = true,
   }) : assert(
-          fieldBloc != null || name != null,
-          'Either fieldBloc or name must be provided',
-        );
+         fieldBloc != null || name != null,
+         'Either fieldBloc or name must be provided',
+       );
 
   /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
   final MkFieldBloc<String>? fieldBloc;
@@ -315,20 +315,22 @@ class _MkPasswordFieldState extends State<MkPasswordField> {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveDecoration =
-        (widget.decoration ?? const InputDecoration()).copyWith(
-      labelText: widget.decoration?.labelText ?? 'Password',
-      prefixIcon:
-          widget.decoration?.prefixIcon ?? const Icon(Icons.lock_outline),
-      suffixIcon: IconButton(
-        icon: _obscureText ? widget.showPasswordIcon : widget.hidePasswordIcon,
-        onPressed: () {
-          setState(() {
-            _obscureText = !_obscureText;
-          });
-        },
-      ),
-    );
+    final effectiveDecoration = (widget.decoration ?? const InputDecoration())
+        .copyWith(
+          labelText: widget.decoration?.labelText ?? 'Password',
+          prefixIcon:
+              widget.decoration?.prefixIcon ?? const Icon(Icons.lock_outline),
+          suffixIcon: IconButton(
+            icon: _obscureText
+                ? widget.showPasswordIcon
+                : widget.hidePasswordIcon,
+            onPressed: () {
+              setState(() {
+                _obscureText = !_obscureText;
+              });
+            },
+          ),
+        );
 
     return MkTextField(
       fieldBloc: widget.fieldBloc,

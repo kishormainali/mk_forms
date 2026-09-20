@@ -35,7 +35,7 @@ class MkMultiSelectModalContent<T> extends StatefulWidget {
   final bool Function(T item, String query) searchPredicate;
   final ValueChanged<List<T>> onSelectionChanged;
   final Widget Function(BuildContext context, T item, bool isSelected)?
-      itemTitleBuilder;
+  itemTitleBuilder;
   final String doneLabel;
   final String selectAllLabel;
   final String clearAllLabel;
@@ -87,8 +87,8 @@ class _MkMultiSelectModalContentState<T>
                     widget.modalTitle,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 TextButton(

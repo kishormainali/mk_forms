@@ -10,9 +10,9 @@ class MkSimpleFormBloc extends MkFormBloc {
     required Future<dynamic> Function(Map<String, dynamic> values) onSubmit,
     void Function(dynamic response)? onSubmitSuccess,
     void Function(Object error)? onSubmitFailure,
-  })  : _submitHandler = onSubmit,
-        _successHandler = onSubmitSuccess,
-        _failureHandler = onSubmitFailure;
+  }) : _submitHandler = onSubmit,
+       _successHandler = onSubmitSuccess,
+       _failureHandler = onSubmitFailure;
 
   final Future<dynamic> Function(Map<String, dynamic> values) _submitHandler;
   final void Function(dynamic response)? _successHandler;

@@ -4,11 +4,12 @@ import '../blocs/group_bloc.dart';
 import 'form_scope.dart';
 
 /// Function signature for building a widget based on [MkGroupState].
-typedef MkSubformWidgetBuilder = Widget Function(
-  BuildContext context,
-  MkGroupState state,
-  MkGroupBloc groupBloc,
-);
+typedef MkSubformWidgetBuilder =
+    Widget Function(
+      BuildContext context,
+      MkGroupState state,
+      MkGroupBloc groupBloc,
+    );
 
 /// A widget that rebuilds exclusively when a specific [MkGroupBloc] (subform) changes.
 ///
@@ -23,9 +24,9 @@ class MkSubformBuilder extends StatelessWidget {
     this.buildWhen,
     required this.builder,
   }) : assert(
-          groupBloc != null || name != null,
-          'Either groupBloc or name must be provided to MkSubformBuilder',
-        );
+         groupBloc != null || name != null,
+         'Either groupBloc or name must be provided to MkSubformBuilder',
+       );
 
   /// The target group bloc.
   final MkGroupBloc? groupBloc;

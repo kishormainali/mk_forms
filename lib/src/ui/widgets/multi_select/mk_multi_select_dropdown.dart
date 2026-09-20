@@ -94,15 +94,17 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
     this.dialogElevation,
     this.dialogShape,
     this.dialogInsetPadding,
-    this.dialogConstraints =
-        const BoxConstraints(maxWidth: 450, maxHeight: 600),
+    this.dialogConstraints = const BoxConstraints(
+      maxWidth: 450,
+      maxHeight: 600,
+    ),
     this.dialogBarrierColor,
     this.dialogBarrierDismissible = true,
     this.dialogUseRootNavigator = true,
   }) : assert(
-          fieldBloc != null || name != null,
-          'Either fieldBloc or name must be provided',
-        );
+         fieldBloc != null || name != null,
+         'Either fieldBloc or name must be provided',
+       );
 
   /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
   final MkFieldBloc<List<T>>? fieldBloc;
@@ -169,11 +171,11 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
 
   /// Custom chip builder for selected items.
   final Widget Function(BuildContext context, T item, VoidCallback onRemove)?
-      chipBuilder;
+  chipBuilder;
 
   /// Custom list item widget builder in the search modal.
   final Widget Function(BuildContext context, T item, bool isSelected)?
-      itemTitleBuilder;
+  itemTitleBuilder;
 
   /// Custom predicate to filter items by search query.
   final bool Function(T item, String query)? searchFilter;
@@ -316,7 +318,8 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
         final selectedItems = state.value ?? <T>[];
         final isEnabled = state.isEnabled && (enabled ?? true);
 
-        final effectiveMode = autovalidateMode ??
+        final effectiveMode =
+            autovalidateMode ??
             MkFormScope.maybeAutovalidateModeOf(context) ??
             AutovalidateMode.onUserInteraction;
         final isErrorVisible = state.shouldShowError(effectiveMode);
@@ -367,7 +370,8 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
             child: selectedItems.isEmpty
                 ? Text(
                     hintText,
-                    style: hintStyle ??
+                    style:
+                        hintStyle ??
                         TextStyle(color: Theme.of(context).hintColor),
                   )
                 : Wrap(
@@ -378,7 +382,10 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
                       ...selectedItems.take(maxChipsDisplayed).map((item) {
                         if (chipBuilder != null) {
                           return chipBuilder!(
-                              context, item, () => remove(item));
+                            context,
+                            item,
+                            () => remove(item),
+                          );
                         }
                         return InputChip(
                           label: Text(itemToString(item)),
@@ -400,7 +407,8 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
                           child: Text(
                             moreLabelBuilder?.call(hiddenCount) ??
                                 '+$hiddenCount more',
-                            style: moreLabelStyle ??
+                            style:
+                                moreLabelStyle ??
                                 TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -421,7 +429,8 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
     required List<T> currentSelection,
     required ValueChanged<List<T>> onSelectionChanged,
   }) async {
-    final searchPredicate = searchFilter ??
+    final searchPredicate =
+        searchFilter ??
         (T item, String query) =>
             itemToString(item).toLowerCase().contains(query.toLowerCase());
 

@@ -7,10 +7,7 @@ import '../bloc/onboarding_form_bloc.dart';
 /// Screen for Step 3 of onboarding: Preferences & Final Submission.
 @RoutePage()
 class PreferencesStepScreen extends StatelessWidget {
-  const PreferencesStepScreen({
-    super.key,
-    required this.formBloc,
-  });
+  const PreferencesStepScreen({super.key, required this.formBloc});
 
   final OnboardingFormBloc formBloc;
 
@@ -53,9 +50,7 @@ class PreferencesStepScreen extends StatelessWidget {
           );
         },
         child: Scaffold(
-          appBar: AppBar(
-            title: const Text('Onboarding: Step 3 / 3'),
-          ),
+          appBar: AppBar(title: const Text('Onboarding: Step 3 / 3')),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -65,9 +60,9 @@ class PreferencesStepScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   'Preferences & Confirmation',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 24),
                 MkMultiSelectSearchDropdown<String>(
@@ -98,7 +93,8 @@ class PreferencesStepScreen extends StatelessWidget {
                 const MkCheckboxField(
                   name: 'agreeTerms',
                   title: Text(
-                      'I agree to the Terms of Service and Privacy Policy'),
+                    'I agree to the Terms of Service and Privacy Policy',
+                  ),
                 ),
                 const SizedBox(height: 32),
                 FilledButton(

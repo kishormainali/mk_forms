@@ -7,9 +7,7 @@ import '../../../../data/repositories/user_repository.dart';
 @injectable
 class RegistrationFormBloc extends MkFormBloc {
   RegistrationFormBloc(this._userRepository)
-      : super(
-          controls: _createControls(),
-        );
+    : super(controls: _createControls());
 
   final UserRepository _userRepository;
 
@@ -45,9 +43,7 @@ class RegistrationFormBloc extends MkFormBloc {
     return {
       'name': MkFieldBloc<String>(
         initialValue: '',
-        validators: [
-          MkValidators.required('Full name is required'),
-        ],
+        validators: [MkValidators.required('Full name is required')],
       ),
       'password': passwordBloc,
       'confirmPassword': confirmPasswordBloc,
