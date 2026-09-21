@@ -262,5 +262,28 @@ void main() {
         expect(stepFormBloc.state.submissionStatus.isIdle, isTrue);
       },
     );
+
+    test(
+      'reset clears redirect and loading fields set by loadInitialData',
+      () async {
+        await stepFormBloc.loadInitialData(
+          () async => {
+            'username': '',
+            'email': 'a@b.co',
+            'password': 'secret1',
+          },
+          resolveInitialStep: (_) => 2,
+        );
+        expect(stepFormBloc.state.redirectedFromStep, 2);
+        expect(stepFormBloc.state.invalidStepIndex, 0);
+
+        stepFormBloc.reset();
+
+        expect(stepFormBloc.state.isLoadingInitialData, isFalse);
+        expect(stepFormBloc.state.redirectedFromStep, isNull);
+        expect(stepFormBloc.state.invalidStepIndex, isNull);
+        expect(stepFormBloc.state.currentStep, 0);
+      },
+    );
   });
 }
