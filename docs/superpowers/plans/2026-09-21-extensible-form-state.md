@@ -4,7 +4,7 @@
 
 **Goal:** Let apps extend `MkFormState` with their own typed status fields (extra statuses, several concurrent API calls, multi-call submit) without boilerplate or lost state.
 
-**Architecture:** Keep `MkFormBloc extends Cubit<MkFormState>`; subclasses downcast `state`. Add two overridable members on `MkFormState` (`isBusy`, `reset()`) that the bloc uses for submit gating and reset, so subclass fields survive. Make `MkFormBuilder` optionally generic (`MkFormBuilder<S>`) so builders get the typed state without casts. Apps reuse `MkSubmissionStatus` for their own fields.
+**Architecture:** Keep `MkFormBloc extends Cubit<MkFormState>`; subclasses downcast `state`. Add two overridable members on `MkFormState` (`isBusy`, `reset()`) that the bloc uses for submit gating and reset, so subclass fields survive. Add a generic `MkFormStateBuilder<S>` (leaving `MkFormBuilder` untouched) so builders get the typed state without casts. Apps reuse `MkSubmissionStatus` for their own fields.
 
 **Tech Stack:** Dart >=3.9, Flutter >=3.41, `flutter_bloc` ^9.1.1, `bloc` ^9.2.1, `equatable`, `flutter_test`.
 
@@ -28,7 +28,7 @@
 | `lib/src/blocs/form/step_form_state.dart` (modify) | Override `reset()` to return to step 0 |
 | `lib/src/blocs/form/form_bloc.dart` (modify) | `submit()` gates on `isBusy`; `reset()` delegates to `state.reset` |
 | `lib/src/blocs/form/step_form_bloc.dart` (modify) | Delete duplicated `reset()` override |
-| `lib/src/ui/form_builder.dart` (modify) | Generic `MkFormBuilder<S>` and `MkFormWidgetBuilder<S>` |
+| `lib/src/ui/form_builder.dart` (modify) | New `MkFormStateBuilder<S>` + `MkFormStateWidgetBuilder<S>`; `MkFormBuilder` unchanged, delegates |
 | `test/support/profile_form.dart` (create) | Shared test fixture: `ProfileState` (extended state) and `ProfileBloc` |
 | `test/blocs/extensible_state_test.dart` (create) | Reset, `isBusy`, concurrent-status tests |
 | `test/blocs/step_form_bloc_test.dart` (modify) | Step reset regression test |
@@ -473,6 +473,8 @@ while other calls are in flight."
 
 ### Task 2: Typed `MkFormBuilder<S>`
 
+> **Superseded in part (controller ruling, fix round 1):** the generic `MkFormBuilder<S>` below breaks untyped call sites (Dart infers `S` as `Null` when it appears only in closure parameters). Task 2 was corrected: `MkFormBuilder` stays non-generic and delegates to a new `MkFormStateBuilder<S>`. See the spec, section 3.
+
 **Files:**
 - Modify: `lib/src/ui/form_builder.dart`
 - Create: `test/ui/form_builder_test.dart`
@@ -837,7 +839,7 @@ class ProfileFormBloc extends MkFormBloc {
 ### 3. Build the UI without casts
 
 ```dart
-MkFormBuilder<ProfileFormState>(
+MkFormStateBuilder<ProfileFormState>(
   buildWhen: (prev, curr) => prev.avatarStatus != curr.avatarStatus,
   builder: (context, state, bloc) => switch (state.avatarStatus) {
     MkSubmissionInProgress() => const CircularProgressIndicator(),
@@ -848,13 +850,13 @@ MkFormBuilder<ProfileFormState>(
 )
 ```
 
-`MkFormBuilder<S>` throws a `StateError` if the bloc's state is not an `S`. Without a type argument it behaves exactly as before.
+`MkFormStateBuilder<S>` throws a `StateError` if the bloc's state is not an `S`. Without a type argument it behaves exactly as before.
 
 | Member | Purpose |
 |---|---|
 | `MkFormState.isBusy` | Override to include your own in-flight work; drives `canSubmit` and blocks `submit()` |
 | `MkFormState.reset(...)` | Override to return custom fields to defaults; called by `MkFormBloc.reset()` |
-| `MkFormBuilder<S>` | Typed access to the custom state |
+| `MkFormStateBuilder<S>` | Typed access to the custom state |
 
 ````
 
@@ -869,7 +871,7 @@ Use `Edit` on `CHANGELOG.md` with `old_string` = `## [1.0.1] - 2026-09-20` and `
 - **Extensible form state.** `MkFormState` can be subclassed with your own typed status fields, so one form can track several independent API calls (upload, availability check, OTP) or extra statuses. See "Extending Form State" in the README.
   - `MkFormState.isBusy` — overridable; `canSubmit` and `MkFormBloc.submit()` now respect it, so in-flight side calls can block submission.
   - `MkFormState.reset(...)` — overridable; `MkFormBloc.reset()` uses it to keep subclass state.
-  - `MkFormBuilder<S extends MkFormState>` and `MkFormWidgetBuilder<S>` — receive the custom state type without casts (`S` defaults to `MkFormState`, so existing code is unchanged).
+  - `MkFormStateBuilder<S extends MkFormState>` and `MkFormStateWidgetBuilder<S>` — receive the custom state type without casts. `MkFormBuilder` is unchanged.
 
 ### Fixed
 - `MkFormBloc.reset()` dropped subclass state by emitting a plain `MkFormState`. `MkStepFormBloc` no longer needs its own `reset()` override.
@@ -909,7 +911,7 @@ git commit -m "docs: document extending form state and add 1.1.0 changelog entry
 - Regenerate: `example/lib/core/di/injection.config.dart`, `example/lib/core/router/app_router.gr.dart`
 
 **Interfaces:**
-- Consumes: `MkFormState.isBusy/reset`, `MkFormBuilder<S>`, `MkSubmissionStatus` (Tasks 1–2); existing `ApiClient.checkUsernameAvailability(String)`.
+- Consumes: `MkFormState.isBusy/reset`, `MkFormStateBuilder<S>`, `MkSubmissionStatus` (Tasks 1–2); existing `ApiClient.checkUsernameAvailability(String)`.
 - Produces:
   - `ApiClient.uploadAvatar(String fileName) → Future<String>`, `sendOtp(String phone) → Future<void>`, `saveProfile(Map<String, dynamic>) → Future<Map<String, dynamic>>`
   - `ProfileRepository` (`isUsernameAvailable`, `uploadAvatar`, `sendOtp`, `saveProfile`)
@@ -1285,7 +1287,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                 decoration: InputDecoration(labelText: 'Username'),
               ),
               const SizedBox(height: 8),
-              MkFormBuilder<ProfileFormState>(
+              MkFormStateBuilder<ProfileFormState>(
                 buildWhen: (prev, curr) =>
                     prev.usernameStatus != curr.usernameStatus,
                 builder: (context, state, bloc) => _CallRow(
@@ -1302,7 +1304,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                 decoration: InputDecoration(labelText: 'Phone'),
               ),
               const SizedBox(height: 8),
-              MkFormBuilder<ProfileFormState>(
+              MkFormStateBuilder<ProfileFormState>(
                 buildWhen: (prev, curr) => prev.otpStatus != curr.otpStatus,
                 builder: (context, state, bloc) => _CallRow(
                   label: 'Send code',
@@ -1312,7 +1314,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              MkFormBuilder<ProfileFormState>(
+              MkFormStateBuilder<ProfileFormState>(
                 buildWhen: (prev, curr) =>
                     prev.avatarStatus != curr.avatarStatus,
                 builder: (context, state, bloc) => Column(
@@ -1348,7 +1350,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              MkFormBuilder<ProfileFormState>(
+              MkFormStateBuilder<ProfileFormState>(
                 buildWhen: (prev, curr) => prev.isBusy != curr.isBusy,
                 builder: (context, state, bloc) => FilledButton(
                   onPressed: state.isBusy ? null : () => unawaited(bloc.submit()),

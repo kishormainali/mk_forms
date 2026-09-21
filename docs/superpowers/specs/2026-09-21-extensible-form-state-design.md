@@ -67,14 +67,22 @@ New overridable getter, `bool get isBusy => isSubmitting;`.
 A subclass writes `isBusy => super.isBusy || avatarStatus.isSubmitting` to block
 submission while an upload runs.
 
-### 3. Typed builder
+### 3. Typed builder: `MkFormStateBuilder<S>`
 
-`MkFormBuilder<S extends MkFormState>`: `builder` and `buildWhen` receive `S`.
-`MkFormListener` is unchanged; its callbacks never receive the state.
+`MkFormBuilder` stays exactly as it is (non-generic). A generic `MkFormBuilder<S>`
+was rejected: Dart infers a type parameter that appears only in closure parameter
+positions as `Null`, so an untyped `MkFormBuilder(builder: (c, state, b) => ...)`
+would stop compiling and break existing call sites.
 
-`S` defaults to `MkFormState`, so existing call sites are unchanged. Internally
-the widgets keep `BlocBuilder<MkFormBloc, MkFormState>` and downcast; when the
-bloc's state is not an `S`, throw a `StateError` naming both types.
+Instead add a new widget `MkFormStateBuilder<S extends MkFormState>` (and
+`typedef MkFormStateWidgetBuilder<S extends MkFormState>`) in `form_builder.dart`.
+`builder` and `buildWhen` receive `S`; callers write the type argument
+explicitly. `MkFormBuilder.build` delegates to `MkFormStateBuilder<MkFormState>`,
+so there is one implementation. `MkFormListener` is unchanged; its callbacks
+never receive the state.
+
+Internally the widget keeps `BlocBuilder<MkFormBloc, MkFormState>` and downcasts;
+when the bloc's state is not an `S`, throw a `StateError` naming both types.
 
 ### 4. Documented extension pattern
 
@@ -106,8 +114,8 @@ comments):
 - `isBusy` true blocks both `canSubmit` and `submit()`; `submit()` proceeds once
   it is false.
 - A bloc tracking two concurrent calls emits independent status transitions.
-- Typed `MkFormBuilder<S>` delivers `S`; the wrong-type case throws
-  `StateError`; the untyped usage compiles and behaves as before.
+- `MkFormStateBuilder<S>` delivers `S`; the wrong-type case throws `StateError`;
+  untyped `MkFormBuilder(...)` still compiles and behaves as before.
 - `dart analyze` and `flutter test` are clean before completion is claimed.
 
 ## Docs and example
