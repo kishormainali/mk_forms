@@ -1,12 +1,13 @@
 import 'package:injectable/injectable.dart';
 import 'package:mk_forms/mk_forms.dart';
 import '../../../../data/repositories/profile_repository.dart';
+import 'profile_extras.dart';
 import 'profile_form_state.dart';
 
 /// Profile form with three independent API calls plus a multi-call submit.
 ///
-/// Each call updates its own status field and stores what it produced in a
-/// typed extra field of [ProfileFormState].
+/// Each call updates its own status and stores what it produced in a typed
+/// field of [ProfileExtras].
 @injectable
 class ProfileFormBloc extends MkFormBloc {
   ProfileFormBloc(ProfileRepository repository)
@@ -46,9 +47,10 @@ class ProfileFormBloc extends MkFormBloc {
   /// Uploads an avatar; independent of the other calls.
   Future<void> uploadAvatar(String fileName) => _track<String>(
     () => _repository.uploadAvatar(fileName),
-    status: (s, status) => s.copyWith(avatarStatus: status),
-    onSuccess: (s, url) => s.copyWith(avatarUrl: () => url),
-    onFailure: (s) => s.copyWith(avatarUrl: () => null),
+    status: (s, status) =>
+        s.updateExtras((e) => e.copyWith(avatarStatus: status)),
+    onSuccess: (s, url) => s.updateExtras((e) => e.copyWith(avatarUrl: url)),
+    onFailure: (s) => s.updateExtras((e) => e.copyWith(avatarUrl: null)),
   );
 
   /// Checks whether the typed username is available.
@@ -62,14 +64,14 @@ class ProfileFormBloc extends MkFormBloc {
         if (username.isEmpty) throw Exception('Enter a username first');
         return _repository.isUsernameAvailable(username);
       },
-      status: (s, status) => s.copyWith(usernameStatus: status),
-      onSuccess: (s, available) => s.copyWith(
-        checkedUsername: () => username,
-        usernameAvailable: () => available,
+      status: (s, status) =>
+          s.updateExtras((e) => e.copyWith(usernameStatus: status)),
+      onSuccess: (s, available) => s.updateExtras(
+        (e) =>
+            e.copyWith(checkedUsername: username, usernameAvailable: available),
       ),
-      onFailure: (s) => s.copyWith(
-        checkedUsername: () => null,
-        usernameAvailable: () => null,
+      onFailure: (s) => s.updateExtras(
+        (e) => e.copyWith(checkedUsername: null, usernameAvailable: null),
       ),
     );
   }
@@ -82,9 +84,10 @@ class ProfileFormBloc extends MkFormBloc {
         if (phone.isEmpty) throw Exception('Enter a phone number first');
         return _repository.sendOtp(phone);
       },
-      status: (s, status) => s.copyWith(otpStatus: status),
-      onSuccess: (s, _) => s.copyWith(otpSentTo: () => phone),
-      onFailure: (s) => s.copyWith(otpSentTo: () => null),
+      status: (s, status) =>
+          s.updateExtras((e) => e.copyWith(otpStatus: status)),
+      onSuccess: (s, _) => s.updateExtras((e) => e.copyWith(otpSentTo: phone)),
+      onFailure: (s) => s.updateExtras((e) => e.copyWith(otpSentTo: null)),
     );
   }
 
@@ -115,23 +118,26 @@ class ProfileFormBloc extends MkFormBloc {
   }
 
   /// A single submit that chains two API calls and reports which one is
-  /// running through [ProfileFormState.submitStage].
+  /// running through [ProfileExtras.submitStage].
   @override
   Future<dynamic> onSubmit(Map<String, dynamic> values) async {
     try {
       final username = values['username'] as String;
-      emit(state.copyWith(submitStage: () => 'Checking username…'));
+      _setStage('Checking username…');
       final available = await _repository.isUsernameAvailable(username);
       if (!available) {
         throw Exception('Username "$username" is already taken');
       }
-      emit(state.copyWith(submitStage: () => 'Saving profile…'));
+      _setStage('Saving profile…');
       return await _repository.saveProfile({
         ...values,
-        'avatarUrl': state.avatarUrl,
+        'avatarUrl': state.extras.avatarUrl,
       });
     } finally {
-      emit(state.copyWith(submitStage: () => null));
+      _setStage(null);
     }
   }
+
+  void _setStage(String? stage) =>
+      emit(state.updateExtras((e) => e.copyWith(submitStage: stage)));
 }

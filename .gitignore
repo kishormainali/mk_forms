@@ -6,6 +6,8 @@
 build/
 *.g.dart
 *.freezed.dart
+# The example commits its generated code (CI analyzes it without build_runner).
+!example/**/*.freezed.dart
 
 # pub
 .pub/

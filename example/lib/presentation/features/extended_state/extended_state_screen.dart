@@ -3,6 +3,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:mk_forms/mk_forms.dart';
 import '../../../core/di/injection.dart';
+import 'bloc/profile_extras.dart';
 import 'bloc/profile_form_bloc.dart';
 import 'bloc/profile_form_state.dart';
 
@@ -10,10 +11,11 @@ import 'bloc/profile_form_state.dart';
 /// typed extra fields.
 ///
 /// - Avatar upload, username check and OTP request run concurrently, each with
-///   its own status field on [ProfileFormState].
-/// - Each call also stores what it produced in a typed field (`avatarUrl`,
-///   `checkedUsername` / `usernameAvailable`, `otpSentTo`) that the UI reads
-///   directly.
+///   its own status in [ProfileExtras], a freezed class held by
+///   [ProfileFormState].
+/// - Each call also stores what it produced in a typed field of that class
+///   (`avatarUrl`, `checkedUsername` / `usernameAvailable`, `otpSentTo`) that
+///   the UI reads directly.
 /// - The submit button is disabled while any of them is running (`isBusy`).
 /// - Submitting chains two API calls inside `onSubmit` and reports the running
 ///   one through `submitStage`.
@@ -97,14 +99,14 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
               const SizedBox(height: 8),
               MkFormStateBuilder<ProfileFormState>(
                 buildWhen: (prev, curr) =>
-                    prev.otpStatus != curr.otpStatus ||
-                    prev.otpSentTo != curr.otpSentTo,
+                    prev.extras.otpStatus != curr.extras.otpStatus ||
+                    prev.extras.otpSentTo != curr.extras.otpSentTo,
                 builder: (context, state, bloc) => _CallRow(
                   label: 'Send code',
-                  status: state.otpStatus,
+                  status: state.extras.otpStatus,
                   onPressed: () => unawaited(_formBloc.sendOtp()),
                   successText: (_) => (
-                    text: 'Code sent to ${state.otpSentTo}',
+                    text: 'Code sent to ${state.extras.otpSentTo}',
                     color: Colors.green,
                   ),
                 ),
@@ -112,8 +114,8 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
               const SizedBox(height: 16),
               MkFormStateBuilder<ProfileFormState>(
                 buildWhen: (prev, curr) =>
-                    prev.avatarStatus != curr.avatarStatus ||
-                    prev.avatarUrl != curr.avatarUrl,
+                    prev.extras.avatarStatus != curr.extras.avatarStatus ||
+                    prev.extras.avatarUrl != curr.extras.avatarUrl,
                 builder: (context, state, bloc) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -121,7 +123,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                       spacing: 12,
                       children: [
                         FilledButton.tonal(
-                          onPressed: state.avatarStatus.isSubmitting
+                          onPressed: state.extras.avatarStatus.isSubmitting
                               ? null
                               : () => unawaited(
                                   _formBloc.uploadAvatar('avatar.png'),
@@ -129,7 +131,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                           child: const Text('Upload avatar'),
                         ),
                         FilledButton.tonal(
-                          onPressed: state.avatarStatus.isSubmitting
+                          onPressed: state.extras.avatarStatus.isSubmitting
                               ? null
                               : () => unawaited(
                                   _formBloc.uploadAvatar('avatar_fail.png'),
@@ -140,9 +142,9 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                     ),
                     const SizedBox(height: 8),
                     _CallStatusText(
-                      state.avatarStatus,
+                      state.extras.avatarStatus,
                       successText: (_) => (
-                        text: 'Uploaded: ${state.avatarUrl}',
+                        text: 'Uploaded: ${state.extras.avatarUrl}',
                         color: Colors.green,
                       ),
                     ),
@@ -153,7 +155,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
               MkFormStateBuilder<ProfileFormState>(
                 buildWhen: (prev, curr) =>
                     prev.isBusy != curr.isBusy ||
-                    prev.submitStage != curr.submitStage,
+                    prev.extras.submitStage != curr.extras.submitStage,
                 builder: (context, state, bloc) => FilledButton(
                   onPressed: state.isBusy
                       ? null
@@ -161,7 +163,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                   // `submitStage` says which of the submit's two calls is
                   // running; side calls only make the form busy.
                   child: Text(
-                    state.submitStage ??
+                    state.extras.submitStage ??
                         (state.isBusy ? 'Working…' : 'Save profile'),
                   ),
                 ),
