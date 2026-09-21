@@ -6,12 +6,17 @@ import '../../../core/di/injection.dart';
 import 'bloc/profile_form_bloc.dart';
 import 'bloc/profile_form_state.dart';
 
-/// Demonstrates extending [MkFormState] with several independent statuses.
+/// Demonstrates extending [MkFormState] with several independent statuses and
+/// typed extra fields.
 ///
 /// - Avatar upload, username check and OTP request run concurrently, each with
 ///   its own status field on [ProfileFormState].
+/// - Each call also stores what it produced in a typed field (`avatarUrl`,
+///   `checkedUsername` / `usernameAvailable`, `otpSentTo`) that the UI reads
+///   directly.
 /// - The submit button is disabled while any of them is running (`isBusy`).
-/// - Submitting chains two API calls inside `onSubmit`.
+/// - Submitting chains two API calls inside `onSubmit` and reports the running
+///   one through `submitStage`.
 @RoutePage()
 class ExtendedStateScreen extends StatefulWidget {
   const ExtendedStateScreen({super.key, ProfileFormBloc? formBloc})
@@ -69,14 +74,17 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                 decoration: InputDecoration(labelText: 'Username'),
               ),
               const SizedBox(height: 8),
+              // Rebuilds when the *displayed* result changes, which also happens
+              // when an edit makes a finished check stale.
               MkFormStateBuilder<ProfileFormState>(
                 buildWhen: (prev, curr) =>
-                    prev.usernameStatus != curr.usernameStatus,
+                    prev.shownUsernameStatus != curr.shownUsernameStatus ||
+                    prev.usernameVerdict != curr.usernameVerdict,
                 builder: (context, state, bloc) => _CallRow(
                   label: 'Check availability',
-                  status: state.usernameStatus,
+                  status: state.shownUsernameStatus,
                   onPressed: () => unawaited(_formBloc.checkUsername()),
-                  successText: (response) => response == true
+                  successText: (_) => state.usernameVerdict == true
                       ? (text: 'Available', color: Colors.green)
                       : (text: 'Taken', color: Colors.orange.shade800),
                 ),
@@ -88,18 +96,24 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
               ),
               const SizedBox(height: 8),
               MkFormStateBuilder<ProfileFormState>(
-                buildWhen: (prev, curr) => prev.otpStatus != curr.otpStatus,
+                buildWhen: (prev, curr) =>
+                    prev.otpStatus != curr.otpStatus ||
+                    prev.otpSentTo != curr.otpSentTo,
                 builder: (context, state, bloc) => _CallRow(
                   label: 'Send code',
                   status: state.otpStatus,
                   onPressed: () => unawaited(_formBloc.sendOtp()),
-                  successText: (_) => (text: 'Code sent', color: Colors.green),
+                  successText: (_) => (
+                    text: 'Code sent to ${state.otpSentTo}',
+                    color: Colors.green,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               MkFormStateBuilder<ProfileFormState>(
                 buildWhen: (prev, curr) =>
-                    prev.avatarStatus != curr.avatarStatus,
+                    prev.avatarStatus != curr.avatarStatus ||
+                    prev.avatarUrl != curr.avatarUrl,
                 builder: (context, state, bloc) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -127,22 +141,29 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                     const SizedBox(height: 8),
                     _CallStatusText(
                       state.avatarStatus,
-                      successText: (response) =>
-                          (text: 'Uploaded: $response', color: Colors.green),
+                      successText: (_) => (
+                        text: 'Uploaded: ${state.avatarUrl}',
+                        color: Colors.green,
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
               MkFormStateBuilder<ProfileFormState>(
-                buildWhen: (prev, curr) => prev.isBusy != curr.isBusy,
+                buildWhen: (prev, curr) =>
+                    prev.isBusy != curr.isBusy ||
+                    prev.submitStage != curr.submitStage,
                 builder: (context, state, bloc) => FilledButton(
                   onPressed: state.isBusy
                       ? null
                       : () => unawaited(bloc.submit()),
-                  child: state.isBusy
-                      ? const Text('Working…')
-                      : const Text('Save profile'),
+                  // `submitStage` says which of the submit's two calls is
+                  // running; side calls only make the form busy.
+                  child: Text(
+                    state.submitStage ??
+                        (state.isBusy ? 'Working…' : 'Save profile'),
+                  ),
                 ),
               ),
             ],
