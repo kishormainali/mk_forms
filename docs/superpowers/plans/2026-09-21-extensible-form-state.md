@@ -17,7 +17,7 @@
 - No new package dependencies.
 - CI gates that must pass: `dart format --output=none --set-exit-if-changed .`, `flutter analyze --fatal-infos`, `flutter test`.
 - Code style: match surrounding code (trailing commas, `dart format` tall style, `///` doc comments on public members, `unawaited(...)` for fire-and-forget futures).
-- Commit trailer on every commit: `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>`.
+- Commit with the local git config only; do NOT add a `Co-Authored-By` trailer (or any attribution line) to commit messages.
 - Work on a feature branch (`feat/extensible-form-state`), not `main`.
 
 ## File Structure
@@ -466,9 +466,7 @@ git commit -m "feat(state): add overridable isBusy and reset() on MkFormState
 
 reset() now preserves subclass state (fixes reset dropping custom fields);
 submit() and canSubmit gate on isBusy so subclasses can block submission
-while other calls are in flight.
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+while other calls are in flight."
 ```
 
 ---
@@ -685,9 +683,7 @@ git commit -m "feat(ui): make MkFormBuilder generic over the form state type
 
 MkFormBuilder<S> and MkFormWidgetBuilder<S> deliver a custom MkFormState
 subclass without casts. S defaults to MkFormState, so existing usage is
-unchanged; a wrong type throws a descriptive StateError.
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+unchanged; a wrong type throws a descriptive StateError."
 ```
 
 ---
@@ -894,9 +890,7 @@ Expected: one README match, one CHANGELOG match, header and entries in order, a 
 
 ```bash
 git add README.md CHANGELOG.md
-git commit -m "docs: document extending form state and add 1.1.0 changelog entry
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+git commit -m "docs: document extending form state and add 1.1.0 changelog entry"
 ```
 
 ---
@@ -1480,9 +1474,7 @@ git add example
 git commit -m "docs(example): add extended form state screen
 
 Profile form with independent avatar/username/OTP statuses on a custom
-MkFormState, isBusy-gated submit and a two-call onSubmit.
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+MkFormState, isBusy-gated submit and a two-call onSubmit."
 ```
 
 ---
