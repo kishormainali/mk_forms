@@ -164,8 +164,9 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
   /// 4. If invalid, halts submission.
   /// 5. If valid, invokes [onSubmit] and handles success/failure.
   Future<void> submit() async {
-    // `state.isBusy` only flips once validation has finished, so a
+    // `state.isSubmitting` only flips once validation has finished, so a
     // dedicated flag is needed to reject calls made while validating.
+    // `state.isBusy` also covers subclass-defined in-flight work.
     if (isClosed || _isSubmitInFlight || state.isBusy) return;
     _isSubmitInFlight = true;
     try {
