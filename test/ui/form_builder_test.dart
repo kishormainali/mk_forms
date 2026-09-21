@@ -12,35 +12,60 @@ void main() {
         final upload = Completer<void>();
         final bloc = ProfileBloc(avatarUpload: upload);
         addTearDown(bloc.close);
-        var builds = 0;
+        var filteredBuilds = 0;
+        var unfilteredBuilds = 0;
 
         await tester.pumpWidget(
           MaterialApp(
             home: MkFormScope.value(
               value: bloc,
-              child: MkFormStateBuilder<ProfileState>(
-                buildWhen: (previous, current) =>
-                    previous.avatarStatus != current.avatarStatus,
-                builder: (context, state, formBloc) {
-                  builds++;
-                  return Text(
-                    state.avatarStatus.isSubmitting ? 'uploading' : 'idle',
-                  );
-                },
+              child: Column(
+                children: [
+                  // Filtered builder: only rebuilds when avatarStatus changes.
+                  MkFormStateBuilder<ProfileState>(
+                    buildWhen: (previous, current) =>
+                        previous.avatarStatus != current.avatarStatus,
+                    builder: (context, state, formBloc) {
+                      filteredBuilds++;
+                      return Text(
+                        state.avatarStatus.isSubmitting ? 'uploading' : 'idle',
+                      );
+                    },
+                  ),
+                  // Unfiltered builder: rebuilds on any state change (positive control).
+                  MkFormStateBuilder<ProfileState>(
+                    builder: (context, state, formBloc) {
+                      unfilteredBuilds++;
+                      return Text('unfiltered: $unfilteredBuilds');
+                    },
+                  ),
+                ],
               ),
             ),
           ),
         );
         expect(find.text('idle'), findsOneWidget);
-        final buildsAfterFirstFrame = builds;
+        final filteredAfterFirstFrame = filteredBuilds;
+        final unfilteredAfterFirstFrame = unfilteredBuilds;
 
-        // Not part of buildWhen: must not rebuild.
+        // Not part of buildWhen: name change should deliver state but not
+        // rebuild the filtered builder (avatarStatus unchanged).
         bloc.field<String>('name')!.changeValue('Ada');
+        // Bloc stream delivery takes a microtask hop.
         await tester.pump();
-        expect(builds, buildsAfterFirstFrame);
+        // Allow state emission to propagate to widgets.
+        await tester.pump();
+        // Prove the state actually changed.
+        expect(bloc.state.values['name'], 'Ada');
+        // Unfiltered builder should have rebuilt (any state change).
+        expect(unfilteredBuilds, greaterThan(unfilteredAfterFirstFrame));
+        // Filtered builder should NOT have rebuilt (avatarStatus unchanged).
+        expect(filteredBuilds, filteredAfterFirstFrame);
 
         unawaited(bloc.uploadAvatar());
+        // Bloc stream delivery takes a microtask hop.
         await tester.pump();
+        // Allow state emission to propagate to widgets.
         await tester.pump();
         expect(find.text('uploading'), findsOneWidget);
       },
