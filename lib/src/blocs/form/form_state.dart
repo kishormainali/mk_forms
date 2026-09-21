@@ -39,8 +39,18 @@ class MkFormState extends Equatable {
   final Object? submissionError;
 
   /// Whether the form can currently be submitted.
-  bool get canSubmit =>
-      isValid && !isValidating && !submissionStatus.isSubmitting;
+  bool get canSubmit => isValid && !isValidating && !isBusy;
+
+  /// Whether the form is busy and must not accept another submission.
+  ///
+  /// Defaults to [isSubmitting]. Subclasses that track other in-flight work
+  /// (an avatar upload, an OTP request) override this to include it:
+  ///
+  /// ```dart
+  /// @override
+  /// bool get isBusy => super.isBusy || avatarStatus.isSubmitting;
+  /// ```
+  bool get isBusy => isSubmitting;
 
   /// Shorthand getters for submission states.
   bool get isSubmitting => submissionStatus.isSubmitting;
@@ -68,6 +78,38 @@ class MkFormState extends Equatable {
       submissionError: submissionError != null
           ? submissionError()
           : this.submissionError,
+    );
+  }
+
+  /// Returns an idle, pristine copy of this state.
+  ///
+  /// Used by [MkFormBloc.reset]. It goes through [copyWith], so subclass
+  /// fields are preserved; subclasses that add fields override this to return
+  /// them to their defaults:
+  ///
+  /// ```dart
+  /// @override
+  /// MyState reset({required bool isValid, required bool isValidating,
+  ///     required Map<String, dynamic> values}) {
+  ///   return (super.reset(isValid: isValid, isValidating: isValidating,
+  ///           values: values) as MyState)
+  ///       .copyWith(avatarStatus: const MkSubmissionStatus.idle());
+  /// }
+  /// ```
+  MkFormState reset({
+    required bool isValid,
+    required bool isValidating,
+    required Map<String, dynamic> values,
+  }) {
+    return copyWith(
+      submissionStatus: const MkSubmissionStatus.idle(),
+      isValid: isValid,
+      isValidating: isValidating,
+      isDirty: false,
+      isTouched: false,
+      wasSubmitted: false,
+      values: values,
+      submissionError: () => null,
     );
   }
 

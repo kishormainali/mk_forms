@@ -164,9 +164,9 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
   /// 4. If invalid, halts submission.
   /// 5. If valid, invokes [onSubmit] and handles success/failure.
   Future<void> submit() async {
-    // `state.isSubmitting` only flips once validation has finished, so a
+    // `state.isBusy` only flips once validation has finished, so a
     // dedicated flag is needed to reject calls made while validating.
-    if (isClosed || _isSubmitInFlight || state.isSubmitting) return;
+    if (isClosed || _isSubmitInFlight || state.isBusy) return;
     _isSubmitInFlight = true;
     try {
       await _submit();
@@ -285,16 +285,14 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
   }
 
   /// Resets the form and all its controls to their initial states.
+  ///
+  /// Subclass state is preserved through [MkFormState.reset].
   void reset() {
     _rootGroup.reset();
     emit(
-      MkFormState(
-        submissionStatus: const MkSubmissionStatus.idle(),
+      state.reset(
         isValid: _rootGroup.isValid,
         isValidating: _rootGroup.isValidating,
-        isDirty: false,
-        isTouched: false,
-        wasSubmitted: false,
         values: _rootGroup.value,
       ),
     );

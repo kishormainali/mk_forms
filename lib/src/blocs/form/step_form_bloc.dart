@@ -254,25 +254,6 @@ abstract class MkStepFormBloc extends MkFormBloc {
       rethrow;
     }
   }
-
-  @override
-  void reset() {
-    root.reset();
-    emit(
-      MkStepFormState(
-        submissionStatus: const MkSubmissionStatus.idle(),
-        isValid: root.isValid,
-        isValidating: root.isValidating,
-        isDirty: false,
-        isTouched: false,
-        wasSubmitted: false,
-        values: root.value,
-        currentStep: 0,
-        totalSteps: _steps.length,
-        completedSteps: const {},
-      ),
-    );
-  }
 }
 
 /// A lightweight [MkStepFormBloc] implementation that allows passing

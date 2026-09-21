@@ -100,6 +100,29 @@ class MkStepFormState extends MkFormState {
   }
 
   @override
+  MkStepFormState reset({
+    required bool isValid,
+    required bool isValidating,
+    required Map<String, dynamic> values,
+  }) {
+    return copyWith(
+      submissionStatus: const MkSubmissionStatus.idle(),
+      isValid: isValid,
+      isValidating: isValidating,
+      isDirty: false,
+      isTouched: false,
+      wasSubmitted: false,
+      values: values,
+      submissionError: () => null,
+      currentStep: 0,
+      completedSteps: const {},
+      isLoadingInitialData: false,
+      redirectedFromStep: () => null,
+      invalidStepIndex: () => null,
+    );
+  }
+
+  @override
   List<Object?> get props => [
     ...super.props,
     currentStep,

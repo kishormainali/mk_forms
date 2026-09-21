@@ -242,5 +242,25 @@ void main() {
         await resumedBloc.close();
       },
     );
+    test(
+      'reset returns to step 0 and clears progress and submission',
+      () async {
+        usernameField.changeValue('u');
+        emailField.changeValue('a@b.co');
+        expect(await stepFormBloc.nextStep(), isTrue);
+        expect(stepFormBloc.state.currentStep, 1);
+        expect(stepFormBloc.state.completedSteps, {0});
+
+        stepFormBloc.reset();
+
+        expect(stepFormBloc.state.currentStep, 0);
+        expect(stepFormBloc.state.completedSteps, isEmpty);
+        expect(stepFormBloc.state.totalSteps, 3);
+        expect(stepFormBloc.state.isDirty, isFalse);
+        expect(stepFormBloc.state.isTouched, isFalse);
+        expect(stepFormBloc.state.wasSubmitted, isFalse);
+        expect(stepFormBloc.state.submissionStatus.isIdle, isTrue);
+      },
+    );
   });
 }
