@@ -850,7 +850,7 @@ MkFormStateBuilder<ProfileFormState>(
 )
 ```
 
-`MkFormStateBuilder<S>` throws a `StateError` if the bloc's state is not an `S`. Without a type argument it behaves exactly as before.
+`MkFormStateBuilder<S>` throws a `StateError` if the bloc's state is not an `S`. Write the type argument explicitly (Dart cannot infer it from an unannotated builder closure); use the plain `MkFormBuilder` when you only need the base `MkFormState`.
 
 | Member | Purpose |
 |---|---|

@@ -636,13 +636,22 @@ MkFormStateBuilder<ProfileFormState>(
 )
 ```
 
-`MkFormStateBuilder<S>` throws a `StateError` if the bloc's state is not an `S`. Without a type argument it behaves exactly as before.
+`MkFormStateBuilder<S>` throws a `StateError` if the bloc's state is not an `S`. Write the type argument explicitly (Dart cannot infer it from an unannotated builder closure); use the plain `MkFormBuilder` when you only need the base `MkFormState`.
 
 | Member | Purpose |
 |---|---|
 | `MkFormState.isBusy` | Override to include your own in-flight work; drives `canSubmit` and blocks `submit()` |
 | `MkFormState.reset(...)` | Override to return custom fields to defaults; called by `MkFormBloc.reset()` |
 | `MkFormStateBuilder<S>` | Typed access to the custom state |
+
+**Things to watch**
+
+- Every custom status must reach a terminal state on every code path (wrap the call in try/catch as in the example above). A status stuck in `submitting` keeps `isBusy` true and `submit()` returns silently forever.
+- `reset()` returns custom statuses to idle, but a call that is still in flight will write its result into the state afterwards. If `reset()` can run while calls are in flight, guard the emit (for example with a generation counter checked before emitting).
+- If you subclass `MkStepFormState`, override `copyWith` (and `reset`) as well, because `MkStepFormState.copyWith` builds a `MkStepFormState`.
+- If your existing `MkFormState` subclass already declares a member named `isBusy` or `reset`, rename it: 1.1.0 adds both to the base class.
+
+---
 
 ## 🪜 Multi-Step Forms & Multi-Route Wizards
 

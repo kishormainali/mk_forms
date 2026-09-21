@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `MkFormState.isBusy` — overridable; `canSubmit` and `MkFormBloc.submit()` now respect it, so in-flight side calls can block submission.
   - `MkFormState.reset(...)` — overridable; `MkFormBloc.reset()` uses it to keep subclass state.
   - `MkFormStateBuilder<S extends MkFormState>` and `MkFormStateWidgetBuilder<S>` — receive the custom state type without casts. `MkFormBuilder` is unchanged.
+  - If a `MkFormState` subclass of yours already declares a member named `isBusy` or `reset`, rename it: the base class now defines both.
 
 ### Fixed
 - `MkFormBloc.reset()` dropped subclass state by emitting a plain `MkFormState`. `MkStepFormBloc` no longer needs its own `reset()` override.
