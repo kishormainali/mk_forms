@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - Unreleased
+
+### Added
+- **Extensible form state.** `MkFormState` can be subclassed with your own typed status fields, so one form can track several independent API calls (upload, availability check, OTP) or extra statuses. See "Extending Form State" in the README.
+  - `MkFormState.isBusy` — overridable; `canSubmit` and `MkFormBloc.submit()` now respect it, so in-flight side calls can block submission.
+  - `MkFormState.reset(...)` — overridable; `MkFormBloc.reset()` uses it to keep subclass state.
+  - `MkFormStateBuilder<S extends MkFormState>` and `MkFormStateWidgetBuilder<S>` — receive the custom state type without casts. `MkFormBuilder` is unchanged.
+
+### Fixed
+- `MkFormBloc.reset()` dropped subclass state by emitting a plain `MkFormState`. `MkStepFormBloc` no longer needs its own `reset()` override.
+
+---
+
 ## [1.0.1] - 2026-09-20
 
 ### Added

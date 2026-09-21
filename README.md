@@ -491,6 +491,159 @@ MkFieldBuilder<String>(
 
 ---
 
+## 🧬 Extending Form State
+
+Need more than idle / submitting / success / failure? Subclass `MkFormState` and add your own typed fields. Reuse `MkSubmissionStatus` for each independent API call, so one form can track an avatar upload, a username check and an OTP request at the same time.
+
+### 1. Extend the state
+
+```dart
+class ProfileFormState extends MkFormState {
+  const ProfileFormState({
+    required super.submissionStatus,
+    required super.isValid,
+    required super.isValidating,
+    required super.isDirty,
+    required super.isTouched,
+    required super.wasSubmitted,
+    required super.values,
+    super.submissionError,
+    this.avatarStatus = const MkSubmissionStatus.idle(),
+    this.otpStatus = const MkSubmissionStatus.idle(),
+  });
+
+  /// Builds the first state from the form's controls.
+  factory ProfileFormState.initial(Map<String, MkControlBloc<dynamic>> controls) {
+    return ProfileFormState(
+      submissionStatus: const MkSubmissionStatus.idle(),
+      isValid: controls.values.every((c) => c.isValid),
+      isValidating: controls.values.any((c) => c.isValidating),
+      isDirty: controls.values.any((c) => c.isDirty),
+      isTouched: controls.values.any((c) => c.isTouched),
+      wasSubmitted: false,
+      values: {for (final e in controls.entries) e.key: e.value.value},
+    );
+  }
+
+  final MkSubmissionStatus avatarStatus;
+  final MkSubmissionStatus otpStatus;
+
+  /// Submit is blocked while either call is running.
+  @override
+  bool get isBusy =>
+      super.isBusy || avatarStatus.isSubmitting || otpStatus.isSubmitting;
+
+  @override
+  ProfileFormState copyWith({
+    MkSubmissionStatus? submissionStatus,
+    bool? isValid,
+    bool? isValidating,
+    bool? isDirty,
+    bool? isTouched,
+    bool? wasSubmitted,
+    Map<String, dynamic>? values,
+    Object? Function()? submissionError,
+    MkSubmissionStatus? avatarStatus,
+    MkSubmissionStatus? otpStatus,
+  }) {
+    return ProfileFormState(
+      submissionStatus: submissionStatus ?? this.submissionStatus,
+      isValid: isValid ?? this.isValid,
+      isValidating: isValidating ?? this.isValidating,
+      isDirty: isDirty ?? this.isDirty,
+      isTouched: isTouched ?? this.isTouched,
+      wasSubmitted: wasSubmitted ?? this.wasSubmitted,
+      values: values ?? this.values,
+      submissionError:
+          submissionError != null ? submissionError() : this.submissionError,
+      avatarStatus: avatarStatus ?? this.avatarStatus,
+      otpStatus: otpStatus ?? this.otpStatus,
+    );
+  }
+
+  /// Called by `MkFormBloc.reset()`; return custom fields to their defaults.
+  @override
+  ProfileFormState reset({
+    required bool isValid,
+    required bool isValidating,
+    required Map<String, dynamic> values,
+  }) {
+    return (super.reset(
+              isValid: isValid,
+              isValidating: isValidating,
+              values: values,
+            ) as ProfileFormState)
+        .copyWith(
+          avatarStatus: const MkSubmissionStatus.idle(),
+          otpStatus: const MkSubmissionStatus.idle(),
+        );
+  }
+
+  @override
+  List<Object?> get props => [...super.props, avatarStatus, otpStatus];
+}
+```
+
+### 2. Use it from the bloc
+
+Pass the state through `initialState:` and downcast `state`, exactly like `MkStepFormBloc` does:
+
+```dart
+class ProfileFormBloc extends MkFormBloc {
+  ProfileFormBloc(Api api)
+    : this._(api, {'username': MkFieldBloc<String>(initialValue: '')});
+
+  ProfileFormBloc._(this._api, Map<String, MkControlBloc<dynamic>> controls)
+    : super(controls: controls, initialState: ProfileFormState.initial(controls));
+
+  final Api _api;
+
+  @override
+  ProfileFormState get state => super.state as ProfileFormState;
+
+  Future<void> uploadAvatar(String path) async {
+    emit(state.copyWith(avatarStatus: const MkSubmissionStatus.submitting()));
+    try {
+      final url = await _api.uploadAvatar(path);
+      emit(state.copyWith(avatarStatus: MkSubmissionStatus.success(url)));
+    } catch (error) {
+      emit(state.copyWith(avatarStatus: MkSubmissionStatus.failure(error)));
+    }
+  }
+
+  /// One submit can chain several API calls.
+  @override
+  Future<dynamic> onSubmit(Map<String, dynamic> values) async {
+    await _api.reserveUsername(values['username'] as String);
+    return _api.saveProfile(values);
+  }
+}
+```
+
+> The redirecting constructor (`: this._(...)`) is needed because the controls must exist before `super(...)` so the initial state can be computed from them. Field edits never lose your custom fields: `MkFormBloc` updates state through `copyWith`.
+
+### 3. Build the UI without casts
+
+```dart
+MkFormStateBuilder<ProfileFormState>(
+  buildWhen: (prev, curr) => prev.avatarStatus != curr.avatarStatus,
+  builder: (context, state, bloc) => switch (state.avatarStatus) {
+    MkSubmissionInProgress() => const CircularProgressIndicator(),
+    MkSubmissionSuccess(:final response) => Image.network('$response'),
+    MkSubmissionFailure(:final error) => Text('$error'),
+    MkSubmissionIdle() => const SizedBox.shrink(),
+  },
+)
+```
+
+`MkFormStateBuilder<S>` throws a `StateError` if the bloc's state is not an `S`. Without a type argument it behaves exactly as before.
+
+| Member | Purpose |
+|---|---|
+| `MkFormState.isBusy` | Override to include your own in-flight work; drives `canSubmit` and blocks `submit()` |
+| `MkFormState.reset(...)` | Override to return custom fields to defaults; called by `MkFormBloc.reset()` |
+| `MkFormStateBuilder<S>` | Typed access to the custom state |
+
 ## 🪜 Multi-Step Forms & Multi-Route Wizards
 
 ### Define the Bloc
