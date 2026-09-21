@@ -24,5 +24,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: I18nDemoRoute.page),
     AutoRoute(page: CustomDesignRoute.page),
     AutoRoute(page: AutovalidateRoute.page),
+    AutoRoute(page: ExtendedStateRoute.page),
   ];
 }

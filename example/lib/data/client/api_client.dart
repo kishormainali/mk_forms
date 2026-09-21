@@ -22,4 +22,13 @@ abstract class ApiClient {
   Future<Map<String, dynamic>> submitCheckoutOrder(
     Map<String, dynamic> orderPayload,
   );
+
+  /// Uploads an avatar image and returns its public URL.
+  Future<String> uploadAvatar(String fileName);
+
+  /// Sends a one-time passcode to [phone].
+  Future<void> sendOtp(String phone);
+
+  /// Persists the profile and returns the saved record.
+  Future<Map<String, dynamic>> saveProfile(Map<String, dynamic> profile);
 }

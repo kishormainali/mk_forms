@@ -21,6 +21,8 @@ import 'package:mk_forms_example/data/repositories/checkout_repository.dart'
     as _i994;
 import 'package:mk_forms_example/data/repositories/onboarding_repository.dart'
     as _i133;
+import 'package:mk_forms_example/data/repositories/profile_repository.dart'
+    as _i859;
 import 'package:mk_forms_example/data/repositories/task_repository.dart'
     as _i123;
 import 'package:mk_forms_example/data/repositories/user_repository.dart'
@@ -37,6 +39,8 @@ import 'package:mk_forms_example/presentation/features/dependent_fields/bloc/reg
     as _i0;
 import 'package:mk_forms_example/presentation/features/dynamic_array/bloc/dynamic_todos_form_bloc.dart'
     as _i171;
+import 'package:mk_forms_example/presentation/features/extended_state/bloc/profile_form_bloc.dart'
+    as _i785;
 import 'package:mk_forms_example/presentation/features/i18n_demo/bloc/i18n_demo_form_bloc.dart'
     as _i962;
 import 'package:mk_forms_example/presentation/features/minimal_login/bloc/login_form_bloc.dart'
@@ -66,11 +70,17 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i133.OnboardingRepository>(
       () => _i133.OnboardingRepositoryImpl(gh<_i855.ApiClient>()),
     );
+    gh.lazySingleton<_i859.ProfileRepository>(
+      () => _i859.ProfileRepositoryImpl(gh<_i855.ApiClient>()),
+    );
     gh.lazySingleton<_i874.UserRepository>(
       () => _i874.UserRepositoryImpl(gh<_i855.ApiClient>()),
     );
     gh.lazySingleton<_i723.AuthRepository>(
       () => _i723.AuthRepositoryImpl(gh<_i855.ApiClient>()),
+    );
+    gh.factory<_i785.ProfileFormBloc>(
+      () => _i785.ProfileFormBloc(gh<_i859.ProfileRepository>()),
     );
     gh.factory<_i171.DynamicTodosFormBloc>(
       () => _i171.DynamicTodosFormBloc(gh<_i123.TaskRepository>()),

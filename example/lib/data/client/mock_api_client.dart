@@ -99,4 +99,24 @@ class MockApiClient implements ApiClient {
       'status': 'confirmed',
     };
   }
+
+  @override
+  Future<String> uploadAvatar(String fileName) async {
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    if (fileName.contains('fail')) {
+      throw Exception('Upload failed: file rejected by server');
+    }
+    return 'https://example.com/avatars/$fileName';
+  }
+
+  @override
+  Future<void> sendOtp(String phone) async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+  }
+
+  @override
+  Future<Map<String, dynamic>> saveProfile(Map<String, dynamic> profile) async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    return {'id': 'profile-1', ...profile};
+  }
 }
