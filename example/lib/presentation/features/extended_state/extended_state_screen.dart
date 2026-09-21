@@ -76,8 +76,9 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                   label: 'Check availability',
                   status: state.usernameStatus,
                   onPressed: () => unawaited(_formBloc.checkUsername()),
-                  successText: (response) =>
-                      response == true ? 'Available' : 'Taken',
+                  successText: (response) => response == true
+                      ? (text: 'Available', color: Colors.green)
+                      : (text: 'Taken', color: Colors.orange.shade800),
                 ),
               ),
               const SizedBox(height: 16),
@@ -92,7 +93,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                   label: 'Send code',
                   status: state.otpStatus,
                   onPressed: () => unawaited(_formBloc.sendOtp()),
-                  successText: (_) => 'Code sent',
+                  successText: (_) => (text: 'Code sent', color: Colors.green),
                 ),
               ),
               const SizedBox(height: 16),
@@ -126,7 +127,8 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                     const SizedBox(height: 8),
                     _CallStatusText(
                       state.avatarStatus,
-                      successText: (response) => 'Uploaded: $response',
+                      successText: (response) =>
+                          (text: 'Uploaded: $response', color: Colors.green),
                     ),
                   ],
                 ),
@@ -151,6 +153,9 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
   }
 }
 
+/// Text shown for a successful call, with the colour it should be rendered in.
+typedef _SuccessText = ({String text, Color color});
+
 class _CallRow extends StatelessWidget {
   const _CallRow({
     required this.label,
@@ -162,7 +167,7 @@ class _CallRow extends StatelessWidget {
   final String label;
   final MkSubmissionStatus status;
   final VoidCallback onPressed;
-  final String Function(Object? response)? successText;
+  final _SuccessText Function(Object? response)? successText;
 
   @override
   Widget build(BuildContext context) {
@@ -183,17 +188,22 @@ class _CallStatusText extends StatelessWidget {
   const _CallStatusText(this.status, {this.successText});
 
   final MkSubmissionStatus status;
-  final String Function(Object? response)? successText;
+  final _SuccessText Function(Object? response)? successText;
+
+  Widget _successLabel(Object? response) {
+    final success = successText?.call(response);
+    return Text(
+      success?.text ?? 'Done',
+      style: TextStyle(color: success?.color ?? Colors.green),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return switch (status) {
       MkSubmissionIdle() => const SizedBox.shrink(),
       MkSubmissionInProgress() => const Text('Working…'),
-      MkSubmissionSuccess(:final response) => Text(
-        successText?.call(response) ?? 'Done',
-        style: const TextStyle(color: Colors.green),
-      ),
+      MkSubmissionSuccess(:final response) => _successLabel(response),
       MkSubmissionFailure(:final error) => Text(
         '$error',
         style: const TextStyle(color: Colors.red),

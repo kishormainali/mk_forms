@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:mk_forms/mk_forms.dart';
 import '../../../../data/repositories/profile_repository.dart';
@@ -37,6 +38,38 @@ class ProfileFormBloc extends MkFormBloc {
 
   @override
   ProfileFormState get state => super.state as ProfileFormState;
+
+  /// Clears a finished availability check once the username is edited, so a
+  /// stale "Available" / "Taken" is never shown for a different username.
+  @protected
+  @override
+  MkFormState onUpdateFormState(
+    MkFormState currentState, {
+    required bool isValid,
+    required bool isValidating,
+    required bool isDirty,
+    required bool isTouched,
+    required Map<String, dynamic> values,
+    required MkSubmissionStatus submissionStatus,
+    required Object? Function()? submissionError,
+  }) {
+    final result = super.onUpdateFormState(
+      currentState,
+      isValid: isValid,
+      isValidating: isValidating,
+      isDirty: isDirty,
+      isTouched: isTouched,
+      values: values,
+      submissionStatus: submissionStatus,
+      submissionError: submissionError,
+    );
+    final profile = result as ProfileFormState;
+    if (values['username'] != currentState.values['username'] &&
+        !profile.usernameStatus.isIdle) {
+      return profile.copyWith(usernameStatus: const MkSubmissionStatus.idle());
+    }
+    return result;
+  }
 
   /// Uploads an avatar; independent of the other calls.
   Future<void> uploadAvatar(String fileName) => _track(
