@@ -47,20 +47,31 @@ class MkFormState<T extends Object?> extends Equatable {
     required this.values,
     this.submissionError,
     required this.extra,
-    T Function()? extraReset,
-    bool Function(T extra)? isExtraBusy,
-  }) : _extraReset = extraReset, _isExtraBusy = isExtraBusy;
+    this.extraReset,
+    this.isExtraBusy,
+  });
 
   final T extra;
 
   /// Regenerates a pristine [extra] on [reset]. If omitted, [reset] leaves
   /// [extra] untouched.
-  final T Function()? _extraReset;
+  ///
+  /// Marked `@protected`: part of the constructor's public surface (apps set
+  /// it once when building their initial state) but not meant to be read
+  /// outside a state's own `copyWith`/`reset` chain. It is a plain
+  /// (non-underscore) field, not Dart-private, because `MkStepFormState`
+  /// (in a different file) must read it from its own `copyWith`/`reset`
+  /// overrides — Dart privacy is per-library, so a leading-underscore field
+  /// declared in `form_state.dart` would not be visible there.
+  @protected
+  final T Function()? extraReset;
 
   /// Feeds [isBusy]. If omitted, [extra] never contributes to [isBusy].
-  final bool Function(T extra)? _isExtraBusy;
+  /// Same visibility rationale as [extraReset].
+  @protected
+  final bool Function(T extra)? isExtraBusy;
 
-  bool get isBusy => isSubmitting || (_isExtraBusy?.call(extra) ?? false);
+  bool get isBusy => isSubmitting || (isExtraBusy?.call(extra) ?? false);
 
   /// Returns a copy with [update] applied to [extra].
   MkFormState<T> updateExtra(T Function(T extra) update) =>
@@ -89,8 +100,8 @@ class MkFormState<T extends Object?> extends Equatable {
           ? submissionError()
           : this.submissionError,
       extra: extra ?? this.extra,
-      extraReset: _extraReset,
-      isExtraBusy: _isExtraBusy,
+      extraReset: extraReset,
+      isExtraBusy: isExtraBusy,
     );
   }
 
@@ -108,7 +119,7 @@ class MkFormState<T extends Object?> extends Equatable {
       wasSubmitted: false,
       values: values,
       submissionError: () => null,
-      extra: _extraReset != null ? _extraReset() : extra,
+      extra: extraReset != null ? extraReset!() : extra,
     );
   }
 
@@ -116,7 +127,7 @@ class MkFormState<T extends Object?> extends Equatable {
   List<Object?> get props => [
     submissionStatus, isValid, isValidating, isDirty, isTouched,
     wasSubmitted, values, submissionError, extra,
-  ]; // _extraReset / _isExtraBusy are behavior config, not data — excluded
+  ]; // extraReset / isExtraBusy are behavior config, not data — excluded
 }
 ```
 
