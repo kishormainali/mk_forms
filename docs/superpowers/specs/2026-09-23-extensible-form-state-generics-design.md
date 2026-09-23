@@ -239,9 +239,46 @@ class MkStepFormState<T extends Object?> extends MkFormState<T> {
 
 ```dart
 abstract class MkStepFormBloc<T extends Object?> extends MkFormBloc<T> {
-  MkStepFormBloc({required super.controls, required List<MkFormStep> steps, int initialStep = 0})
-      : _steps = List.unmodifiable(steps),
-        super(initialState: _buildInitialState<T>(controls, steps, initialStep));
+  MkStepFormBloc({
+    required Map<String, MkControlBloc<dynamic>> controls,
+    required List<MkFormStep> steps,
+    int initialStep = 0,
+    T Function()? initialExtra,
+    T Function()? extraReset,
+    bool Function(T extra)? isExtraBusy,
+  }) : _steps = List.unmodifiable(steps),
+       super(
+         controls: controls,
+         initialState: _buildInitialState<T>(
+           controls, steps, initialStep, initialExtra, extraReset, isExtraBusy,
+         ),
+       );
+
+  static MkStepFormState<T> _buildInitialState<T extends Object?>(
+    Map<String, MkControlBloc<dynamic>> controls,
+    List<MkFormStep> steps,
+    int initialStep,
+    T Function()? initialExtra,
+    T Function()? extraReset,
+    bool Function(T extra)? isExtraBusy,
+  ) {
+    final validInitialStep = steps.isEmpty ? 0 : initialStep.clamp(0, steps.length - 1);
+    return MkStepFormState<T>(
+      submissionStatus: const MkSubmissionStatus.idle(),
+      isValid: controls.values.every((c) => c.isValid),
+      isValidating: controls.values.any((c) => c.isValidating),
+      isDirty: controls.values.any((c) => c.isDirty),
+      isTouched: controls.values.any((c) => c.isTouched),
+      wasSubmitted: false,
+      values: {for (final e in controls.entries) e.key: e.value.value},
+      extra: initialExtra != null ? initialExtra() : null as T,
+      extraReset: extraReset,
+      isExtraBusy: isExtraBusy,
+      currentStep: validInitialStep,
+      totalSteps: steps.length,
+      completedSteps: const {},
+    );
+  }
 
   @override
   MkStepFormState<T> get state => super.state as MkStepFormState<T>;
@@ -251,6 +288,20 @@ abstract class MkStepFormBloc<T extends Object?> extends MkFormBloc<T> {
   // already preserves `extra` because none of these call sites pass it).
 }
 ```
+
+`MkStepFormBloc` needs its own `initialExtra`/`extraReset`/`isExtraBusy`
+constructor parameters (not just a plain `MkFormBloc<T>`-style `initialState`
+override) because it *always* builds its own `MkStepFormState<T>` — a
+subclass has no other way to supply a non-default `extra` for a step form. A
+`class OnboardingBloc extends MkStepFormBloc<OnboardingExtra>` that omits
+these (like a no-extras step form) hits the same `null as T` fallback as
+`MkFormBloc`, documented below.
+
+Note this also fixes a constructor-shape mistake earlier in this section:
+`controls` cannot be declared via `required super.controls` shorthand *and*
+also referenced by name inside an explicit `super(...)` call in the same
+initializer list — it must be its own named parameter, exactly as
+`MkFormBloc`'s constructor already declares `controls` today.
 
 `onUpdateFormState`'s override in `MkStepFormBloc` is **deleted**. The base
 `MkFormBloc.onUpdateFormState` already does `currentState.copyWith(...)`,
