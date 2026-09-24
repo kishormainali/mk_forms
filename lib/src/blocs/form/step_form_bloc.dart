@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import '../../core/status.dart';
 import '../control_bloc.dart';
 import 'form_bloc.dart';
-import 'form_state.dart';
 import 'step_form_state.dart';
 
 export 'step_form_state.dart';
@@ -25,6 +23,11 @@ class MkFormStep {
 /// A specialized [MkFormBloc] that manages multi-step forms, wizards,
 /// and multi-route onboarding workflows.
 ///
+/// [T] is the type of [MkFormState.extra]; most step forms never need it and
+/// can extend `MkStepFormBloc` (no type argument) exactly as before. A step
+/// form that wants typed extras extends `MkStepFormBloc<MyExtras>` and
+/// passes `initialExtra`/`extraReset`/`isExtraBusy` to the constructor.
+///
 /// Features:
 /// - Granular step validation: validating Step 1 never marks Step 2 or 3 as dirty/touched.
 /// - Step progression gating: [nextStep] only advances if current step controls are valid.
@@ -32,26 +35,39 @@ class MkFormStep {
 /// - Remote data hydration: [loadInitialData] fetches drafts from an API, marks fields
 ///   pristine without false errors, and jumps to the server-designated step.
 /// - Safe route transitions: retains full form state across Navigator push and pop.
-abstract class MkStepFormBloc extends MkFormBloc {
+abstract class MkStepFormBloc<T extends Object?> extends MkFormBloc<T> {
   MkStepFormBloc({
     required Map<String, MkControlBloc<dynamic>> controls,
     required List<MkFormStep> steps,
     int initialStep = 0,
+    T Function()? initialExtra,
+    T Function()? extraReset,
+    bool Function(T extra)? isExtraBusy,
   }) : _steps = List.unmodifiable(steps),
        super(
          controls: controls,
-         initialState: _buildInitialState(controls, steps, initialStep),
+         initialState: _buildInitialState<T>(
+           controls,
+           steps,
+           initialStep,
+           initialExtra,
+           extraReset,
+           isExtraBusy,
+         ),
        );
 
-  static MkStepFormState _buildInitialState(
+  static MkStepFormState<T> _buildInitialState<T extends Object?>(
     Map<String, MkControlBloc<dynamic>> controls,
     List<MkFormStep> steps,
     int initialStep,
+    T Function()? initialExtra,
+    T Function()? extraReset,
+    bool Function(T extra)? isExtraBusy,
   ) {
     final validInitialStep = steps.isEmpty
         ? 0
         : initialStep.clamp(0, steps.length - 1);
-    return MkStepFormState(
+    return MkStepFormState<T>(
       submissionStatus: const MkSubmissionStatus.idle(),
       isValid: controls.values.every((c) => c.isValid),
       isValidating: controls.values.any((c) => c.isValidating),
@@ -61,6 +77,12 @@ abstract class MkStepFormBloc extends MkFormBloc {
       values: {
         for (final entry in controls.entries) entry.key: entry.value.value,
       },
+      // Only reached without a mismatch when T is Object? (no extras); a
+      // step form with a real extras type must always pass `initialExtra`,
+      // exactly as `MkFormBloc` requires `initialState` for the same reason.
+      extra: initialExtra != null ? initialExtra() : null as T,
+      extraReset: extraReset,
+      isExtraBusy: isExtraBusy,
       currentStep: validInitialStep,
       totalSteps: steps.length,
       completedSteps: const {},
@@ -73,37 +95,13 @@ abstract class MkStepFormBloc extends MkFormBloc {
   List<MkFormStep> get steps => _steps;
 
   @override
-  MkStepFormState get state => super.state as MkStepFormState;
+  MkStepFormState<T> get state => super.state as MkStepFormState<T>;
 
   /// The active step index.
   int get currentStep => state.currentStep;
 
   /// Total number of steps.
   int get totalSteps => state.totalSteps;
-
-  @override
-  @protected
-  MkFormState onUpdateFormState(
-    MkFormState currentState, {
-    required bool isValid,
-    required bool isValidating,
-    required bool isDirty,
-    required bool isTouched,
-    required Map<String, dynamic> values,
-    required MkSubmissionStatus submissionStatus,
-    required Object? Function()? submissionError,
-  }) {
-    final stepState = currentState as MkStepFormState;
-    return stepState.copyWith(
-      isValid: isValid,
-      isValidating: isValidating,
-      isDirty: isDirty,
-      isTouched: isTouched,
-      values: values,
-      submissionStatus: submissionStatus,
-      submissionError: submissionError,
-    );
-  }
 
   /// Validates only the controls belonging to [step] (defaults to [currentStep]).
   ///
@@ -258,11 +256,14 @@ abstract class MkStepFormBloc extends MkFormBloc {
 
 /// A lightweight [MkStepFormBloc] implementation that allows passing
 /// an [onSubmit] closure directly.
-class MkSimpleStepFormBloc extends MkStepFormBloc {
+class MkSimpleStepFormBloc<T extends Object?> extends MkStepFormBloc<T> {
   MkSimpleStepFormBloc({
     required super.controls,
     required super.steps,
     super.initialStep,
+    super.initialExtra,
+    super.extraReset,
+    super.isExtraBusy,
     required Future<dynamic> Function(Map<String, dynamic> values) onSubmit,
     void Function(dynamic response)? onSubmitSuccess,
     void Function(Object error)? onSubmitFailure,
