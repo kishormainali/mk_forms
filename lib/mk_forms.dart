@@ -5,6 +5,7 @@ export 'package:flutter/widgets.dart' show AutovalidateMode;
 export 'src/core/status.dart';
 export 'src/core/validation.dart';
 export 'src/core/localization.dart';
+export 'src/core/humanize.dart';
 
 // Blocs & control models
 export 'src/blocs/control_bloc.dart';
