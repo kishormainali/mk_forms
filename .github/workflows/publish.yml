@@ -92,3 +92,50 @@ jobs:
 
       - name: Publish
         run: dart pub publish --force
+
+  # ── 4. Create a GitHub Release for the tag ──────────────────────────────────
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: publish   # Only release a tag that actually published successfully
+
+    permissions:
+      contents: write   # Required to create a release via GITHUB_TOKEN
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Pulls this version's own section out of CHANGELOG.md (between its
+      # "## [x.y.z]" heading and the next one) so the GitHub Release body
+      # matches the changelog instead of GitHub's auto-generated commit list.
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"   # v1.1.0 -> 1.1.0
+          awk -v ver="$VERSION" '
+            /^## \[/ {
+              if (found) exit
+              if (index($0, "[" ver "]") > 0) { found=1; next }
+              next
+            }
+            found { print }
+          ' CHANGELOG.md | sed '/^---$/d' > release_notes.md
+
+          if [ ! -s release_notes.md ]; then
+            echo "_No CHANGELOG.md entry found for $VERSION._" > release_notes.md
+          fi
+
+          echo "Extracted notes for $VERSION:"
+          cat release_notes.md
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release_notes.md
+          # The workflow's own tag patterns treat anything with a `-` (e.g.
+          # v1.1.0-beta.1) as a pre-release; mark the GitHub Release the same way.
+          prerelease: ${{ contains(github.ref_name, '-') }}

@@ -10,63 +10,67 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 
-import 'package:auto_route/auto_route.dart' as _i15;
-import 'package:flutter/material.dart' as _i16;
+import 'package:auto_route/auto_route.dart' as _i16;
+import 'package:flutter/material.dart' as _i17;
 import 'package:mk_forms_example/presentation/features/all_fields_showcase/all_fields_screen.dart'
     as _i2;
 import 'package:mk_forms_example/presentation/features/all_fields_showcase/bloc/all_fields_form_bloc.dart'
-    as _i18;
+    as _i19;
 import 'package:mk_forms_example/presentation/features/async_validation/bloc/username_form_bloc.dart'
-    as _i26;
+    as _i28;
 import 'package:mk_forms_example/presentation/features/async_validation/username_screen.dart'
-    as _i14;
+    as _i15;
 import 'package:mk_forms_example/presentation/features/autovalidate_demo/autovalidate_screen.dart'
     as _i3;
 import 'package:mk_forms_example/presentation/features/autovalidate_demo/bloc/autovalidate_form_bloc.dart'
-    as _i19;
+    as _i20;
 import 'package:mk_forms_example/presentation/features/custom_design_system/bloc/custom_design_form_bloc.dart'
-    as _i21;
+    as _i22;
 import 'package:mk_forms_example/presentation/features/custom_design_system/custom_design_screen.dart'
     as _i5;
 import 'package:mk_forms_example/presentation/features/dependent_fields/bloc/registration_form_bloc.dart'
-    as _i25;
+    as _i27;
 import 'package:mk_forms_example/presentation/features/dependent_fields/registration_screen.dart'
-    as _i13;
+    as _i14;
 import 'package:mk_forms_example/presentation/features/dynamic_array/bloc/dynamic_todos_form_bloc.dart'
-    as _i22;
+    as _i23;
 import 'package:mk_forms_example/presentation/features/dynamic_array/dynamic_todos_screen.dart'
     as _i6;
-import 'package:mk_forms_example/presentation/features/i18n_demo/bloc/i18n_demo_form_bloc.dart'
-    as _i23;
-import 'package:mk_forms_example/presentation/features/i18n_demo/i18n_screen.dart'
-    as _i8;
-import 'package:mk_forms_example/presentation/features/minimal_login/bloc/login_form_bloc.dart'
+import 'package:mk_forms_example/presentation/features/extended_state/bloc/profile_form_bloc.dart'
     as _i24;
-import 'package:mk_forms_example/presentation/features/minimal_login/minimal_login_screen.dart'
+import 'package:mk_forms_example/presentation/features/extended_state/extended_state_screen.dart'
+    as _i7;
+import 'package:mk_forms_example/presentation/features/i18n_demo/bloc/i18n_demo_form_bloc.dart'
+    as _i25;
+import 'package:mk_forms_example/presentation/features/i18n_demo/i18n_screen.dart'
     as _i9;
-import 'package:mk_forms_example/presentation/features/onboarding_flow/bloc/onboarding_form_bloc.dart'
-    as _i17;
-import 'package:mk_forms_example/presentation/features/onboarding_flow/onboarding_flow.dart'
+import 'package:mk_forms_example/presentation/features/minimal_login/bloc/login_form_bloc.dart'
+    as _i26;
+import 'package:mk_forms_example/presentation/features/minimal_login/minimal_login_screen.dart'
     as _i10;
+import 'package:mk_forms_example/presentation/features/onboarding_flow/bloc/onboarding_form_bloc.dart'
+    as _i18;
+import 'package:mk_forms_example/presentation/features/onboarding_flow/onboarding_flow.dart'
+    as _i11;
 import 'package:mk_forms_example/presentation/features/onboarding_flow/routes/account_step_route.dart'
     as _i1;
 import 'package:mk_forms_example/presentation/features/onboarding_flow/routes/preferences_step_route.dart'
-    as _i11;
-import 'package:mk_forms_example/presentation/features/onboarding_flow/routes/profile_step_route.dart'
     as _i12;
+import 'package:mk_forms_example/presentation/features/onboarding_flow/routes/profile_step_route.dart'
+    as _i13;
 import 'package:mk_forms_example/presentation/features/subforms_checkout/bloc/checkout_form_bloc.dart'
-    as _i20;
+    as _i21;
 import 'package:mk_forms_example/presentation/features/subforms_checkout/checkout_screen.dart'
     as _i4;
-import 'package:mk_forms_example/presentation/screens/home_screen.dart' as _i7;
+import 'package:mk_forms_example/presentation/screens/home_screen.dart' as _i8;
 
 /// generated route for
 /// [_i1.AccountStepScreen]
-class AccountStepRoute extends _i15.PageRouteInfo<AccountStepRouteArgs> {
+class AccountStepRoute extends _i16.PageRouteInfo<AccountStepRouteArgs> {
   AccountStepRoute({
-    _i16.Key? key,
-    required _i17.OnboardingFormBloc formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    required _i18.OnboardingFormBloc formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          AccountStepRoute.name,
          args: AccountStepRouteArgs(key: key, formBloc: formBloc),
@@ -75,7 +79,7 @@ class AccountStepRoute extends _i15.PageRouteInfo<AccountStepRouteArgs> {
 
   static const String name = 'AccountStepRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<AccountStepRouteArgs>();
@@ -87,9 +91,9 @@ class AccountStepRoute extends _i15.PageRouteInfo<AccountStepRouteArgs> {
 class AccountStepRouteArgs {
   const AccountStepRouteArgs({this.key, required this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i17.OnboardingFormBloc formBloc;
+  final _i18.OnboardingFormBloc formBloc;
 
   @override
   String toString() {
@@ -109,11 +113,11 @@ class AccountStepRouteArgs {
 
 /// generated route for
 /// [_i2.AllFieldsScreen]
-class AllFieldsRoute extends _i15.PageRouteInfo<AllFieldsRouteArgs> {
+class AllFieldsRoute extends _i16.PageRouteInfo<AllFieldsRouteArgs> {
   AllFieldsRoute({
-    _i16.Key? key,
-    _i18.AllFieldsFormBloc? formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    _i19.AllFieldsFormBloc? formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          AllFieldsRoute.name,
          args: AllFieldsRouteArgs(key: key, formBloc: formBloc),
@@ -122,7 +126,7 @@ class AllFieldsRoute extends _i15.PageRouteInfo<AllFieldsRouteArgs> {
 
   static const String name = 'AllFieldsRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<AllFieldsRouteArgs>(
@@ -136,9 +140,9 @@ class AllFieldsRoute extends _i15.PageRouteInfo<AllFieldsRouteArgs> {
 class AllFieldsRouteArgs {
   const AllFieldsRouteArgs({this.key, this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i18.AllFieldsFormBloc? formBloc;
+  final _i19.AllFieldsFormBloc? formBloc;
 
   @override
   String toString() {
@@ -158,11 +162,11 @@ class AllFieldsRouteArgs {
 
 /// generated route for
 /// [_i3.AutovalidateScreen]
-class AutovalidateRoute extends _i15.PageRouteInfo<AutovalidateRouteArgs> {
+class AutovalidateRoute extends _i16.PageRouteInfo<AutovalidateRouteArgs> {
   AutovalidateRoute({
-    _i16.Key? key,
-    _i19.AutovalidateFormBloc? formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    _i20.AutovalidateFormBloc? formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          AutovalidateRoute.name,
          args: AutovalidateRouteArgs(key: key, formBloc: formBloc),
@@ -171,7 +175,7 @@ class AutovalidateRoute extends _i15.PageRouteInfo<AutovalidateRouteArgs> {
 
   static const String name = 'AutovalidateRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<AutovalidateRouteArgs>(
@@ -185,9 +189,9 @@ class AutovalidateRoute extends _i15.PageRouteInfo<AutovalidateRouteArgs> {
 class AutovalidateRouteArgs {
   const AutovalidateRouteArgs({this.key, this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i19.AutovalidateFormBloc? formBloc;
+  final _i20.AutovalidateFormBloc? formBloc;
 
   @override
   String toString() {
@@ -207,11 +211,11 @@ class AutovalidateRouteArgs {
 
 /// generated route for
 /// [_i4.CheckoutScreen]
-class CheckoutRoute extends _i15.PageRouteInfo<CheckoutRouteArgs> {
+class CheckoutRoute extends _i16.PageRouteInfo<CheckoutRouteArgs> {
   CheckoutRoute({
-    _i16.Key? key,
-    _i20.CheckoutFormBloc? formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    _i21.CheckoutFormBloc? formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          CheckoutRoute.name,
          args: CheckoutRouteArgs(key: key, formBloc: formBloc),
@@ -220,7 +224,7 @@ class CheckoutRoute extends _i15.PageRouteInfo<CheckoutRouteArgs> {
 
   static const String name = 'CheckoutRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<CheckoutRouteArgs>(
@@ -234,9 +238,9 @@ class CheckoutRoute extends _i15.PageRouteInfo<CheckoutRouteArgs> {
 class CheckoutRouteArgs {
   const CheckoutRouteArgs({this.key, this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i20.CheckoutFormBloc? formBloc;
+  final _i21.CheckoutFormBloc? formBloc;
 
   @override
   String toString() {
@@ -256,11 +260,11 @@ class CheckoutRouteArgs {
 
 /// generated route for
 /// [_i5.CustomDesignScreen]
-class CustomDesignRoute extends _i15.PageRouteInfo<CustomDesignRouteArgs> {
+class CustomDesignRoute extends _i16.PageRouteInfo<CustomDesignRouteArgs> {
   CustomDesignRoute({
-    _i16.Key? key,
-    _i21.CustomDesignFormBloc? formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    _i22.CustomDesignFormBloc? formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          CustomDesignRoute.name,
          args: CustomDesignRouteArgs(key: key, formBloc: formBloc),
@@ -269,7 +273,7 @@ class CustomDesignRoute extends _i15.PageRouteInfo<CustomDesignRouteArgs> {
 
   static const String name = 'CustomDesignRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<CustomDesignRouteArgs>(
@@ -283,9 +287,9 @@ class CustomDesignRoute extends _i15.PageRouteInfo<CustomDesignRouteArgs> {
 class CustomDesignRouteArgs {
   const CustomDesignRouteArgs({this.key, this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i21.CustomDesignFormBloc? formBloc;
+  final _i22.CustomDesignFormBloc? formBloc;
 
   @override
   String toString() {
@@ -305,11 +309,11 @@ class CustomDesignRouteArgs {
 
 /// generated route for
 /// [_i6.DynamicTodosScreen]
-class DynamicTodosRoute extends _i15.PageRouteInfo<DynamicTodosRouteArgs> {
+class DynamicTodosRoute extends _i16.PageRouteInfo<DynamicTodosRouteArgs> {
   DynamicTodosRoute({
-    _i16.Key? key,
-    _i22.DynamicTodosFormBloc? formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    _i23.DynamicTodosFormBloc? formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          DynamicTodosRoute.name,
          args: DynamicTodosRouteArgs(key: key, formBloc: formBloc),
@@ -318,7 +322,7 @@ class DynamicTodosRoute extends _i15.PageRouteInfo<DynamicTodosRouteArgs> {
 
   static const String name = 'DynamicTodosRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<DynamicTodosRouteArgs>(
@@ -332,9 +336,9 @@ class DynamicTodosRoute extends _i15.PageRouteInfo<DynamicTodosRouteArgs> {
 class DynamicTodosRouteArgs {
   const DynamicTodosRouteArgs({this.key, this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i22.DynamicTodosFormBloc? formBloc;
+  final _i23.DynamicTodosFormBloc? formBloc;
 
   @override
   String toString() {
@@ -353,28 +357,77 @@ class DynamicTodosRouteArgs {
 }
 
 /// generated route for
-/// [_i7.HomeScreen]
-class HomeRoute extends _i15.PageRouteInfo<void> {
-  const HomeRoute({List<_i15.PageRouteInfo>? children})
+/// [_i7.ExtendedStateScreen]
+class ExtendedStateRoute extends _i16.PageRouteInfo<ExtendedStateRouteArgs> {
+  ExtendedStateRoute({
+    _i17.Key? key,
+    _i24.ProfileFormBloc? formBloc,
+    List<_i16.PageRouteInfo>? children,
+  }) : super(
+         ExtendedStateRoute.name,
+         args: ExtendedStateRouteArgs(key: key, formBloc: formBloc),
+         initialChildren: children,
+       );
+
+  static const String name = 'ExtendedStateRoute';
+
+  static _i16.PageInfo page = _i16.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<ExtendedStateRouteArgs>(
+        orElse: () => const ExtendedStateRouteArgs(),
+      );
+      return _i7.ExtendedStateScreen(key: args.key, formBloc: args.formBloc);
+    },
+  );
+}
+
+class ExtendedStateRouteArgs {
+  const ExtendedStateRouteArgs({this.key, this.formBloc});
+
+  final _i17.Key? key;
+
+  final _i24.ProfileFormBloc? formBloc;
+
+  @override
+  String toString() {
+    return 'ExtendedStateRouteArgs{key: $key, formBloc: $formBloc}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ExtendedStateRouteArgs) return false;
+    return key == other.key && formBloc == other.formBloc;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ formBloc.hashCode;
+}
+
+/// generated route for
+/// [_i8.HomeScreen]
+class HomeRoute extends _i16.PageRouteInfo<void> {
+  const HomeRoute({List<_i16.PageRouteInfo>? children})
     : super(HomeRoute.name, initialChildren: children);
 
   static const String name = 'HomeRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
-      return const _i7.HomeScreen();
+      return const _i8.HomeScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i8.I18nDemoScreen]
-class I18nDemoRoute extends _i15.PageRouteInfo<I18nDemoRouteArgs> {
+/// [_i9.I18nDemoScreen]
+class I18nDemoRoute extends _i16.PageRouteInfo<I18nDemoRouteArgs> {
   I18nDemoRoute({
-    _i16.Key? key,
-    _i23.I18nDemoFormBloc? formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    _i25.I18nDemoFormBloc? formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          I18nDemoRoute.name,
          args: I18nDemoRouteArgs(key: key, formBloc: formBloc),
@@ -383,13 +436,13 @@ class I18nDemoRoute extends _i15.PageRouteInfo<I18nDemoRouteArgs> {
 
   static const String name = 'I18nDemoRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<I18nDemoRouteArgs>(
         orElse: () => const I18nDemoRouteArgs(),
       );
-      return _i8.I18nDemoScreen(key: args.key, formBloc: args.formBloc);
+      return _i9.I18nDemoScreen(key: args.key, formBloc: args.formBloc);
     },
   );
 }
@@ -397,9 +450,9 @@ class I18nDemoRoute extends _i15.PageRouteInfo<I18nDemoRouteArgs> {
 class I18nDemoRouteArgs {
   const I18nDemoRouteArgs({this.key, this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i23.I18nDemoFormBloc? formBloc;
+  final _i25.I18nDemoFormBloc? formBloc;
 
   @override
   String toString() {
@@ -418,12 +471,12 @@ class I18nDemoRouteArgs {
 }
 
 /// generated route for
-/// [_i9.MinimalLoginScreen]
-class MinimalLoginRoute extends _i15.PageRouteInfo<MinimalLoginRouteArgs> {
+/// [_i10.MinimalLoginScreen]
+class MinimalLoginRoute extends _i16.PageRouteInfo<MinimalLoginRouteArgs> {
   MinimalLoginRoute({
-    _i16.Key? key,
-    _i24.LoginFormBloc? formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    _i26.LoginFormBloc? formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          MinimalLoginRoute.name,
          args: MinimalLoginRouteArgs(key: key, formBloc: formBloc),
@@ -432,13 +485,13 @@ class MinimalLoginRoute extends _i15.PageRouteInfo<MinimalLoginRouteArgs> {
 
   static const String name = 'MinimalLoginRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<MinimalLoginRouteArgs>(
         orElse: () => const MinimalLoginRouteArgs(),
       );
-      return _i9.MinimalLoginScreen(key: args.key, formBloc: args.formBloc);
+      return _i10.MinimalLoginScreen(key: args.key, formBloc: args.formBloc);
     },
   );
 }
@@ -446,9 +499,9 @@ class MinimalLoginRoute extends _i15.PageRouteInfo<MinimalLoginRouteArgs> {
 class MinimalLoginRouteArgs {
   const MinimalLoginRouteArgs({this.key, this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i24.LoginFormBloc? formBloc;
+  final _i26.LoginFormBloc? formBloc;
 
   @override
   String toString() {
@@ -467,29 +520,29 @@ class MinimalLoginRouteArgs {
 }
 
 /// generated route for
-/// [_i10.OnboardingFlowScreen]
-class OnboardingFlowRoute extends _i15.PageRouteInfo<void> {
-  const OnboardingFlowRoute({List<_i15.PageRouteInfo>? children})
+/// [_i11.OnboardingFlowScreen]
+class OnboardingFlowRoute extends _i16.PageRouteInfo<void> {
+  const OnboardingFlowRoute({List<_i16.PageRouteInfo>? children})
     : super(OnboardingFlowRoute.name, initialChildren: children);
 
   static const String name = 'OnboardingFlowRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
-      return const _i10.OnboardingFlowScreen();
+      return const _i11.OnboardingFlowScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i11.PreferencesStepScreen]
+/// [_i12.PreferencesStepScreen]
 class PreferencesStepRoute
-    extends _i15.PageRouteInfo<PreferencesStepRouteArgs> {
+    extends _i16.PageRouteInfo<PreferencesStepRouteArgs> {
   PreferencesStepRoute({
-    _i16.Key? key,
-    required _i17.OnboardingFormBloc formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    required _i18.OnboardingFormBloc formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          PreferencesStepRoute.name,
          args: PreferencesStepRouteArgs(key: key, formBloc: formBloc),
@@ -498,11 +551,11 @@ class PreferencesStepRoute
 
   static const String name = 'PreferencesStepRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<PreferencesStepRouteArgs>();
-      return _i11.PreferencesStepScreen(key: args.key, formBloc: args.formBloc);
+      return _i12.PreferencesStepScreen(key: args.key, formBloc: args.formBloc);
     },
   );
 }
@@ -510,9 +563,9 @@ class PreferencesStepRoute
 class PreferencesStepRouteArgs {
   const PreferencesStepRouteArgs({this.key, required this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i17.OnboardingFormBloc formBloc;
+  final _i18.OnboardingFormBloc formBloc;
 
   @override
   String toString() {
@@ -531,12 +584,12 @@ class PreferencesStepRouteArgs {
 }
 
 /// generated route for
-/// [_i12.ProfileStepScreen]
-class ProfileStepRoute extends _i15.PageRouteInfo<ProfileStepRouteArgs> {
+/// [_i13.ProfileStepScreen]
+class ProfileStepRoute extends _i16.PageRouteInfo<ProfileStepRouteArgs> {
   ProfileStepRoute({
-    _i16.Key? key,
-    required _i17.OnboardingFormBloc formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    required _i18.OnboardingFormBloc formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          ProfileStepRoute.name,
          args: ProfileStepRouteArgs(key: key, formBloc: formBloc),
@@ -545,11 +598,11 @@ class ProfileStepRoute extends _i15.PageRouteInfo<ProfileStepRouteArgs> {
 
   static const String name = 'ProfileStepRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<ProfileStepRouteArgs>();
-      return _i12.ProfileStepScreen(key: args.key, formBloc: args.formBloc);
+      return _i13.ProfileStepScreen(key: args.key, formBloc: args.formBloc);
     },
   );
 }
@@ -557,9 +610,9 @@ class ProfileStepRoute extends _i15.PageRouteInfo<ProfileStepRouteArgs> {
 class ProfileStepRouteArgs {
   const ProfileStepRouteArgs({this.key, required this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i17.OnboardingFormBloc formBloc;
+  final _i18.OnboardingFormBloc formBloc;
 
   @override
   String toString() {
@@ -578,12 +631,12 @@ class ProfileStepRouteArgs {
 }
 
 /// generated route for
-/// [_i13.RegistrationScreen]
-class RegistrationRoute extends _i15.PageRouteInfo<RegistrationRouteArgs> {
+/// [_i14.RegistrationScreen]
+class RegistrationRoute extends _i16.PageRouteInfo<RegistrationRouteArgs> {
   RegistrationRoute({
-    _i16.Key? key,
-    _i25.RegistrationFormBloc? formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    _i27.RegistrationFormBloc? formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          RegistrationRoute.name,
          args: RegistrationRouteArgs(key: key, formBloc: formBloc),
@@ -592,13 +645,13 @@ class RegistrationRoute extends _i15.PageRouteInfo<RegistrationRouteArgs> {
 
   static const String name = 'RegistrationRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<RegistrationRouteArgs>(
         orElse: () => const RegistrationRouteArgs(),
       );
-      return _i13.RegistrationScreen(key: args.key, formBloc: args.formBloc);
+      return _i14.RegistrationScreen(key: args.key, formBloc: args.formBloc);
     },
   );
 }
@@ -606,9 +659,9 @@ class RegistrationRoute extends _i15.PageRouteInfo<RegistrationRouteArgs> {
 class RegistrationRouteArgs {
   const RegistrationRouteArgs({this.key, this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i25.RegistrationFormBloc? formBloc;
+  final _i27.RegistrationFormBloc? formBloc;
 
   @override
   String toString() {
@@ -627,12 +680,12 @@ class RegistrationRouteArgs {
 }
 
 /// generated route for
-/// [_i14.UsernameScreen]
-class UsernameRoute extends _i15.PageRouteInfo<UsernameRouteArgs> {
+/// [_i15.UsernameScreen]
+class UsernameRoute extends _i16.PageRouteInfo<UsernameRouteArgs> {
   UsernameRoute({
-    _i16.Key? key,
-    _i26.UsernameFormBloc? formBloc,
-    List<_i15.PageRouteInfo>? children,
+    _i17.Key? key,
+    _i28.UsernameFormBloc? formBloc,
+    List<_i16.PageRouteInfo>? children,
   }) : super(
          UsernameRoute.name,
          args: UsernameRouteArgs(key: key, formBloc: formBloc),
@@ -641,13 +694,13 @@ class UsernameRoute extends _i15.PageRouteInfo<UsernameRouteArgs> {
 
   static const String name = 'UsernameRoute';
 
-  static _i15.PageInfo page = _i15.PageInfo(
+  static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<UsernameRouteArgs>(
         orElse: () => const UsernameRouteArgs(),
       );
-      return _i14.UsernameScreen(key: args.key, formBloc: args.formBloc);
+      return _i15.UsernameScreen(key: args.key, formBloc: args.formBloc);
     },
   );
 }
@@ -655,9 +708,9 @@ class UsernameRoute extends _i15.PageRouteInfo<UsernameRouteArgs> {
 class UsernameRouteArgs {
   const UsernameRouteArgs({this.key, this.formBloc});
 
-  final _i16.Key? key;
+  final _i17.Key? key;
 
-  final _i26.UsernameFormBloc? formBloc;
+  final _i28.UsernameFormBloc? formBloc;
 
   @override
   String toString() {

@@ -491,6 +491,116 @@ MkFieldBuilder<String>(
 
 ---
 
+## 🧬 Extending Form State
+
+Need more than idle / submitting / success / failure? `MkFormState<T>` has a
+generic `extra` slot for whatever your form needs beyond the base fields.
+Reuse `MkSubmissionStatus` for each independent API call, so one form can
+track an avatar upload, a username check and an OTP request at the same
+time — with no state subclass to write.
+
+### 1. Declare the extra payload
+
+Any type works: a `freezed` class (recommended — `copyWith`, `==` and
+`toString` come for free), or a plain hand-written class. It should
+implement value equality (`==`/`hashCode`, `Equatable`, or `freezed`),
+because `extra` feeds `MkFormState`'s own equality directly.
+
+```dart
+@freezed
+abstract class ProfileExtra with _$ProfileExtra {
+  const ProfileExtra._();
+
+  const factory ProfileExtra({
+    @Default(MkSubmissionStatus.idle()) MkSubmissionStatus avatarStatus,
+    @Default(MkSubmissionStatus.idle()) MkSubmissionStatus otpStatus,
+  }) = _ProfileExtra;
+
+  /// Submit is blocked while either call is running.
+  bool get isBusy => avatarStatus.isSubmitting || otpStatus.isSubmitting;
+}
+```
+
+### 2. Parameterize the bloc — no state subclass
+
+`MkFormBloc<T>` builds the base fields (`isValid`, `values`, ...) from
+`controls` for you, exactly as it already does for a plain, no-extras form —
+pass `initialExtra`/`extraReset`/`isExtraBusy` and it does the rest:
+
+```dart
+class ProfileFormBloc extends MkFormBloc<ProfileExtra> {
+  ProfileFormBloc(this._api)
+    : super(
+        controls: {'username': MkFieldBloc<String>(initialValue: '')},
+        initialExtra: () => const ProfileExtra(),
+        extraReset: () => const ProfileExtra(),
+        isExtraBusy: (e) => e.isBusy,
+      );
+
+  final Api _api;
+
+  Future<void> uploadAvatar(String path) async {
+    emit(state.updateExtra((e) => e.copyWith(avatarStatus: const MkSubmissionStatus.submitting())));
+    try {
+      final url = await _api.uploadAvatar(path);
+      emit(state.updateExtra((e) => e.copyWith(avatarStatus: MkSubmissionStatus.success(url))));
+    } catch (error) {
+      emit(state.updateExtra((e) => e.copyWith(avatarStatus: MkSubmissionStatus.failure(error))));
+    }
+  }
+
+  /// One submit can chain several API calls.
+  @override
+  Future<dynamic> onSubmit(Map<String, dynamic> values) async {
+    await _api.reserveUsername(values['username'] as String);
+    return _api.saveProfile(values);
+  }
+}
+```
+
+`state` is inherited directly as `MkFormState<ProfileExtra>` — no downcast. Field edits never lose or replace `extra`: `MkFormBloc` only ever updates state through the base fields, so the same `extra` instance carries through every edit untouched. Need full control over the initial state instead (e.g. computing something other than the default base-field aggregation)? Pass `initialState: MkFormState<ProfileExtra>(...)` directly — it takes priority over `initialExtra`/`extraReset`/`isExtraBusy`.
+
+### 3. Build the UI without casts
+
+```dart
+MkFormStateBuilder<MkFormState<ProfileExtra>>(
+  buildWhen: (prev, curr) => prev.extra.avatarStatus != curr.extra.avatarStatus,
+  builder: (context, state, bloc) => switch (state.extra.avatarStatus) {
+    MkSubmissionInProgress() => const CircularProgressIndicator(),
+    MkSubmissionSuccess(:final response) => Image.network('$response'),
+    MkSubmissionFailure(:final error) => Text('$error'),
+    MkSubmissionIdle() => const SizedBox.shrink(),
+  },
+)
+```
+
+`MkFormStateBuilder<S>` throws a `StateError` if the bloc's state is not an `S`. Write the type argument explicitly (Dart cannot infer it from an unannotated builder closure); use the plain `MkFormBuilder` when you only need the base fields.
+
+Need a derived, read-only view over the state (like "is this username available right now")? Write a Dart extension method on `MkFormState<ProfileExtra>` — this is the replacement for what a computed getter on a state subclass used to give you:
+
+```dart
+extension ProfileFormStateX on MkFormState<ProfileExtra> {
+  bool get avatarReady => extra.avatarStatus.isSuccess;
+}
+```
+
+| Member | Purpose |
+|---|---|
+| `MkFormState.extra` | Your typed payload; `T` defaults to `Object?` (`null`) when unused |
+| `MkFormState.updateExtra(fn)` | Shorthand for `copyWith(extra: () => fn(extra))` |
+| `MkFormState.isBusy` | `isSubmitting` plus whatever `isExtraBusy(extra)` reports; drives `canSubmit` and blocks `submit()` |
+| `MkFormState.reset(...)` | Regenerates `extra` via `extraReset` (or leaves it unchanged if omitted); called by `MkFormBloc.reset()` |
+| `MkFormStateBuilder<S>` | Typed access to `MkFormState<YourExtra>` |
+
+**Things to watch**
+
+- Every custom status must reach a terminal state on every code path (wrap the call in try/catch as in the example above). A status stuck in `submitting` keeps `isBusy` true and `submit()` returns silently forever.
+- `reset()` regenerates `extra` via `extraReset`, but a call that is still in flight will write its result into the state afterwards. If `reset()` can run while calls are in flight, guard the emit (for example with a generation counter checked before emitting).
+- Give your `extra` type value equality (`Equatable`, `freezed`, or manual `==`/`hashCode`). It feeds `MkFormState`'s own equality directly, so without it, `buildWhen` and any duplicate-state suppression fall back to identity.
+- A form built with `extends MkFormBloc<MyExtra>` where `MyExtra` is not nullable must always pass `initialState` (or, for `MkStepFormBloc<MyExtra>`, `initialExtra`) — omitting it throws immediately at construction rather than silently storing a broken value.
+
+---
+
 ## 🪜 Multi-Step Forms & Multi-Route Wizards
 
 ### Define the Bloc

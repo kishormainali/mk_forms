@@ -102,6 +102,14 @@ class HomeScreen extends StatelessWidget {
             color: Colors.pink.shade700,
             route: AutovalidateRoute(),
           ),
+          (
+            title: 'Extended Form State',
+            subtitle:
+                'Custom state with several concurrent API calls and a multi-call submit',
+            icon: Icons.account_tree_outlined,
+            color: Colors.orange.shade800,
+            route: ExtendedStateRoute(),
+          ),
         ];
 
     return Scaffold(
