@@ -16,6 +16,7 @@ class MkFieldState<T> extends Equatable {
     this.error,
     this.errorCode,
     this.errorParams,
+    this.label,
   });
 
   /// The current value of the field.
@@ -32,6 +33,12 @@ class MkFieldState<T> extends Equatable {
 
   /// Parameters associated with the error (e.g. min, max) for localization formatting.
   final Map<String, dynamic>? errorParams;
+
+  /// This field's display label, used by [getLocalizedError] to produce
+  /// field-aware messages (e.g. `"Email is required."`). `null` if the
+  /// field was never given an explicit `label` and was never registered in
+  /// an [MkGroupBloc] (which auto-derives one from its registration key).
+  final String? label;
 
   /// Whether the field's value has changed from its [initialValue].
   final bool isDirty;
@@ -92,9 +99,17 @@ class MkFieldState<T> extends Equatable {
 
   /// Resolves the localized error message using [context]'s [MkFormLocalizations],
   /// or falls back to [error].
+  ///
+  /// When [label] is set, tries a field-aware message first (e.g. `"Email is
+  /// required."` via [MkFormMessages.resolveField]) before falling back to
+  /// the non-field-aware [MkFormMessages.resolve], then to [error].
   String? getLocalizedError([BuildContext? context]) {
     if (errorCode != null) {
       final messages = MkFormLocalizations.of(context);
+      final resolvedForField = label != null
+          ? messages.resolveField(errorCode!, label!, errorParams ?? const {})
+          : null;
+      if (resolvedForField != null) return resolvedForField;
       final resolved = messages.resolve(errorCode!, errorParams ?? const {});
       if (resolved != null) return resolved;
     }
@@ -113,6 +128,7 @@ class MkFieldState<T> extends Equatable {
     bool? isEnabled,
     bool? isVisible,
     bool? wasFormSubmitted,
+    String? label,
   }) {
     return MkFieldState<T>(
       value: value != null ? value() : this.value,
@@ -126,6 +142,7 @@ class MkFieldState<T> extends Equatable {
       isEnabled: isEnabled ?? this.isEnabled,
       isVisible: isVisible ?? this.isVisible,
       wasFormSubmitted: wasFormSubmitted ?? this.wasFormSubmitted,
+      label: label ?? this.label,
     );
   }
 
@@ -142,5 +159,6 @@ class MkFieldState<T> extends Equatable {
     isEnabled,
     isVisible,
     wasFormSubmitted,
+    label,
   ];
 }

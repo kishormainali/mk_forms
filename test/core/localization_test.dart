@@ -200,4 +200,82 @@ void main() {
       );
     });
   });
+
+  group('Field-aware resolution via MkFieldState.getLocalizedError', () {
+    test('uses resolveField when a label is present', () {
+      const state = MkFieldState<String>(
+        value: null,
+        initialValue: null,
+        isDirty: false,
+        isTouched: false,
+        isValidating: false,
+        isEnabled: true,
+        isVisible: true,
+        wasFormSubmitted: false,
+        error: 'This field is required',
+        errorCode: MkErrorCodes.required,
+        label: 'Email',
+      );
+
+      expect(state.getLocalizedError(), 'Email is required.');
+    });
+
+    test('falls back to resolve() when label is null', () {
+      const state = MkFieldState<String>(
+        value: null,
+        initialValue: null,
+        isDirty: false,
+        isTouched: false,
+        isValidating: false,
+        isEnabled: true,
+        isVisible: true,
+        wasFormSubmitted: false,
+        error: 'This field is required',
+        errorCode: MkErrorCodes.required,
+      );
+
+      expect(state.getLocalizedError(), 'This field is required');
+    });
+
+    test(
+      'falls back to resolve() when errorCode has no field-aware template',
+      () {
+        const state = MkFieldState<String>(
+          value: null,
+          initialValue: null,
+          isDirty: false,
+          isTouched: false,
+          isValidating: false,
+          isEnabled: true,
+          isVisible: true,
+          wasFormSubmitted: false,
+          error: 'Could not verify this value. Please try again.',
+          errorCode: MkErrorCodes.asyncValidationFailed,
+          label: 'Email',
+        );
+
+        expect(
+          state.getLocalizedError(),
+          'Could not verify this value. Please try again.',
+        );
+      },
+    );
+
+    test('copyWith preserves label by default and can update it', () {
+      const state = MkFieldState<String>(
+        value: null,
+        initialValue: null,
+        isDirty: false,
+        isTouched: false,
+        isValidating: false,
+        isEnabled: true,
+        isVisible: true,
+        wasFormSubmitted: false,
+        label: 'Email',
+      );
+
+      expect(state.copyWith(isTouched: true).label, 'Email');
+      expect(state.copyWith(label: 'Work email').label, 'Work email');
+    });
+  });
 }
