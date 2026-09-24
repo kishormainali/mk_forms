@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Field-aware validation messages.** Built-in validators (`required`, `email`, `minLength`, `maxLength`, `min`, `max`, `pattern`, `match`) now produce messages that name the field, e.g. `"Email is required."` instead of `"This field is required"`.
+  - A field's label is auto-derived from its key in an `MkGroupBloc`'s controls map (`'confirmPassword'` -> `"Confirm password"`) — no code changes needed for existing forms to pick this up once they upgrade.
+  - Override with an explicit `label:` on `MkFieldBloc`'s constructor when the auto-derived label isn't right.
+  - `MkFormMessages` gained `resolveField(errorCode, field, [params])` plus 8 new overridable `*Field(...)` message methods (English defaults, Spanish overrides in `MkSpanishMessages`) — fully additive; `resolve()` and every existing method are unchanged.
+  - A field that's never registered in a group and has no explicit `label` behaves exactly as before this change.
+
+---
+
 ## [1.1.0] - 2026-09-24
 
 ### Added
