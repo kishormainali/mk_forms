@@ -2,7 +2,11 @@ import '../../core/status.dart';
 import 'form_state.dart';
 
 /// Represents the state of a multi-step / wizard form.
-class MkStepFormState extends MkFormState {
+///
+/// [T] is the type of [MkFormState.extra], exactly as on [MkFormState]; most
+/// step forms never need it and can use `MkStepFormState` (no type
+/// argument).
+class MkStepFormState<T extends Object?> extends MkFormState<T> {
   const MkStepFormState({
     required super.submissionStatus,
     required super.isValid,
@@ -12,6 +16,9 @@ class MkStepFormState extends MkFormState {
     required super.wasSubmitted,
     required super.values,
     super.submissionError,
+    required super.extra,
+    super.extraReset,
+    super.isExtraBusy,
     required this.currentStep,
     required this.totalSteps,
     required this.completedSteps,
@@ -59,7 +66,7 @@ class MkStepFormState extends MkFormState {
   bool isStepCompleted(int index) => completedSteps.contains(index);
 
   @override
-  MkStepFormState copyWith({
+  MkStepFormState<T> copyWith({
     MkSubmissionStatus? submissionStatus,
     bool? isValid,
     bool? isValidating,
@@ -68,6 +75,7 @@ class MkStepFormState extends MkFormState {
     bool? wasSubmitted,
     Map<String, dynamic>? values,
     Object? Function()? submissionError,
+    T? extra,
     int? currentStep,
     int? totalSteps,
     Set<int>? completedSteps,
@@ -75,7 +83,7 @@ class MkStepFormState extends MkFormState {
     int? Function()? redirectedFromStep,
     int? Function()? invalidStepIndex,
   }) {
-    return MkStepFormState(
+    return MkStepFormState<T>(
       submissionStatus: submissionStatus ?? this.submissionStatus,
       isValid: isValid ?? this.isValid,
       isValidating: isValidating ?? this.isValidating,
@@ -86,6 +94,9 @@ class MkStepFormState extends MkFormState {
       submissionError: submissionError != null
           ? submissionError()
           : this.submissionError,
+      extra: extra ?? this.extra,
+      extraReset: extraReset,
+      isExtraBusy: isExtraBusy,
       currentStep: currentStep ?? this.currentStep,
       totalSteps: totalSteps ?? this.totalSteps,
       completedSteps: completedSteps ?? this.completedSteps,
@@ -100,26 +111,24 @@ class MkStepFormState extends MkFormState {
   }
 
   @override
-  MkStepFormState reset({
+  MkStepFormState<T> reset({
     required bool isValid,
     required bool isValidating,
     required Map<String, dynamic> values,
   }) {
-    return copyWith(
-      submissionStatus: const MkSubmissionStatus.idle(),
-      isValid: isValid,
-      isValidating: isValidating,
-      isDirty: false,
-      isTouched: false,
-      wasSubmitted: false,
-      values: values,
-      submissionError: () => null,
-      currentStep: 0,
-      completedSteps: const {},
-      isLoadingInitialData: false,
-      redirectedFromStep: () => null,
-      invalidStepIndex: () => null,
-    );
+    return (super.reset(
+              isValid: isValid,
+              isValidating: isValidating,
+              values: values,
+            )
+            as MkStepFormState<T>)
+        .copyWith(
+          currentStep: 0,
+          completedSteps: const {},
+          isLoadingInitialData: false,
+          redirectedFromStep: () => null,
+          invalidStepIndex: () => null,
+        );
   }
 
   @override
