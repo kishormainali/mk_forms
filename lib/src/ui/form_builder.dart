@@ -57,9 +57,9 @@ class MkFormBuilder extends StatelessWidget {
 /// unannotated builder closure):
 ///
 /// ```dart
-/// MkFormStateBuilder<ProfileFormState>(
-///   buildWhen: (prev, curr) => prev.avatarStatus != curr.avatarStatus,
-///   builder: (context, state, bloc) => Text('${state.avatarStatus}'),
+/// MkFormStateBuilder<MkFormState<ProfileExtra>>(
+///   buildWhen: (prev, curr) => prev.extra.avatarStatus != curr.extra.avatarStatus,
+///   builder: (context, state, bloc) => Text('${state.extra.avatarStatus}'),
 /// )
 /// ```
 ///
