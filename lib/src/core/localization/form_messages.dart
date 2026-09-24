@@ -67,33 +67,42 @@ abstract class MkFormMessages {
   /// Message when a required field is empty, naming [field] (e.g.
   /// `"Email is required."`).
   ///
-  /// Not abstract so existing [MkFormMessages] implementations keep
-  /// compiling; override to customize or localize.
-  String requiredField(String field) => '$field is required.';
+  /// Returns `null` by default: an app that implements [MkFormMessages]
+  /// directly (the "entirely custom language" pattern from this class's own
+  /// doc comment) is unaffected by field-aware resolution unless it opts in
+  /// by overriding this. [MkDefaultEnglishMessages] and [MkSpanishMessages]
+  /// provide concrete overrides. A `null` here makes [resolveField] fall
+  /// through to [resolve] for this code.
+  String? requiredField(String field) => null;
 
-  /// Message when [field]'s value is not a valid email address.
-  String emailField(String field) => '$field must be a valid email address.';
+  /// Message when [field]'s value is not a valid email address. See
+  /// [requiredField] for the default-`null` rationale.
+  String? emailField(String field) => null;
 
-  /// Message when [field]'s string length is less than [min].
-  String minLengthField(String field, int min) =>
-      '$field must be at least $min characters.';
+  /// Message when [field]'s string length is less than [min]. See
+  /// [requiredField] for the default-`null` rationale.
+  String? minLengthField(String field, int min) => null;
 
-  /// Message when [field]'s string length exceeds [max].
-  String maxLengthField(String field, int max) =>
-      '$field must be at most $max characters.';
+  /// Message when [field]'s string length exceeds [max]. See
+  /// [requiredField] for the default-`null` rationale.
+  String? maxLengthField(String field, int max) => null;
 
-  /// Message when [field]'s numeric value is less than [min].
-  String minField(String field, num min) => '$field must be at least $min.';
+  /// Message when [field]'s numeric value is less than [min]. See
+  /// [requiredField] for the default-`null` rationale.
+  String? minField(String field, num min) => null;
 
-  /// Message when [field]'s numeric value exceeds [max].
-  String maxField(String field, num max) => '$field must be at most $max.';
+  /// Message when [field]'s numeric value exceeds [max]. See
+  /// [requiredField] for the default-`null` rationale.
+  String? maxField(String field, num max) => null;
 
-  /// Message when [field] does not match a required pattern regex.
-  String patternField(String field) => '$field has an invalid format.';
+  /// Message when [field] does not match a required pattern regex. See
+  /// [requiredField] for the default-`null` rationale.
+  String? patternField(String field) => null;
 
   /// Message when [field] does not match another field's value (e.g.
-  /// password confirmation).
-  String matchField(String field) => '$field does not match.';
+  /// password confirmation). See [requiredField] for the default-`null`
+  /// rationale.
+  String? matchField(String field) => null;
 
   /// Resolves an error code and field label to a field-aware localized
   /// string (e.g. `"Email is required."` instead of `"This field is

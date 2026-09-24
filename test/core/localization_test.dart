@@ -12,6 +12,34 @@ class CustomFrenchMessages extends MkDefaultEnglishMessages {
   String email() => 'Adresse e-mail invalide';
 }
 
+class FullyCustomMessages extends MkFormMessages {
+  const FullyCustomMessages();
+
+  @override
+  String required() => 'CUSTOM: required';
+
+  @override
+  String email() => 'CUSTOM: email';
+
+  @override
+  String minLength(int min) => 'CUSTOM: minLength $min';
+
+  @override
+  String maxLength(int max) => 'CUSTOM: maxLength $max';
+
+  @override
+  String min(num min) => 'CUSTOM: min $min';
+
+  @override
+  String max(num max) => 'CUSTOM: max $max';
+
+  @override
+  String pattern() => 'CUSTOM: pattern';
+
+  @override
+  String match() => 'CUSTOM: match';
+}
+
 void main() {
   group('Internationalization & Localization', () {
     test('default English messages', () {
@@ -278,4 +306,39 @@ void main() {
       expect(state.copyWith(label: 'Work email').label, 'Work email');
     });
   });
+
+  group(
+    'Custom MkFormMessages implementations are never bypassed by field-aware resolution',
+    () {
+      test(
+        'a fully custom MkFormMessages subclass keeps its own text even when the field has a label',
+        () {
+          MkFormLocalizations.current = const FullyCustomMessages();
+
+          final field = MkFieldBloc<String>(
+            label: 'Email',
+            validators: [MkValidators.required()],
+          );
+          field.touch();
+
+          expect(field.state.getLocalizedError(), 'CUSTOM: required');
+
+          MkFormLocalizations.current = const MkDefaultEnglishMessages();
+        },
+      );
+
+      test(
+        'MkDefaultEnglishMessages still produces field-aware text by default',
+        () {
+          final field = MkFieldBloc<String>(
+            label: 'Email',
+            validators: [MkValidators.required()],
+          );
+          field.touch();
+
+          expect(field.state.getLocalizedError(), 'Email is required.');
+        },
+      );
+    },
+  );
 }
