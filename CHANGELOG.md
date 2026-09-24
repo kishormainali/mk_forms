@@ -10,14 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - Unreleased
 
 ### Added
-- **Extensible form state.** `MkFormState` can be subclassed with your own typed status fields, so one form can track several independent API calls (upload, availability check, OTP) or extra statuses. See "Extending Form State" in the README.
-  - `MkFormState.isBusy` — overridable; `canSubmit` and `MkFormBloc.submit()` now respect it, so in-flight side calls can block submission.
-  - `MkFormState.reset(...)` — overridable; `MkFormBloc.reset()` uses it to keep subclass state.
-  - `MkFormStateBuilder<S extends MkFormState>` and `MkFormStateWidgetBuilder<S>` — receive the custom state type without casts. `MkFormBuilder` is unchanged.
-  - If a `MkFormState` subclass of yours already declares a member named `isBusy` or `reset`, rename it: the base class now defines both.
+- **Extensible form state via generics.** `MkFormState<T>` carries a single typed `extra` field, so one form can track several independent API calls (upload, availability check, OTP) or extra statuses — with no state subclass to write. See "Extending Form State" in the README.
+  - `MkFormBloc<T>` / `MkStepFormBloc<T>` — generic over the same `T`; `state` is already typed, with no downcast in application code.
+  - `MkFormState.updateExtra(fn)` — shorthand for `copyWith(extra: fn(extra))`.
+  - `MkFormState.isBusy` — reflects `isSubmitting` plus `isExtraBusy(extra)` (set once via the constructor); `canSubmit` and `MkFormBloc.submit()` respect it.
+  - `MkFormState.reset(...)` — regenerates `extra` via `extraReset` (set once via the constructor), or leaves it unchanged if omitted.
+  - `MkFormStateBuilder<S extends MkFormState>` and `MkFormStateWidgetBuilder<S>` — unchanged in shape; used as `MkFormStateBuilder<MkFormState<YourExtra>>`. `MkFormBuilder` is unchanged.
+  - Every pre-existing "no extras" form needs no source changes: omitting the type argument (`extends MkFormBloc`, `extends MkStepFormBloc`) still compiles.
 
 ### Fixed
-- `MkFormBloc.reset()` dropped subclass state by emitting a plain `MkFormState`. `MkStepFormBloc` no longer needs its own `reset()` override.
+- `MkFormBloc.reset()` dropped subclass state by emitting a plain `MkFormState`. Resetting `extra` is now built into `MkFormState.reset()` via `extraReset`, and `MkStepFormBloc` no longer needs its own `reset()`/`onUpdateFormState()` overrides.
+
+### Changed
+- This replaces the subclassing-based extensible-state design from the previous unreleased 1.1.0 draft (never published). If you were tracking that draft: subclass `ProfileFormState extends MkFormState` becomes `MkFormBloc<ProfileExtras>` with `extra: const ProfileExtras()`; `state.extras` becomes `state.extra`.
 
 ---
 
