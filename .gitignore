@@ -25,6 +25,9 @@ coverage/
 .DS_Store
 Thumbs.db
 
+# Local planning artifacts (specs/plans for in-progress work; not shipped)
+.planning/
+
 # Example app generated files
 example/.dart_tool/
 example/build/
