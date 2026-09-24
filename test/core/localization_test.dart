@@ -175,4 +175,29 @@ void main() {
       expect(messages.resolveField('someCustomCode', 'Email'), isNull);
     });
   });
+
+  group('Field-aware messages (MkSpanishMessages)', () {
+    const messages = MkSpanishMessages();
+
+    test('required', () {
+      expect(
+        messages.resolveField(MkErrorCodes.required, 'Correo'),
+        'Correo es obligatorio.',
+      );
+    });
+
+    test('minLength', () {
+      expect(
+        messages.resolveField(MkErrorCodes.minLength, 'Contraseña', {'min': 8}),
+        'Contraseña debe tener al menos 8 caracteres.',
+      );
+    });
+
+    test('match', () {
+      expect(
+        messages.resolveField(MkErrorCodes.match, 'Confirmar contraseña'),
+        'Confirmar contraseña no coincide.',
+      );
+    });
+  });
 }

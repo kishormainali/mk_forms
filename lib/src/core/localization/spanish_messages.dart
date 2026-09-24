@@ -29,6 +29,33 @@ class MkSpanishMessages extends MkFormMessages {
   String match() => 'Los valores no coinciden';
 
   @override
+  String requiredField(String field) => '$field es obligatorio.';
+
+  @override
+  String emailField(String field) =>
+      '$field debe ser un correo electrónico válido.';
+
+  @override
+  String minLengthField(String field, int min) =>
+      '$field debe tener al menos $min caracteres.';
+
+  @override
+  String maxLengthField(String field, int max) =>
+      '$field debe tener como máximo $max caracteres.';
+
+  @override
+  String minField(String field, num min) => '$field debe ser al menos $min.';
+
+  @override
+  String maxField(String field, num max) => '$field debe ser como máximo $max.';
+
+  @override
+  String patternField(String field) => '$field tiene un formato no válido.';
+
+  @override
+  String matchField(String field) => '$field no coincide.';
+
+  @override
   String asyncValidationFailed() =>
       'No se pudo verificar este valor. Inténtelo de nuevo.';
 }
