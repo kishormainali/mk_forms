@@ -1,0 +1,323 @@
+# mk_forms
+
+> Reactive, type-safe Flutter form management built on `flutter_bloc`. Every field, group and array is its own Cubit-backed control; forms compose controls into a tree and expose aggregated validity, dirty/touched state, and a submission lifecycle. Fine-grained rebuilds: typing in one field never rebuilds the rest of the screen.
+
+This file is a self-contained reference for implementing forms with `mk_forms` in a Flutter app. It favors exact signatures and working code over prose. If something here looks stale, cross-check against `lib/mk_forms.dart` (the export surface) and `README.md` in this repository before trusting it.
+
+## Install
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^9.1.1
+  mk_forms: ^1.1.0
+```
+
+i18n (optional): add `flutter_localizations` under `dependencies` too — see "Internationalization" below.
+
+Single import for everything: `import 'package:mk_forms/mk_forms.dart';`
+
+## Mental model
+
+- `MkFieldBloc<T>` — one control per field. Manages `value`, `error`, `isDirty`, `isTouched`, `isValidating`, sync + debounced async validators, and `dependsOn` cross-field revalidation.
+- `MkGroupBloc` — names a set of controls (fields, arrays, or nested groups) as one independently-validatable subform.
+- `MkArrayBloc<C>` — a dynamic, ordered list of controls (add/insert/removeAt/move).
+- `MkFormBloc` (or `MkFormBloc<T>` with typed extras) — the root coordinator: aggregates validity across every control, drives `submit()`, exposes `MkFormState`.
+- `MkStepFormBloc` — an `MkFormBloc` that also partitions controls into steps, gating navigation on per-step validity.
+- Everything above is a Cubit (`flutter_bloc`). Widgets subscribe via `BlocBuilder`/`BlocListener` or this package's typed wrappers (`MkFieldBuilder`, `MkFormBuilder`, `MkFormListener`, `MkSubformBuilder`).
+- `MkFormScope` (built on `BlocProvider`) makes the nearest form bloc reachable down the tree without prop-drilling; field widgets can then be given just a `name:` instead of a direct bloc reference.
+
+Decision guide:
+- Simple form, no custom submit logic beyond one async call → `MkSimpleFormBloc`.
+- Need lifecycle hooks (`onSubmitSuccess`, `onSubmitFailure`) or extra state → subclass `MkFormBloc` (optionally `MkFormBloc<MyExtras>`).
+- Multi-step wizard → `MkStepFormBloc` (or `MkSimpleStepFormBloc` for the inline-closure variant).
+- Independent sections that validate separately (shipping/billing, tabs) → nest `MkGroupBloc` inside the form's `controls`.
+- Repeatable rows (phone numbers, invoice lines) → `MkArrayBloc<C>`.
+
+## Field blocs — `MkFieldBloc<T>`
+
+```dart
+final username = MkFieldBloc<String>(
+  initialValue: '',
+  validators: [MkValidators.required(), MkValidators.minLength(3), MkValidators.maxLength(20)],
+  asyncValidators: [ (val) async => (await api.isTaken(val!)) ? 'Taken' : null ],
+  debounceTime: const Duration(milliseconds: 400),
+  dependsOn: [otherFieldBloc], // revalidate this field when otherFieldBloc's VALUE changes
+);
+```
+
+`MkFieldState<T>` fields: `value` (`T?`), `initialValue` (`T?`), `error` (`String?`), `isDirty`, `isTouched`, `isValidating`, `isValid`, `wasFormSubmitted`, `showError` (convenience for `shouldShowError()`), `shouldShowError([AutovalidateMode mode])`.
+
+Programmatic control:
+```dart
+field.changeValue(v);      // sets value, marks dirty
+field.reset();              // back to initialValue, clears dirty/touched
+field.reset(newInitial);    // reset with a new initial value
+field.touch();               // reveal any current error
+field.setError('server says no'); // set an error directly (e.g. from a 422 response)
+field.setEnabled(false);
+field.setVisible(false);
+```
+
+`required()` treats `null`, `''`, `[]`, and `false` as invalid. Async validators that throw do NOT leak the raw exception to the user — the field gets a generic localized message and the real error goes through `onError`/`BlocObserver.onError`.
+
+## Validators (`MkValidators`)
+
+```dart
+MkValidators.required('message')       // message is optional on every validator below
+MkValidators.email('message')
+MkValidators.minLength(3, 'message')
+MkValidators.maxLength(100, 'message')
+MkValidators.pattern(RegExp(r'^\d+$'), 'Numbers only')
+MkValidators.min(18)
+MkValidators.max(120)
+MkValidators.match(() => other.value, 'message')       // compare to a live getter
+MkValidators.matchControl(otherFieldBloc, 'message')     // compare to another field's value
+MkValidators.compose([v1, v2])                            // first failing error wins
+MkValidators.composeAsync([a1, a2])                        // for asyncValidators
+```
+
+## Form blocs
+
+Minimal (no subclass):
+```dart
+final form = MkSimpleFormBloc(
+  controls: {
+    'email': MkFieldBloc<String>(validators: [MkValidators.required(), MkValidators.email()]),
+    'password': MkFieldBloc<String>(validators: [MkValidators.required(), MkValidators.minLength(6)]),
+  },
+  onSubmit: (values) async => authRepository.signIn(values['email'] as String, values['password'] as String),
+  onSubmitSuccess: (response) {},
+  onSubmitFailure: (error) {},
+);
+```
+
+Custom subclass (lifecycle hooks, server error mapping):
+```dart
+class RegistrationFormBloc extends MkFormBloc {
+  RegistrationFormBloc() : super(controls: {
+    'email': MkFieldBloc<String>(validators: [MkValidators.required(), MkValidators.email()]),
+    'password': MkFieldBloc<String>(validators: [MkValidators.required(), MkValidators.minLength(8)]),
+  });
+
+  @override
+  Future<void> onSubmit(Map<String, dynamic> values) async =>
+      authRepository.register(email: values['email'] as String, password: values['password'] as String);
+
+  @override
+  void onSubmitFailure(Object error) {
+    if (error is ApiException && error.fieldErrors != null) setFieldErrors(error.fieldErrors!);
+  }
+}
+```
+
+`MkFormBloc` API: `submit()`, `reset()`, `populateValues(data, {markPristine = true})`, `setFieldErrors(Map<String,String>)`, `validateGroup(name)`, `validateControls([names])`, `validateStep([step])` (step forms), `field<T>(name)`, `control<C>(name)`, getters `values`, `controls`, `root`.
+
+`MkFormState` fields: `submissionStatus` (`MkSubmissionStatus`: idle/submitting/success/failure), `isValid`, `isValidating`, `isDirty`, `isTouched`, `wasSubmitted`, `values` (`Map<String, dynamic>`), `submissionError`, plus getters `isSubmitting`, `isSuccess`, `isFailure`, `canSubmit`, `isBusy`.
+
+## Wiring widgets to a bloc
+
+```dart
+MkFormScope.value(value: formBloc, child: child)               // expose an existing bloc, never closes it
+MkFormScope(create: (ctx) => MyFormBloc(), child: child)        // scope creates + closes it (lazy: true by default)
+
+context.mkForm                    // read the nearest MkFormBloc
+context.mkField<String>('email')  // read a field by name
+context.mkAutovalidateMode        // active AutovalidateMode
+```
+
+```dart
+MkFormBuilder(
+  buildWhen: (prev, curr) => prev.isValid != curr.isValid || prev.submissionStatus != curr.submissionStatus,
+  builder: (context, state, form) => FilledButton(
+    onPressed: state.canSubmit ? form.submit : null,
+    child: const Text('Submit'),
+  ),
+)
+
+MkFormListener(
+  onSubmitting: (context) {},
+  onSuccess: (context, response) {},
+  onFailure: (context, error) {},
+  child: body,
+)
+```
+
+Field widgets accept `name:` (looked up via `MkFormScope`) OR `fieldBloc:` (direct reference), plus `autovalidateMode:`. Beyond that they expose the wrapped Flutter widget's own parameters (see "Widgets" below) — only value/error/enabled are bloc-controlled.
+
+## AutovalidateMode
+
+`always` (errors immediately) | `onUserInteraction` *(default)* (after touch or submit) | `onUnfocus` (after blur or submit) | `onUserInteractionIfError` | `disabled` (only after submit). Set at `MkFormScope(autovalidateMode: ...)` or per-field (`MkTextField(autovalidateMode: ...)`).
+
+## Widgets
+
+All mirror their underlying Flutter widget's full parameter set (only value/error/enabled/controller are bloc-managed):
+
+- `MkTextField` — mirrors `TextField` (all params except `controller`).
+- `MkEmailField` — `MkTextField` preset (email keyboard/label/icon), no `maxLines`/`minLines`/`expands`.
+- `MkPasswordField` — obscured + show/hide toggle; `initiallyObscured` instead of `obscureText`.
+- `MkCheckboxField` — mirrors `CheckboxListTile`.
+- `MkRadioGroup<T>` — `layout: MkRadioLayout.vertical|horizontal|wrap`; `options: [MkRadioOption(value:, label:, subtitle:, enabled:)]`; `itemBuilder` for full customization.
+- `MkDropdownField<T>` — mirrors `DropdownButtonFormField` minus its `FormField` members.
+- `MkMultiSelectSearchDropdown<T>` — search + chips + select-all; `modalType: MkMultiSelectModalType.bottomSheet|dialog`.
+- `MkFieldBuilder<T>` — build a fully custom field widget: `MkFieldBuilder<int>(fieldBloc:, buildWhen:, builder: (context, state, bloc) => ...)`.
+- `MkSubformBuilder` — rebuild scoped to one named group: `MkSubformBuilder(name: 'shipping', builder: (context, state, groupBloc) => ...)`.
+
+## Extending form state (`MkFormState<T>`)
+
+Only needed when a form must track independent side-statuses beyond idle/submitting/success/failure (avatar upload + username check + OTP running concurrently, say). No state subclass required — `MkFormState<T>` has a generic `extra` slot.
+
+```dart
+@freezed
+abstract class ProfileExtra with _$ProfileExtra {
+  const ProfileExtra._();
+  const factory ProfileExtra({
+    @Default(MkSubmissionStatus.idle()) MkSubmissionStatus avatarStatus,
+  }) = _ProfileExtra;
+  bool get isBusy => avatarStatus.isSubmitting;
+}
+
+class ProfileFormBloc extends MkFormBloc<ProfileExtra> {
+  ProfileFormBloc(this._api) : super(
+    controls: {'username': MkFieldBloc<String>(initialValue: '')},
+    initialExtra: () => const ProfileExtra(),
+    extraReset: () => const ProfileExtra(),   // regenerated on reset()
+    isExtraBusy: (e) => e.isBusy,              // feeds isBusy / canSubmit / blocks submit()
+  );
+  final Api _api;
+
+  Future<void> uploadAvatar(String path) async {
+    emit(state.updateExtra((e) => e.copyWith(avatarStatus: const MkSubmissionStatus.submitting())));
+    try {
+      final url = await _api.uploadAvatar(path);
+      emit(state.updateExtra((e) => e.copyWith(avatarStatus: MkSubmissionStatus.success(url))));
+    } catch (error) {
+      emit(state.updateExtra((e) => e.copyWith(avatarStatus: MkSubmissionStatus.failure(error))));
+    }
+  }
+
+  @override
+  Future<dynamic> onSubmit(Map<String, dynamic> values) => _api.saveProfile(values);
+}
+```
+
+`state` is already `MkFormState<ProfileExtra>` — no downcast needed. Field edits never touch `extra` (same reference survives every keystroke). Build UI with `MkFormStateBuilder<MkFormState<ProfileExtra>>(buildWhen:, builder: (context, state, bloc) => ...)` — throws `StateError` if the bloc's actual state isn't that type; write the type argument explicitly (Dart can't infer it from an unannotated closure). `MkFormBuilder` (untyped) is unaffected and still works for the base fields.
+
+`copyWith`'s `extra` parameter is a zero-arg function (`T Function()?`), like `submissionError` — `copyWith(extra: () => null)` explicitly clears a nullable extra; omitting `extra:` entirely leaves it unchanged. `updateExtra(fn)` is shorthand for `copyWith(extra: () => fn(extra))`.
+
+Give your extra type value equality (`Equatable`, `freezed`, or manual `==`/`hashCode`) — it feeds `MkFormState`'s own `==` directly.
+
+A `MkFormBloc<T>` (or `MkStepFormBloc<T>`) whose `T` is not nullable MUST supply `initialExtra` (or a full `initialState:`) — omitting it throws immediately at construction rather than silently storing a broken value.
+
+Need a derived read-only view (e.g. "is username available right now")? Write a Dart extension on `MkFormState<YourExtra>` instead of a computed getter on a subclass:
+```dart
+extension ProfileFormStateX on MkFormState<ProfileExtra> {
+  bool get avatarReady => extra.avatarStatus.isSuccess;
+}
+```
+
+## Multi-step / wizard forms (`MkStepFormBloc`)
+
+```dart
+class OnboardingFormBloc extends MkStepFormBloc {
+  OnboardingFormBloc() : super(
+    controls: {
+      'username': MkFieldBloc<String>(validators: [MkValidators.required()]),
+      'email': MkFieldBloc<String>(validators: [MkValidators.required(), MkValidators.email()]),
+      'fullName': MkFieldBloc<String>(validators: [MkValidators.required()]),
+    },
+    steps: const [
+      MkFormStep(controlNames: ['username', 'email'], title: 'Account'),
+      MkFormStep(controlNames: ['fullName'], title: 'Profile'),
+    ],
+  );
+
+  @override
+  Future<void> onSubmit(Map<String, dynamic> values) => onboardingRepository.complete(values);
+}
+```
+
+Needs typed extras too? `class OnboardingFormBloc extends MkStepFormBloc<MyExtra>` — same `initialExtra`/`extraReset`/`isExtraBusy` constructor params as `MkFormBloc<T>`.
+
+Navigation: `nextStep()` (validates current step only, advances if valid), `previousStep()` (unconditional), `goToStep(i)` (validates intermediate steps if moving forward), `validateStep(i)`.
+
+`loadInitialData(loader, {resolveInitialStep})` fetches a draft, populates fields pristine (no premature errors), and jumps to the resolved step — if an earlier step turns out invalid, it redirects there and shows errors only on that step, keeping later steps' data intact.
+
+`MkStepFormState` adds: `currentStep`, `totalSteps`, `completedSteps`, `isLoadingInitialData`, `redirectedFromStep`, `invalidStepIndex`, `isFirstStep`, `isLastStep`, `stepProgress`, `isStepCompleted(i)`.
+
+`MkSimpleStepFormBloc` is the inline-closure equivalent of `MkSimpleFormBloc` for step forms.
+
+## Groups and arrays
+
+```dart
+// Independent subforms — validating one never touches the other
+final form = MkSimpleFormBloc(controls: {
+  'shipping': MkGroupBloc({'street': MkFieldBloc<String>(validators: [MkValidators.required()])}),
+  'billing': MkGroupBloc({'street': MkFieldBloc<String>(validators: [MkValidators.required()])}),
+}, onSubmit: (values) async => checkout.placeOrder(values));
+
+await form.validateGroup('shipping'); // billing stays pristine
+```
+
+```dart
+// Dynamic, reorderable list
+final phones = MkArrayBloc<MkFieldBloc<String>>([MkFieldBloc<String>(validators: [MkValidators.required()])]);
+phones.add(MkFieldBloc<String>());
+phones.insert(0, MkFieldBloc<String>());
+phones.removeAt(1);
+phones.move(oldIndex, newIndex);
+```
+
+## Server error mapping
+
+```dart
+try {
+  await formBloc.submit();
+} catch (e) {
+  if (e is ApiException) formBloc.setFieldErrors({'email': 'Already registered'});
+}
+// or, in a custom MkFormBloc:
+@override
+void onSubmitFailure(Object error) {
+  if (error is ServerValidationException) setFieldErrors(error.fieldErrors);
+}
+```
+
+## Internationalization
+
+```dart
+MaterialApp(
+  localizationsDelegates: const [
+    MkFormLocalizations.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  supportedLocales: MkFormLocalizations.supportedLocales, // en, es built in
+)
+```
+
+Global override: `MkFormLocalizations.current = MyCustomMessages();` — Scoped: `MkLocalizationScope(messages: SpanishMessages(), child: ...)` — Custom messages: extend `MkFormMessages` and override `required()`, `email()`, `minLength(int)`, `maxLength(int)`, `min(num)`, `max(num)`, `pattern()`, `match()`.
+
+## Testing
+
+```dart
+test('required validator shows error after touch', () {
+  final field = MkFieldBloc<String>(validators: [MkValidators.required()]);
+  expect(field.state.showError, isFalse);
+  field.touch();
+  expect(field.state.showError, isTrue);
+});
+```
+
+`bloc_test`'s `blocTest<LoginFormBloc, MkFormState>(...)` works directly against form blocs since they're plain Cubits.
+
+## Gotchas / things an agent should not get wrong
+
+- Field widgets need EITHER `name:` (inside an `MkFormScope`) OR `fieldBloc:` — not both, not neither.
+- `dependsOn` revalidates when the dependency's VALUE changes, not merely when it revalidates — no infinite loops, and it never fires an async validator at construction time.
+- A custom extra status (see "Extending form state") must reach a terminal state on every code path (wrap in try/catch) — one stuck in `submitting` keeps `isBusy` true and `submit()` silently no-ops forever.
+- `MkFormBloc<T>`/`MkStepFormBloc<T>` with a non-nullable `T` throws at construction if you omit `initialExtra`/`initialState` — this is intentional fail-fast, not a bug to work around with `T?`.
+- Don't call `dart pub publish` or push a version tag on behalf of a user without being explicitly asked — that's this package's own release process (`.github/workflows/publish.yml`), irrelevant to apps consuming it.
+- This file describes the package's public API for consumers. It is not instructions for modifying `mk_forms`'s own source.

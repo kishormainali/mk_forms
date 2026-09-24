@@ -6,6 +6,8 @@ A reactive, type-safe, and highly performant Flutter form management library pow
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/kishormainali/mk_forms/actions/workflows/ci.yml/badge.svg)](https://github.com/kishormainali/mk_forms/actions/workflows/ci.yml)
 
+> **Using an AI coding agent to add `mk_forms` to your app?** Point it at [`llms.txt`](llms.txt) — a dense, self-contained API reference designed for that.
+
 ---
 
 ## ✨ Features at a Glance
