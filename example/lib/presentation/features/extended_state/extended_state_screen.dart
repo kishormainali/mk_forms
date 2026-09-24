@@ -5,14 +5,13 @@ import 'package:mk_forms/mk_forms.dart';
 import '../../../core/di/injection.dart';
 import 'bloc/profile_extras.dart';
 import 'bloc/profile_form_bloc.dart';
-import 'bloc/profile_form_state.dart';
 
-/// Demonstrates extending [MkFormState] with several independent statuses and
-/// typed extra fields.
+/// Demonstrates a generic [MkFormState]`<T>` carrying several independent
+/// statuses and typed extra fields.
 ///
 /// - Avatar upload, username check and OTP request run concurrently, each with
-///   its own status in [ProfileExtras], a freezed class held by
-///   [ProfileFormState].
+///   its own status in [ProfileExtras], a freezed class held directly in
+///   `MkFormState.extra` — no hand-written state subclass.
 /// - Each call also stores what it produced in a typed field of that class
 ///   (`avatarUrl`, `checkedUsername` / `usernameAvailable`, `otpSentTo`) that
 ///   the UI reads directly.
@@ -78,7 +77,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
               const SizedBox(height: 8),
               // Rebuilds when the *displayed* result changes, which also happens
               // when an edit makes a finished check stale.
-              MkFormStateBuilder<ProfileFormState>(
+              MkFormStateBuilder<MkFormState<ProfileExtras>>(
                 buildWhen: (prev, curr) =>
                     prev.shownUsernameStatus != curr.shownUsernameStatus ||
                     prev.usernameVerdict != curr.usernameVerdict,
@@ -97,25 +96,25 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                 decoration: InputDecoration(labelText: 'Phone'),
               ),
               const SizedBox(height: 8),
-              MkFormStateBuilder<ProfileFormState>(
+              MkFormStateBuilder<MkFormState<ProfileExtras>>(
                 buildWhen: (prev, curr) =>
-                    prev.extras.otpStatus != curr.extras.otpStatus ||
-                    prev.extras.otpSentTo != curr.extras.otpSentTo,
+                    prev.extra.otpStatus != curr.extra.otpStatus ||
+                    prev.extra.otpSentTo != curr.extra.otpSentTo,
                 builder: (context, state, bloc) => _CallRow(
                   label: 'Send code',
-                  status: state.extras.otpStatus,
+                  status: state.extra.otpStatus,
                   onPressed: () => unawaited(_formBloc.sendOtp()),
                   successText: (_) => (
-                    text: 'Code sent to ${state.extras.otpSentTo}',
+                    text: 'Code sent to ${state.extra.otpSentTo}',
                     color: Colors.green,
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              MkFormStateBuilder<ProfileFormState>(
+              MkFormStateBuilder<MkFormState<ProfileExtras>>(
                 buildWhen: (prev, curr) =>
-                    prev.extras.avatarStatus != curr.extras.avatarStatus ||
-                    prev.extras.avatarUrl != curr.extras.avatarUrl,
+                    prev.extra.avatarStatus != curr.extra.avatarStatus ||
+                    prev.extra.avatarUrl != curr.extra.avatarUrl,
                 builder: (context, state, bloc) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -123,7 +122,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                       spacing: 12,
                       children: [
                         FilledButton.tonal(
-                          onPressed: state.extras.avatarStatus.isSubmitting
+                          onPressed: state.extra.avatarStatus.isSubmitting
                               ? null
                               : () => unawaited(
                                   _formBloc.uploadAvatar('avatar.png'),
@@ -131,7 +130,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                           child: const Text('Upload avatar'),
                         ),
                         FilledButton.tonal(
-                          onPressed: state.extras.avatarStatus.isSubmitting
+                          onPressed: state.extra.avatarStatus.isSubmitting
                               ? null
                               : () => unawaited(
                                   _formBloc.uploadAvatar('avatar_fail.png'),
@@ -142,9 +141,9 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                     ),
                     const SizedBox(height: 8),
                     _CallStatusText(
-                      state.extras.avatarStatus,
+                      state.extra.avatarStatus,
                       successText: (_) => (
-                        text: 'Uploaded: ${state.extras.avatarUrl}',
+                        text: 'Uploaded: ${state.extra.avatarUrl}',
                         color: Colors.green,
                       ),
                     ),
@@ -152,10 +151,10 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              MkFormStateBuilder<ProfileFormState>(
+              MkFormStateBuilder<MkFormState<ProfileExtras>>(
                 buildWhen: (prev, curr) =>
                     prev.isBusy != curr.isBusy ||
-                    prev.extras.submitStage != curr.extras.submitStage,
+                    prev.extra.submitStage != curr.extra.submitStage,
                 builder: (context, state, bloc) => FilledButton(
                   onPressed: state.isBusy
                       ? null
@@ -163,7 +162,7 @@ class _ExtendedStateScreenState extends State<ExtendedStateScreen> {
                   // `submitStage` says which of the submit's two calls is
                   // running; side calls only make the form busy.
                   child: Text(
-                    state.extras.submitStage ??
+                    state.extra.submitStage ??
                         (state.isBusy ? 'Working…' : 'Save profile'),
                   ),
                 ),

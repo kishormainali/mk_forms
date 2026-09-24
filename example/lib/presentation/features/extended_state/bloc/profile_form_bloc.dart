@@ -2,14 +2,14 @@ import 'package:injectable/injectable.dart';
 import 'package:mk_forms/mk_forms.dart';
 import '../../../../data/repositories/profile_repository.dart';
 import 'profile_extras.dart';
-import 'profile_form_state.dart';
 
 /// Profile form with three independent API calls plus a multi-call submit.
 ///
 /// Each call updates its own status and stores what it produced in a typed
-/// field of [ProfileExtras].
+/// field of [ProfileExtras] — held directly in `MkFormState.extra`, no
+/// hand-written state subclass needed.
 @injectable
-class ProfileFormBloc extends MkFormBloc {
+class ProfileFormBloc extends MkFormBloc<ProfileExtras> {
   ProfileFormBloc(ProfileRepository repository)
     : this._(repository, {
         'displayName': MkFieldBloc<String>(
@@ -34,13 +34,24 @@ class ProfileFormBloc extends MkFormBloc {
     Map<String, MkControlBloc<dynamic>> controls,
   ) : super(
         controls: controls,
-        initialState: ProfileFormState.initial(controls),
+        initialState: MkFormState<ProfileExtras>(
+          submissionStatus: const MkSubmissionStatus.idle(),
+          isValid: controls.values.every((c) => c.isValid),
+          isValidating: controls.values.any((c) => c.isValidating),
+          isDirty: controls.values.any((c) => c.isDirty),
+          isTouched: controls.values.any((c) => c.isTouched),
+          wasSubmitted: false,
+          values: {
+            for (final entry in controls.entries)
+              entry.key: entry.value.value,
+          },
+          extra: const ProfileExtras(),
+          extraReset: () => const ProfileExtras(),
+          isExtraBusy: (e) => e.isBusy,
+        ),
       );
 
   final ProfileRepository _repository;
-
-  @override
-  ProfileFormState get state => super.state as ProfileFormState;
 
   String _text(String name) => (values[name] as String?)?.trim() ?? '';
 
@@ -48,15 +59,15 @@ class ProfileFormBloc extends MkFormBloc {
   Future<void> uploadAvatar(String fileName) => _track<String>(
     () => _repository.uploadAvatar(fileName),
     status: (s, status) =>
-        s.updateExtras((e) => e.copyWith(avatarStatus: status)),
-    onSuccess: (s, url) => s.updateExtras((e) => e.copyWith(avatarUrl: url)),
-    onFailure: (s) => s.updateExtras((e) => e.copyWith(avatarUrl: null)),
+        s.updateExtra((e) => e.copyWith(avatarStatus: status)),
+    onSuccess: (s, url) => s.updateExtra((e) => e.copyWith(avatarUrl: url)),
+    onFailure: (s) => s.updateExtra((e) => e.copyWith(avatarUrl: null)),
   );
 
   /// Checks whether the typed username is available.
   ///
   /// The verdict is stored together with the username it was checked for, so
-  /// [ProfileFormState.usernameVerdict] can ignore it once the field changes.
+  /// [ProfileFormStateX.usernameVerdict] can ignore it once the field changes.
   Future<void> checkUsername() {
     final username = _text('username');
     return _track<bool>(
@@ -65,12 +76,12 @@ class ProfileFormBloc extends MkFormBloc {
         return _repository.isUsernameAvailable(username);
       },
       status: (s, status) =>
-          s.updateExtras((e) => e.copyWith(usernameStatus: status)),
-      onSuccess: (s, available) => s.updateExtras(
+          s.updateExtra((e) => e.copyWith(usernameStatus: status)),
+      onSuccess: (s, available) => s.updateExtra(
         (e) =>
             e.copyWith(checkedUsername: username, usernameAvailable: available),
       ),
-      onFailure: (s) => s.updateExtras(
+      onFailure: (s) => s.updateExtra(
         (e) => e.copyWith(checkedUsername: null, usernameAvailable: null),
       ),
     );
@@ -84,10 +95,9 @@ class ProfileFormBloc extends MkFormBloc {
         if (phone.isEmpty) throw Exception('Enter a phone number first');
         return _repository.sendOtp(phone);
       },
-      status: (s, status) =>
-          s.updateExtras((e) => e.copyWith(otpStatus: status)),
-      onSuccess: (s, _) => s.updateExtras((e) => e.copyWith(otpSentTo: phone)),
-      onFailure: (s) => s.updateExtras((e) => e.copyWith(otpSentTo: null)),
+      status: (s, status) => s.updateExtra((e) => e.copyWith(otpStatus: status)),
+      onSuccess: (s, _) => s.updateExtra((e) => e.copyWith(otpSentTo: phone)),
+      onFailure: (s) => s.updateExtra((e) => e.copyWith(otpSentTo: null)),
     );
   }
 
@@ -98,13 +108,18 @@ class ProfileFormBloc extends MkFormBloc {
   /// returns*, so calls that overlap only ever touch their own fields.
   Future<void> _track<T>(
     Future<T> Function() call, {
-    required ProfileFormState Function(
-      ProfileFormState state,
+    required MkFormState<ProfileExtras> Function(
+      MkFormState<ProfileExtras> state,
       MkSubmissionStatus status,
     )
     status,
-    ProfileFormState Function(ProfileFormState state, T result)? onSuccess,
-    ProfileFormState Function(ProfileFormState state)? onFailure,
+    MkFormState<ProfileExtras> Function(
+      MkFormState<ProfileExtras> state,
+      T result,
+    )?
+    onSuccess,
+    MkFormState<ProfileExtras> Function(MkFormState<ProfileExtras> state)?
+    onFailure,
   }) async {
     emit(status(state, const MkSubmissionStatus.submitting()));
     try {
@@ -131,7 +146,7 @@ class ProfileFormBloc extends MkFormBloc {
       _setStage('Saving profile…');
       return await _repository.saveProfile({
         ...values,
-        'avatarUrl': state.extras.avatarUrl,
+        'avatarUrl': state.extra.avatarUrl,
       });
     } finally {
       _setStage(null);
@@ -139,5 +154,28 @@ class ProfileFormBloc extends MkFormBloc {
   }
 
   void _setStage(String? stage) =>
-      emit(state.updateExtras((e) => e.copyWith(submitStage: stage)));
+      emit(state.updateExtra((e) => e.copyWith(submitStage: stage)));
+}
+
+/// Derived read-only views over [ProfileFormBloc]'s state that used to live
+/// as getters on the (now-deleted) `ProfileFormState` subclass. An extension
+/// on `MkFormState<T>` is the replacement for "add a computed getter to my
+/// form state" now that subclassing is no longer required.
+extension ProfileFormStateX on MkFormState<ProfileExtras> {
+  /// Availability of the username currently typed in the form: `null` unless
+  /// a check finished for exactly this value, so a verdict never outlives an
+  /// edit and a check that returns late for an older username is ignored.
+  bool? get usernameVerdict {
+    final current = (values['username'] as String?)?.trim();
+    return extra.checkedUsername != null && extra.checkedUsername == current
+        ? extra.usernameAvailable
+        : null;
+  }
+
+  /// [ProfileExtras.usernameStatus] as it should be shown: a finished check
+  /// that no longer matches the typed username is shown as idle.
+  MkSubmissionStatus get shownUsernameStatus =>
+      extra.usernameStatus.isSuccess && usernameVerdict == null
+      ? const MkSubmissionStatus.idle()
+      : extra.usernameStatus;
 }

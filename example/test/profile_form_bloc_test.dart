@@ -25,12 +25,12 @@ void main() {
 
   group('avatar', () {
     test('a successful upload stores avatarUrl', () async {
-      expect(bloc.state.extras.avatarUrl, isNull);
+      expect(bloc.state.extra.avatarUrl, isNull);
 
       await bloc.uploadAvatar('me.png');
 
-      expect(bloc.state.extras.avatarStatus.isSuccess, isTrue);
-      expect(bloc.state.extras.avatarUrl, 'https://cdn.test/me.png');
+      expect(bloc.state.extra.avatarStatus.isSuccess, isTrue);
+      expect(bloc.state.extra.avatarUrl, 'https://cdn.test/me.png');
     });
 
     test('a failed upload clears a previously stored avatarUrl', () async {
@@ -39,8 +39,8 @@ void main() {
 
       await bloc.uploadAvatar('bad.png');
 
-      expect(bloc.state.extras.avatarStatus.isFailure, isTrue);
-      expect(bloc.state.extras.avatarUrl, isNull);
+      expect(bloc.state.extra.avatarStatus.isFailure, isTrue);
+      expect(bloc.state.extra.avatarUrl, isNull);
     });
   });
 
@@ -51,8 +51,8 @@ void main() {
 
       await bloc.checkUsername();
 
-      expect(bloc.state.extras.checkedUsername, 'ada');
-      expect(bloc.state.extras.usernameAvailable, isFalse);
+      expect(bloc.state.extra.checkedUsername, 'ada');
+      expect(bloc.state.extra.usernameAvailable, isFalse);
       expect(bloc.state.usernameVerdict, isFalse);
       expect(bloc.state.shownUsernameStatus.isSuccess, isTrue);
     });
@@ -67,7 +67,7 @@ void main() {
       expect(bloc.state.usernameVerdict, isNull);
       expect(bloc.state.shownUsernameStatus.isIdle, isTrue);
       // The finished check itself is untouched: only its display is gated.
-      expect(bloc.state.extras.checkedUsername, 'ada');
+      expect(bloc.state.extra.checkedUsername, 'ada');
     });
 
     test(
@@ -84,7 +84,7 @@ void main() {
         await pending;
 
         expect(bloc.state.isBusy, isFalse);
-        expect(bloc.state.extras.checkedUsername, 'ada');
+        expect(bloc.state.extra.checkedUsername, 'ada');
         expect(bloc.state.usernameVerdict, isNull);
         expect(bloc.state.shownUsernameStatus.isIdle, isTrue);
       },
@@ -97,9 +97,9 @@ void main() {
 
       await bloc.checkUsername();
 
-      expect(bloc.state.extras.usernameStatus.isFailure, isTrue);
-      expect(bloc.state.extras.checkedUsername, isNull);
-      expect(bloc.state.extras.usernameAvailable, isNull);
+      expect(bloc.state.extra.usernameStatus.isFailure, isTrue);
+      expect(bloc.state.extra.checkedUsername, isNull);
+      expect(bloc.state.extra.usernameAvailable, isNull);
     });
   });
 
@@ -109,8 +109,8 @@ void main() {
 
       await bloc.sendOtp();
 
-      expect(bloc.state.extras.otpStatus.isSuccess, isTrue);
-      expect(bloc.state.extras.otpSentTo, '555 0100');
+      expect(bloc.state.extra.otpStatus.isSuccess, isTrue);
+      expect(bloc.state.extra.otpSentTo, '555 0100');
     });
 
     test('a failed send clears otpSentTo', () async {
@@ -120,8 +120,8 @@ void main() {
 
       await bloc.sendOtp();
 
-      expect(bloc.state.extras.otpStatus.isFailure, isTrue);
-      expect(bloc.state.extras.otpSentTo, isNull);
+      expect(bloc.state.extra.otpStatus.isFailure, isTrue);
+      expect(bloc.state.extra.otpSentTo, isNull);
     });
   });
 
@@ -140,18 +140,18 @@ void main() {
 
       final submitting = bloc.submit();
       await pumpEventQueue();
-      expect(bloc.state.extras.submitStage, 'Checking username…');
+      expect(bloc.state.extra.submitStage, 'Checking username…');
       expect(bloc.state.isSubmitting, isTrue);
 
       availability.complete(true);
       await pumpEventQueue();
-      expect(bloc.state.extras.submitStage, 'Saving profile…');
+      expect(bloc.state.extra.submitStage, 'Saving profile…');
 
       save.complete({'id': 'p1'});
       await submitting;
 
       expect(bloc.state.isSuccess, isTrue);
-      expect(bloc.state.extras.submitStage, isNull);
+      expect(bloc.state.extra.submitStage, isNull);
       expect(saved!['avatarUrl'], 'https://cdn.test/me.png');
     });
 
@@ -162,7 +162,7 @@ void main() {
       await bloc.submit();
 
       expect(bloc.state.isFailure, isTrue);
-      expect(bloc.state.extras.submitStage, isNull);
+      expect(bloc.state.extra.submitStage, isNull);
     });
   });
 
@@ -171,19 +171,19 @@ void main() {
     await bloc.uploadAvatar('me.png');
     await bloc.checkUsername();
     await bloc.sendOtp();
-    expect(bloc.state.extras.avatarUrl, isNotNull);
-    expect(bloc.state.extras.checkedUsername, isNotNull);
-    expect(bloc.state.extras.otpSentTo, isNotNull);
+    expect(bloc.state.extra.avatarUrl, isNotNull);
+    expect(bloc.state.extra.checkedUsername, isNotNull);
+    expect(bloc.state.extra.otpSentTo, isNotNull);
 
     bloc.reset();
 
-    expect(bloc.state.extras.avatarUrl, isNull);
-    expect(bloc.state.extras.checkedUsername, isNull);
-    expect(bloc.state.extras.usernameAvailable, isNull);
-    expect(bloc.state.extras.otpSentTo, isNull);
-    expect(bloc.state.extras.submitStage, isNull);
-    expect(bloc.state.extras.avatarStatus.isIdle, isTrue);
-    expect(bloc.state.extras.usernameStatus.isIdle, isTrue);
-    expect(bloc.state.extras.otpStatus.isIdle, isTrue);
+    expect(bloc.state.extra.avatarUrl, isNull);
+    expect(bloc.state.extra.checkedUsername, isNull);
+    expect(bloc.state.extra.usernameAvailable, isNull);
+    expect(bloc.state.extra.otpSentTo, isNull);
+    expect(bloc.state.extra.submitStage, isNull);
+    expect(bloc.state.extra.avatarStatus.isIdle, isTrue);
+    expect(bloc.state.extra.usernameStatus.isIdle, isTrue);
+    expect(bloc.state.extra.otpStatus.isIdle, isTrue);
   });
 }
