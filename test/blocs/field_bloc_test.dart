@@ -237,5 +237,54 @@ void main() {
         },
       );
     });
+
+    group('label', () {
+      test('is null by default', () {
+        final field = MkFieldBloc<String>();
+        expect(field.label, isNull);
+      });
+
+      test('explicit label is used as-is', () {
+        final field = MkFieldBloc<String>(label: 'Work email');
+        expect(field.label, 'Work email');
+      });
+
+      test('assignAutoLabel humanizes the given name', () {
+        final field = MkFieldBloc<String>();
+        field.assignAutoLabel('confirmPassword');
+        expect(field.label, 'Confirm password');
+      });
+
+      test('assignAutoLabel never overwrites an explicit label', () {
+        final field = MkFieldBloc<String>(label: 'Work email');
+        field.assignAutoLabel('email');
+        expect(field.label, 'Work email');
+      });
+
+      test(
+        'assignAutoLabel can be called again to update the label (last write wins)',
+        () {
+          final field = MkFieldBloc<String>();
+          field.assignAutoLabel('email');
+          expect(field.label, 'Email');
+          field.assignAutoLabel('workEmail');
+          expect(field.label, 'Work email');
+        },
+      );
+
+      test('label survives reset()', () {
+        final field = MkFieldBloc<String>(
+          initialValue: 'a@b.com',
+          validators: [MkValidators.required()],
+        );
+        field.assignAutoLabel('email');
+        expect(field.label, 'Email');
+
+        field.changeValue('changed@b.com');
+        field.reset();
+
+        expect(field.label, 'Email');
+      });
+    });
   });
 }

@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:meta/meta.dart';
 import '../../core/deep_equals.dart';
+import '../../core/humanize.dart';
 import '../../core/localization.dart';
 import '../../core/validation.dart';
 import '../control_bloc.dart';
@@ -11,6 +13,7 @@ export 'field_state.dart';
 class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   MkFieldBloc({
     T? initialValue,
+    String? label,
     List<Validator<T>> validators = const [],
     List<AsyncValidator<T>> asyncValidators = const [],
     List<MkControlBloc<dynamic>> dependsOn = const [],
@@ -20,6 +23,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   }) : _validators = List.unmodifiable(validators),
        _asyncValidators = List.unmodifiable(asyncValidators),
        _debounceTime = debounceTime,
+       _hasExplicitLabel = label != null,
        super(
          MkFieldState<T>(
            value: initialValue,
@@ -30,6 +34,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
            isEnabled: isEnabled,
            isVisible: isVisible,
            wasFormSubmitted: false,
+           label: label,
          ),
        ) {
     // Initial validation check to establish validity status without displaying error
@@ -44,6 +49,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   final List<Validator<T>> _validators;
   final List<AsyncValidator<T>> _asyncValidators;
   final Duration _debounceTime;
+  final bool _hasExplicitLabel;
 
   final List<(MkControlBloc<dynamic>, void Function())> _dependencyCallbacks =
       [];
@@ -73,6 +79,26 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
 
   /// Whether this field is visible.
   bool get isVisible => state.isVisible;
+
+  /// This field's display label. Explicit via the [MkFieldBloc.new] `label`
+  /// param, or auto-derived from its registration key in an [MkGroupBloc]
+  /// (see [assignAutoLabel]). `null` if neither was ever set.
+  String? get label => state.label;
+
+  /// Assigns an auto-derived label from [name] (e.g. the key this field is
+  /// registered under in an [MkGroupBloc]'s controls map), unless an
+  /// explicit `label` was given at construction — that always wins and this
+  /// becomes a no-op.
+  ///
+  /// Internal: called by [MkGroupBloc] when a field is added to it. Not
+  /// meant to be called directly by application code.
+  @internal
+  void assignAutoLabel(String name) {
+    if (_hasExplicitLabel || isClosed) return;
+    final humanized = mkHumanizeFieldName(name);
+    if (state.label == humanized) return;
+    emit(state.copyWith(label: humanized));
+  }
 
   /// Adds a dependency on [otherControl]. When the *value* of [otherControl]
   /// changes, this field is automatically revalidated (async validators are
@@ -242,6 +268,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
         error: initialError,
         errorCode: initialCode,
         errorParams: initialParams,
+        label: state.label,
       ),
     );
   }
