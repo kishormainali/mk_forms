@@ -1121,6 +1121,52 @@ class MyAppMessages extends MkFormMessages {
 }
 ```
 
+### Field-Aware Messages
+
+Built-in validators produce messages that name the field, e.g. `"Email is required."` instead of `"This field is required"`. A field's label is auto-derived from its key in an `MkGroupBloc`'s controls map — which includes every field inside `MkFormBloc`/`MkStepFormBloc`, so existing forms pick this up automatically after upgrading, no code changes required:
+
+```dart
+MkFormBloc(
+  controls: {
+    'confirmPassword': MkFieldBloc<String>(
+      validators: [MkValidators.required()],
+    ), // auto-labeled "Confirm password" -> "Confirm password is required."
+  },
+)
+```
+
+Override the auto-derived label when it isn't right:
+
+```dart
+MkFieldBloc<String>(
+  label: 'Work email',
+  validators: [MkValidators.required()],
+) // -> "Work email is required."
+```
+
+A field that's never added to a group, with no explicit `label`, keeps the old generic message (`"This field is required"`).
+
+**Custom message classes are unaffected unless they opt in.** `MyAppMessages` above (implementing `MkFormMessages` directly) keeps its own text even for labeled fields — the field-aware methods (`requiredField()`, `emailField()`, etc.) default to `null` on the base class, so field-aware resolution falls back to your `required()`/`email()`/etc. To get field-aware text in your own language, override the `*Field` methods too:
+
+```dart
+class MyAppMessages extends MkFormMessages {
+  // ...required(), email(), etc. as above...
+
+  @override
+  String requiredField(String field) => '$field cannot be empty';
+
+  @override
+  String emailField(String field) => 'Enter a valid email for $field';
+
+  // Also available: minLengthField, maxLengthField, minField, maxField,
+  // patternField, matchField.
+}
+```
+
+If you extend `MkDefaultEnglishMessages` or `MkSpanishMessages` and only override a few base methods (like `CustomFrenchMessages` above, overriding just `required()`/`email()`), unlabeled fields use your override but labeled fields fall back to the built-in field-aware text unless you also override the matching `*Field` method.
+
+Labels are derived from the (typically English) controls-map key, so a non-English messages class will show that label next to its own translated sentence (e.g. `"Confirm password no coincide."`) unless you pass an explicit, translated `label:` per field.
+
 ---
 
 ## 🏗️ Server Error Mapping

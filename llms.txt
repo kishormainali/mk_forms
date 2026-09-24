@@ -44,6 +44,7 @@ final username = MkFieldBloc<String>(
   asyncValidators: [ (val) async => (await api.isTaken(val!)) ? 'Taken' : null ],
   debounceTime: const Duration(milliseconds: 400),
   dependsOn: [otherFieldBloc], // revalidate this field when otherFieldBloc's VALUE changes
+  label: 'Username', // optional — overrides auto-derivation; see "Internationalization"
 );
 ```
 
@@ -300,6 +301,12 @@ MaterialApp(
 
 Global override: `MkFormLocalizations.current = MyCustomMessages();` — Scoped: `MkLocalizationScope(messages: SpanishMessages(), child: ...)` — Custom messages: extend `MkFormMessages` and override `required()`, `email()`, `minLength(int)`, `maxLength(int)`, `min(num)`, `max(num)`, `pattern()`, `match()`.
 
+**Field-aware messages.** Built-in validators produce a message naming the field, e.g. `"Email is required."` instead of `"This field is required"`. A field's label is auto-derived from its key in an `MkGroupBloc`'s controls map — this includes every field inside `MkFormBloc`/`MkStepFormBloc`, so it applies by default, not opt-in. Override it with `label:` on `MkFieldBloc` (see "Field blocs"). A field never added to a group, with no explicit `label`, keeps the old generic message.
+
+A custom `MkFormMessages` subclass (implementing the class directly, not extending `MkDefaultEnglishMessages`) is unaffected unless it opts in: `requiredField(String)`, `emailField(String)`, `minLengthField(String, int)`, `maxLengthField(String, int)`, `minField(String, num)`, `maxField(String, num)`, `patternField(String)`, `matchField(String)` all default to `null` on the base class, so field-aware resolution falls back to the plain `required()`/`email()`/etc. Override the `*Field` methods too to get field-aware text in your own language. If you extend `MkDefaultEnglishMessages`/`MkSpanishMessages` and override only a base method like `required()`, unlabeled fields use your override but labeled fields fall back to the built-in field-aware English/Spanish text unless you also override the matching `*Field` method.
+
+Labels are derived from the (typically English) controls-map key, so a non-English messages class shows that label next to its own translated sentence unless every field is given an explicit, translated `label:`.
+
 ## Testing
 
 ```dart
@@ -318,6 +325,7 @@ test('required validator shows error after touch', () {
 - Field widgets need EITHER `name:` (inside an `MkFormScope`) OR `fieldBloc:` — not both, not neither.
 - `dependsOn` revalidates when the dependency's VALUE changes, not merely when it revalidates — no infinite loops, and it never fires an async validator at construction time.
 - A custom extra status (see "Extending form state") must reach a terminal state on every code path (wrap in try/catch) — one stuck in `submitting` keeps `isBusy` true and `submit()` silently no-ops forever.
+- Every field inside `MkFormBloc`/`MkStepFormBloc`/`MkGroupBloc` gets an auto-derived `label` from its controls-map key (`'confirmPassword'` -> `"Confirm password"`), which changes the default error text — this is on by default, not opt-in. A custom `MkFormMessages` subclass keeps its own text unless it explicitly overrides the `*Field` methods (see "Internationalization").
 - `MkFormBloc<T>`/`MkStepFormBloc<T>` with a non-nullable `T` throws at construction if you omit `initialExtra`/`initialState` — this is intentional fail-fast, not a bug to work around with `T?`.
 - Don't call `dart pub publish` or push a version tag on behalf of a user without being explicitly asked — that's this package's own release process (`.github/workflows/publish.yml`), irrelevant to apps consuming it.
 - This file describes the package's public API for consumers. It is not instructions for modifying `mk_forms`'s own source.

@@ -7,20 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
-
-### Added
-- **Field-aware validation messages.** Built-in validators (`required`, `email`, `minLength`, `maxLength`, `min`, `max`, `pattern`, `match`) now produce messages that name the field, e.g. `"Email is required."` instead of `"This field is required"`.
-  - **This changes default text, not just adds an option.** Any field registered in an `MkGroupBloc` — which includes every field inside `MkFormBloc`/`MkStepFormBloc`, the common case — is auto-labeled and gets the new field-aware message from `MkDefaultEnglishMessages`/`MkSpanishMessages`. A field is only unaffected if it's never added to a group and has no explicit `label`.
-  - A field's label is auto-derived from its key in the controls map (`'confirmPassword'` -> `"Confirm password"`). Override with an explicit `label:` on `MkFieldBloc`'s constructor when the auto-derived label isn't right.
-  - Labels are derived from the (typically English) identifier used as the controls-map key, so a non-English `MkFormMessages` (e.g. `MkSpanishMessages`) will show that label alongside its own translated sentence (e.g. `"Confirm password no coincide."`) unless every field is given an explicit, translated `label:`.
-  - `MkFormMessages` gained `resolveField(errorCode, field, [params])` plus 8 new overridable `*Field(...)` methods. **They default to returning `null`** on the abstract `MkFormMessages` class — an app that implements `MkFormMessages` directly (the "entirely custom language" pattern this class's own doc comment describes) is unaffected unless it opts in by overriding them. `MkDefaultEnglishMessages` and `MkSpanishMessages` provide concrete overrides, so apps using those as-is get the new text automatically.
-  - **Migration note:** if you extend `MkDefaultEnglishMessages` or `MkSpanishMessages` and override only the base methods (`required()`, `email()`, etc. — the pattern in this package's own README), your override is still used for fields with no label, but a *labeled* field falls back to the built-in field-aware text, not your override. Also override the corresponding `*Field` method (or override `resolveField` to return `null`) to keep your customization for labeled fields too.
-  - `resolve()` and every pre-existing `MkFormMessages` method are unchanged.
-  - A field that's never registered in a group and has no explicit `label` behaves exactly as before this change.
-
----
-
 ## [1.1.0] - 2026-09-24
 
 ### Added
@@ -32,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `MkFormState.reset(...)` — regenerates `extra` via `extraReset` (set once via the constructor), or leaves it unchanged if omitted.
   - `MkFormStateBuilder<S extends MkFormState>` and `MkFormStateWidgetBuilder<S>` — unchanged in shape; used as `MkFormStateBuilder<MkFormState<YourExtra>>`. `MkFormBuilder` is unchanged.
   - Every pre-existing "no extras" form needs no source changes: omitting the type argument (`extends MkFormBloc`, `extends MkStepFormBloc`) still compiles.
+- **Field-aware validation messages.** Built-in validators (`required`, `email`, `minLength`, `maxLength`, `min`, `max`, `pattern`, `match`) now produce messages that name the field, e.g. `"Email is required."` instead of `"This field is required"`.
+  - **This changes default text, not just adds an option.** Any field registered in an `MkGroupBloc` — which includes every field inside `MkFormBloc`/`MkStepFormBloc`, the common case — is auto-labeled and gets the new field-aware message from `MkDefaultEnglishMessages`/`MkSpanishMessages`. A field is only unaffected if it's never added to a group and has no explicit `label`.
+  - A field's label is auto-derived from its key in the controls map (`'confirmPassword'` -> `"Confirm password"`). Override with an explicit `label:` on `MkFieldBloc`'s constructor when the auto-derived label isn't right.
+  - Labels are derived from the (typically English) identifier used as the controls-map key, so a non-English `MkFormMessages` (e.g. `MkSpanishMessages`) will show that label alongside its own translated sentence (e.g. `"Confirm password no coincide."`) unless every field is given an explicit, translated `label:`.
+  - `MkFormMessages` gained `resolveField(errorCode, field, [params])` plus 8 new overridable `*Field(...)` methods. **They default to returning `null`** on the abstract `MkFormMessages` class — an app that implements `MkFormMessages` directly (the "entirely custom language" pattern this class's own doc comment describes) is unaffected unless it opts in by overriding them. `MkDefaultEnglishMessages` and `MkSpanishMessages` provide concrete overrides, so apps using those as-is get the new text automatically.
+  - **Migration note:** if you extend `MkDefaultEnglishMessages` or `MkSpanishMessages` and override only the base methods (`required()`, `email()`, etc. — the pattern in this package's own README), your override is still used for fields with no label, but a *labeled* field falls back to the built-in field-aware text, not your override. Also override the corresponding `*Field` method (or override `resolveField` to return `null`) to keep your customization for labeled fields too.
+  - `resolve()` and every pre-existing `MkFormMessages` method are unchanged.
+  - A field that's never registered in a group and has no explicit `label` behaves exactly as before this change.
 
 ### Fixed
 - `MkFormBloc.reset()` dropped subclass state by emitting a plain `MkFormState`. Resetting `extra` is now built into `MkFormState.reset()` via `extraReset`, and `MkStepFormBloc` no longer needs its own `reset()`/`onUpdateFormState()` overrides.
