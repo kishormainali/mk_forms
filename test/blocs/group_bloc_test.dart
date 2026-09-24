@@ -80,5 +80,56 @@ void main() {
       expect(group.controls.isEmpty, isTrue);
       expect(group.value.isEmpty, isTrue);
     });
+
+    group('field label auto-derivation', () {
+      test(
+        'fields are auto-labeled from their controls-map key at construction',
+        () {
+          final group = MkGroupBloc({
+            'email': MkFieldBloc<String>(),
+            'confirmPassword': MkFieldBloc<String>(),
+          });
+
+          expect(group.field<String>('email')!.label, 'Email');
+          expect(
+            group.field<String>('confirmPassword')!.label,
+            'Confirm password',
+          );
+        },
+      );
+
+      test('an explicit label on the field is never overwritten', () {
+        final group = MkGroupBloc({
+          'email': MkFieldBloc<String>(label: 'Work email'),
+        });
+
+        expect(group.field<String>('email')!.label, 'Work email');
+      });
+
+      test('addControl auto-labels a dynamically added field', () {
+        final group = MkGroupBloc({});
+        group.addControl('phoneNumber', MkFieldBloc<String>());
+
+        expect(group.field<String>('phoneNumber')!.label, 'Phone number');
+      });
+
+      test('nested groups auto-label their own fields independently', () {
+        final group = MkGroupBloc({
+          'shipping': MkGroupBloc({'streetName': MkFieldBloc<String>()}),
+        });
+
+        final shipping = group.group('shipping')!;
+        expect(shipping.field<String>('streetName')!.label, 'Street name');
+      });
+
+      test('non-MkFieldBloc children (nested groups) are left alone', () {
+        // Constructing this at all (no type error, no crash) is the assertion:
+        // MkGroupBloc must not assume every child is a field.
+        final group = MkGroupBloc({
+          'address': MkGroupBloc({'city': MkFieldBloc<String>()}),
+        });
+        expect(group.group('address'), isNotNull);
+      });
+    });
   });
 }

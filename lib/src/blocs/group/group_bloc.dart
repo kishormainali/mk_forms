@@ -19,6 +19,7 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
         ),
       ) {
     for (final entry in _controls.entries) {
+      _assignLabelIfField(entry.key, entry.value);
       _listenToControl(entry.key, entry.value);
     }
   }
@@ -71,6 +72,7 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
     if (isClosed) return;
     removeControl(name);
     _controls[name] = control;
+    _assignLabelIfField(name, control);
     _listenToControl(name, control);
     _recalculateState();
   }
@@ -136,6 +138,15 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
 
     _listenerCallbacks[name] = callback;
     control.addStateListener(callback);
+  }
+
+  /// Auto-derives [control]'s label from [name] if it's an [MkFieldBloc]
+  /// (a no-op for groups/arrays, and a no-op if the field already has an
+  /// explicit label — see [MkFieldBloc.assignAutoLabel]).
+  void _assignLabelIfField(String name, MkControlBloc<dynamic> control) {
+    if (control is MkFieldBloc) {
+      control.assignAutoLabel(name);
+    }
   }
 
   /// Recomputes the aggregate in a single pass over the children.
