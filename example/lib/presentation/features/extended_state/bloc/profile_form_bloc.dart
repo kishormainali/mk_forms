@@ -10,45 +10,28 @@ import 'profile_extras.dart';
 /// hand-written state subclass needed.
 @injectable
 class ProfileFormBloc extends MkFormBloc<ProfileExtras> {
-  ProfileFormBloc(ProfileRepository repository)
-    : this._(repository, {
-        'displayName': MkFieldBloc<String>(
-          initialValue: '',
-          validators: [MkValidators.required('Display name is required')],
-        ),
-        'username': MkFieldBloc<String>(
-          initialValue: '',
-          validators: [
-            MkValidators.required('Username is required'),
-            MkValidators.minLength(3, 'At least 3 characters'),
-          ],
-        ),
-        'phone': MkFieldBloc<String>(
-          initialValue: '',
-          validators: [MkValidators.required('Phone is required')],
-        ),
-      });
-
-  ProfileFormBloc._(
-    this._repository,
-    Map<String, MkControlBloc<dynamic>> controls,
-  ) : super(
-        controls: controls,
-        initialState: MkFormState<ProfileExtras>(
-          submissionStatus: const MkSubmissionStatus.idle(),
-          isValid: controls.values.every((c) => c.isValid),
-          isValidating: controls.values.any((c) => c.isValidating),
-          isDirty: controls.values.any((c) => c.isDirty),
-          isTouched: controls.values.any((c) => c.isTouched),
-          wasSubmitted: false,
-          values: {
-            for (final entry in controls.entries)
-              entry.key: entry.value.value,
-          },
-          extra: const ProfileExtras(),
-          extraReset: () => const ProfileExtras(),
-          isExtraBusy: (e) => e.isBusy,
-        ),
+  ProfileFormBloc(this._repository)
+    : super(
+        controls: {
+          'displayName': MkFieldBloc<String>(
+            initialValue: '',
+            validators: [MkValidators.required('Display name is required')],
+          ),
+          'username': MkFieldBloc<String>(
+            initialValue: '',
+            validators: [
+              MkValidators.required('Username is required'),
+              MkValidators.minLength(3, 'At least 3 characters'),
+            ],
+          ),
+          'phone': MkFieldBloc<String>(
+            initialValue: '',
+            validators: [MkValidators.required('Phone is required')],
+          ),
+        },
+        initialExtra: () => const ProfileExtras(),
+        extraReset: () => const ProfileExtras(),
+        isExtraBusy: (e) => e.isBusy,
       );
 
   final ProfileRepository _repository;

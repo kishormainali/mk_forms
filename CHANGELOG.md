@@ -11,8 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Extensible form state via generics.** `MkFormState<T>` carries a single typed `extra` field, so one form can track several independent API calls (upload, availability check, OTP) or extra statuses — with no state subclass to write. See "Extending Form State" in the README.
-  - `MkFormBloc<T>` / `MkStepFormBloc<T>` — generic over the same `T`; `state` is already typed, with no downcast in application code.
-  - `MkFormState.updateExtra(fn)` — shorthand for `copyWith(extra: fn(extra))`.
+  - `MkFormBloc<T>` / `MkStepFormBloc<T>` — generic over the same `T`; `state` is already typed, with no downcast in application code. Both accept `initialExtra`/`extraReset`/`isExtraBusy` directly, so an extras-using bloc doesn't have to hand-build its `initialState:` from `controls`.
+  - `MkFormState.updateExtra(fn)` — shorthand for `copyWith(extra: () => fn(extra))`.
+  - `MkFormState.copyWith`'s `extra` parameter is a zero-arg function (`T Function()?`), like `submissionError`, so a nullable `extra` can be explicitly cleared to `null` — `copyWith(extra: () => null)` — distinct from omitting it.
   - `MkFormState.isBusy` — reflects `isSubmitting` plus `isExtraBusy(extra)` (set once via the constructor); `canSubmit` and `MkFormBloc.submit()` respect it.
   - `MkFormState.reset(...)` — regenerates `extra` via `extraReset` (set once via the constructor), or leaves it unchanged if omitted.
   - `MkFormStateBuilder<S extends MkFormState>` and `MkFormStateWidgetBuilder<S>` — unchanged in shape; used as `MkFormStateBuilder<MkFormState<YourExtra>>`. `MkFormBuilder` is unchanged.

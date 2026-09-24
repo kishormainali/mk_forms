@@ -45,9 +45,51 @@ void main() {
 
     test('copyWith(extra:) replaces extra', () {
       final state = _state(extra: 1);
-      final copy = state.copyWith(extra: 2);
+      final copy = state.copyWith(extra: () => 2);
       expect(copy.extra, 2);
     });
+
+    test('copyWith(extra: () => null) explicitly clears a nullable extra', () {
+      final state = MkFormState<int?>(
+        submissionStatus: const MkSubmissionStatus.idle(),
+        isValid: true,
+        isValidating: false,
+        isDirty: false,
+        isTouched: false,
+        wasSubmitted: false,
+        values: const {},
+        extra: 1,
+      );
+
+      final cleared = state.copyWith(extra: () => null);
+
+      expect(cleared.extra, isNull);
+    });
+
+    test(
+      'reset() clears extra to null when extraReset legitimately returns null',
+      () {
+        final state = MkFormState<int?>(
+          submissionStatus: const MkSubmissionStatus.idle(),
+          isValid: true,
+          isValidating: false,
+          isDirty: false,
+          isTouched: false,
+          wasSubmitted: false,
+          values: const {},
+          extra: 5,
+          extraReset: () => null,
+        );
+
+        final reset = state.reset(
+          isValid: true,
+          isValidating: false,
+          values: const {},
+        );
+
+        expect(reset.extra, isNull);
+      },
+    );
 
     test('updateExtra applies the function to the current extra', () {
       final state = _state(extra: 1);

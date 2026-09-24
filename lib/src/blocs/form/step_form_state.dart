@@ -75,7 +75,7 @@ class MkStepFormState<T extends Object?> extends MkFormState<T> {
     bool? wasSubmitted,
     Map<String, dynamic>? values,
     Object? Function()? submissionError,
-    T? extra,
+    T Function()? extra,
     int? currentStep,
     int? totalSteps,
     Set<int>? completedSteps,
@@ -94,7 +94,7 @@ class MkStepFormState<T extends Object?> extends MkFormState<T> {
       submissionError: submissionError != null
           ? submissionError()
           : this.submissionError,
-      extra: extra ?? this.extra,
+      extra: extra != null ? extra() : this.extra,
       extraReset: extraReset,
       isExtraBusy: isExtraBusy,
       currentStep: currentStep ?? this.currentStep,
@@ -110,25 +110,33 @@ class MkStepFormState<T extends Object?> extends MkFormState<T> {
     );
   }
 
+  /// Overridden (rather than built on [MkFormState.reset]) so the reset
+  /// state is constructed in one [copyWith] call instead of two: the base
+  /// implementation's `copyWith` call would already produce a full
+  /// [MkStepFormState] via virtual dispatch, only to have it immediately
+  /// discarded by a second `copyWith` applying the step-field resets.
   @override
   MkStepFormState<T> reset({
     required bool isValid,
     required bool isValidating,
     required Map<String, dynamic> values,
   }) {
-    return (super.reset(
-              isValid: isValid,
-              isValidating: isValidating,
-              values: values,
-            )
-            as MkStepFormState<T>)
-        .copyWith(
-          currentStep: 0,
-          completedSteps: const {},
-          isLoadingInitialData: false,
-          redirectedFromStep: () => null,
-          invalidStepIndex: () => null,
-        );
+    return copyWith(
+      submissionStatus: const MkSubmissionStatus.idle(),
+      isValid: isValid,
+      isValidating: isValidating,
+      isDirty: false,
+      isTouched: false,
+      wasSubmitted: false,
+      values: values,
+      submissionError: () => null,
+      extra: extraReset,
+      currentStep: 0,
+      completedSteps: const {},
+      isLoadingInitialData: false,
+      redirectedFromStep: () => null,
+      invalidStepIndex: () => null,
+    );
   }
 
   @override

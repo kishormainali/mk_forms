@@ -523,26 +523,18 @@ abstract class ProfileExtra with _$ProfileExtra {
 
 ### 2. Parameterize the bloc — no state subclass
 
+`MkFormBloc<T>` builds the base fields (`isValid`, `values`, ...) from
+`controls` for you, exactly as it already does for a plain, no-extras form —
+pass `initialExtra`/`extraReset`/`isExtraBusy` and it does the rest:
+
 ```dart
 class ProfileFormBloc extends MkFormBloc<ProfileExtra> {
-  ProfileFormBloc(Api api)
-    : this._(api, {'username': MkFieldBloc<String>(initialValue: '')});
-
-  ProfileFormBloc._(this._api, Map<String, MkControlBloc<dynamic>> controls)
+  ProfileFormBloc(this._api)
     : super(
-        controls: controls,
-        initialState: MkFormState<ProfileExtra>(
-          submissionStatus: const MkSubmissionStatus.idle(),
-          isValid: controls.values.every((c) => c.isValid),
-          isValidating: controls.values.any((c) => c.isValidating),
-          isDirty: controls.values.any((c) => c.isDirty),
-          isTouched: controls.values.any((c) => c.isTouched),
-          wasSubmitted: false,
-          values: {for (final e in controls.entries) e.key: e.value.value},
-          extra: const ProfileExtra(),
-          extraReset: () => const ProfileExtra(),
-          isExtraBusy: (e) => e.isBusy,
-        ),
+        controls: {'username': MkFieldBloc<String>(initialValue: '')},
+        initialExtra: () => const ProfileExtra(),
+        extraReset: () => const ProfileExtra(),
+        isExtraBusy: (e) => e.isBusy,
       );
 
   final Api _api;
@@ -566,7 +558,7 @@ class ProfileFormBloc extends MkFormBloc<ProfileExtra> {
 }
 ```
 
-> The redirecting constructor (`: this._(...)`) is needed because the controls must exist before `super(...)` so the initial state can be computed from them. `state` is inherited directly as `MkFormState<ProfileExtra>` — no downcast. Field edits never lose or replace `extra`: `MkFormBloc` only ever updates state through the base fields, so the same `extra` instance carries through every edit untouched.
+`state` is inherited directly as `MkFormState<ProfileExtra>` — no downcast. Field edits never lose or replace `extra`: `MkFormBloc` only ever updates state through the base fields, so the same `extra` instance carries through every edit untouched. Need full control over the initial state instead (e.g. computing something other than the default base-field aggregation)? Pass `initialState: MkFormState<ProfileExtra>(...)` directly — it takes priority over `initialExtra`/`extraReset`/`isExtraBusy`.
 
 ### 3. Build the UI without casts
 
@@ -595,7 +587,7 @@ extension ProfileFormStateX on MkFormState<ProfileExtra> {
 | Member | Purpose |
 |---|---|
 | `MkFormState.extra` | Your typed payload; `T` defaults to `Object?` (`null`) when unused |
-| `MkFormState.updateExtra(fn)` | Shorthand for `copyWith(extra: fn(extra))` |
+| `MkFormState.updateExtra(fn)` | Shorthand for `copyWith(extra: () => fn(extra))` |
 | `MkFormState.isBusy` | `isSubmitting` plus whatever `isExtraBusy(extra)` reports; drives `canSubmit` and blocks `submit()` |
 | `MkFormState.reset(...)` | Regenerates `extra` via `extraReset` (or leaves it unchanged if omitted); called by `MkFormBloc.reset()` |
 | `MkFormStateBuilder<S>` | Typed access to `MkFormState<YourExtra>` |

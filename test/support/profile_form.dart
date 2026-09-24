@@ -36,34 +36,18 @@ class ProfileExtra extends Equatable {
 /// A form bloc whose two side calls are driven by test-controlled completers.
 class ProfileBloc extends MkFormBloc<ProfileExtra> {
   ProfileBloc({Completer<void>? avatarUpload, Completer<void>? otpSend})
-    : this._(avatarUpload, otpSend, {
-        'name': MkFieldBloc<String>(
-          initialValue: '',
-          validators: [MkValidators.required()],
-        ),
-      });
-
-  ProfileBloc._(
-    this._avatarUpload,
-    this._otpSend,
-    Map<String, MkControlBloc<dynamic>> controls,
-  ) : super(
-        controls: controls,
-        initialState: MkFormState<ProfileExtra>(
-          submissionStatus: const MkSubmissionStatus.idle(),
-          isValid: controls.values.every((c) => c.isValid),
-          isValidating: controls.values.any((c) => c.isValidating),
-          isDirty: controls.values.any((c) => c.isDirty),
-          isTouched: controls.values.any((c) => c.isTouched),
-          wasSubmitted: false,
-          values: {
-            for (final entry in controls.entries)
-              entry.key: entry.value.value,
-          },
-          extra: const ProfileExtra(),
-          extraReset: () => const ProfileExtra(),
-          isExtraBusy: (e) => e.isBusy,
-        ),
+    : _avatarUpload = avatarUpload,
+      _otpSend = otpSend,
+      super(
+        controls: {
+          'name': MkFieldBloc<String>(
+            initialValue: '',
+            validators: [MkValidators.required()],
+          ),
+        },
+        initialExtra: () => const ProfileExtra(),
+        extraReset: () => const ProfileExtra(),
+        isExtraBusy: (e) => e.isBusy,
       );
 
   final Completer<void>? _avatarUpload;

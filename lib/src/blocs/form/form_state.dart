@@ -88,8 +88,12 @@ class MkFormState<T extends Object?> extends Equatable {
 
   /// Returns a copy with [update] applied to [extra].
   MkFormState<T> updateExtra(T Function(T extra) update) =>
-      copyWith(extra: update(extra));
+      copyWith(extra: () => update(extra));
 
+  /// [extra] is wrapped in a zero-arg function, like [submissionError], so a
+  /// nullable [T] can be explicitly set back to `null` — `extra: () => null`
+  /// clears it, while omitting [extra] entirely leaves it unchanged. Passing
+  /// a plain nullable value here (`T?`) could not tell those two cases apart.
   MkFormState<T> copyWith({
     MkSubmissionStatus? submissionStatus,
     bool? isValid,
@@ -99,7 +103,7 @@ class MkFormState<T extends Object?> extends Equatable {
     bool? wasSubmitted,
     Map<String, dynamic>? values,
     Object? Function()? submissionError,
-    T? extra,
+    T Function()? extra,
   }) {
     return MkFormState<T>(
       submissionStatus: submissionStatus ?? this.submissionStatus,
@@ -112,7 +116,7 @@ class MkFormState<T extends Object?> extends Equatable {
       submissionError: submissionError != null
           ? submissionError()
           : this.submissionError,
-      extra: extra ?? this.extra,
+      extra: extra != null ? extra() : this.extra,
       extraReset: extraReset,
       isExtraBusy: isExtraBusy,
     );
@@ -136,7 +140,7 @@ class MkFormState<T extends Object?> extends Equatable {
       wasSubmitted: false,
       values: values,
       submissionError: () => null,
-      extra: extraReset != null ? extraReset!() : extra,
+      extra: extraReset,
     );
   }
 

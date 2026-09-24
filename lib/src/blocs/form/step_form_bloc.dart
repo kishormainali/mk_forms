@@ -46,48 +46,30 @@ abstract class MkStepFormBloc<T extends Object?> extends MkFormBloc<T> {
   }) : _steps = List.unmodifiable(steps),
        super(
          controls: controls,
-         initialState: _buildInitialState<T>(
-           controls,
-           steps,
-           initialStep,
-           initialExtra,
-           extraReset,
-           isExtraBusy,
+         initialState: MkStepFormState<T>(
+           submissionStatus: const MkSubmissionStatus.idle(),
+           isValid: controls.values.every((c) => c.isValid),
+           isValidating: controls.values.any((c) => c.isValidating),
+           isDirty: controls.values.any((c) => c.isDirty),
+           isTouched: controls.values.any((c) => c.isTouched),
+           wasSubmitted: false,
+           values: {
+             for (final entry in controls.entries) entry.key: entry.value.value,
+           },
+           // Only reached without a mismatch when T is Object? (no extras)
+           // or initialExtra is supplied; a step form with a real, non-
+           // nullable extras type that supplies neither throws here, exactly
+           // as `MkFormBloc` does for the same reason.
+           extra: initialExtra != null ? initialExtra() : null as T,
+           extraReset: extraReset,
+           isExtraBusy: isExtraBusy,
+           currentStep: steps.isEmpty
+               ? 0
+               : initialStep.clamp(0, steps.length - 1),
+           totalSteps: steps.length,
+           completedSteps: const {},
          ),
        );
-
-  static MkStepFormState<T> _buildInitialState<T extends Object?>(
-    Map<String, MkControlBloc<dynamic>> controls,
-    List<MkFormStep> steps,
-    int initialStep,
-    T Function()? initialExtra,
-    T Function()? extraReset,
-    bool Function(T extra)? isExtraBusy,
-  ) {
-    final validInitialStep = steps.isEmpty
-        ? 0
-        : initialStep.clamp(0, steps.length - 1);
-    return MkStepFormState<T>(
-      submissionStatus: const MkSubmissionStatus.idle(),
-      isValid: controls.values.every((c) => c.isValid),
-      isValidating: controls.values.any((c) => c.isValidating),
-      isDirty: controls.values.any((c) => c.isDirty),
-      isTouched: controls.values.any((c) => c.isTouched),
-      wasSubmitted: false,
-      values: {
-        for (final entry in controls.entries) entry.key: entry.value.value,
-      },
-      // Only reached without a mismatch when T is Object? (no extras); a
-      // step form with a real extras type must always pass `initialExtra`,
-      // exactly as `MkFormBloc` requires `initialState` for the same reason.
-      extra: initialExtra != null ? initialExtra() : null as T,
-      extraReset: extraReset,
-      isExtraBusy: isExtraBusy,
-      currentStep: validInitialStep,
-      totalSteps: steps.length,
-      completedSteps: const {},
-    );
-  }
 
   final List<MkFormStep> _steps;
 

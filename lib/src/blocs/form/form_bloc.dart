@@ -12,8 +12,10 @@ import 'form_state.dart';
 ///
 /// [T] is the type of [MkFormState.extra]; most forms never need it and can
 /// extend `MkFormBloc` (no type argument) exactly as before. A form that
-/// wants typed extra fields extends `MkFormBloc<MyExtras>` and passes
-/// `initialState: MkFormState<MyExtras>(...)`.
+/// wants typed extra fields extends `MkFormBloc<MyExtras>` and either passes
+/// `initialExtra`/`extraReset`/`isExtraBusy` (the common case — the base
+/// fields are still built for you), or a fully custom
+/// `initialState: MkFormState<MyExtras>(...)` when more control is needed.
 ///
 /// Handles:
 /// - Aggregated validation across all controls.
@@ -25,6 +27,9 @@ abstract class MkFormBloc<T extends Object?> extends Cubit<MkFormState<T>> {
   MkFormBloc({
     Map<String, MkControlBloc<dynamic>>? controls,
     MkFormState<T>? initialState,
+    T Function()? initialExtra,
+    T Function()? extraReset,
+    bool Function(T extra)? isExtraBusy,
   }) : _rootGroup = MkGroupBloc(controls ?? {}),
        super(
          initialState ??
@@ -40,12 +45,15 @@ abstract class MkFormBloc<T extends Object?> extends Cubit<MkFormState<T>> {
                  for (final entry in (controls ?? const {}).entries)
                    entry.key: entry.value.value,
                },
-               // Only reached by forms that don't need typed extras (T is
-               // Object?, so null is a valid value); a bloc with a real
-               // extras type must always pass `initialState` explicitly, as
-               // it must today for a subclassed state. See the "Residual
-               // casts" section of the design spec.
-               extra: null as T,
+               // Only reached without a mismatch when T is Object? (no
+               // extras) or initialExtra is supplied; a bloc with a real,
+               // non-nullable extras type that supplies neither throws here
+               // — the same fail-fast behavior MkFormStateBuilder uses for a
+               // type mismatch. See the "Residual casts" section of the
+               // design spec.
+               extra: initialExtra != null ? initialExtra() : null as T,
+               extraReset: extraReset,
+               isExtraBusy: isExtraBusy,
              ),
        ) {
     _initControlListeners();
