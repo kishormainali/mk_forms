@@ -1,95 +1,40 @@
 import 'dart:async';
+import 'package:equatable/equatable.dart';
 import 'package:mk_forms/mk_forms.dart';
 
-/// A form state extended with two independent API-call statuses.
-class ProfileState extends MkFormState {
-  const ProfileState({
-    required super.submissionStatus,
-    required super.isValid,
-    required super.isValidating,
-    required super.isDirty,
-    required super.isTouched,
-    required super.wasSubmitted,
-    required super.values,
-    super.submissionError,
+/// Extra fields held in [ProfileBloc]'s [MkFormState.extra]: two independent
+/// API-call statuses.
+///
+/// Extends [Equatable] because `extra` feeds `MkFormState`'s own equality
+/// directly — an extra type without value equality would make state
+/// equality (and `buildWhen` dedup) fall back to identity.
+class ProfileExtra extends Equatable {
+  const ProfileExtra({
     this.avatarStatus = const MkSubmissionStatus.idle(),
     this.otpStatus = const MkSubmissionStatus.idle(),
   });
 
-  factory ProfileState.initial(Map<String, MkControlBloc<dynamic>> controls) {
-    return ProfileState(
-      submissionStatus: const MkSubmissionStatus.idle(),
-      isValid: controls.values.every((c) => c.isValid),
-      isValidating: controls.values.any((c) => c.isValidating),
-      isDirty: controls.values.any((c) => c.isDirty),
-      isTouched: controls.values.any((c) => c.isTouched),
-      wasSubmitted: false,
-      values: {
-        for (final entry in controls.entries) entry.key: entry.value.value,
-      },
-    );
-  }
-
   final MkSubmissionStatus avatarStatus;
   final MkSubmissionStatus otpStatus;
 
-  @override
-  bool get isBusy =>
-      super.isBusy || avatarStatus.isSubmitting || otpStatus.isSubmitting;
+  bool get isBusy => avatarStatus.isSubmitting || otpStatus.isSubmitting;
 
-  @override
-  ProfileState copyWith({
-    MkSubmissionStatus? submissionStatus,
-    bool? isValid,
-    bool? isValidating,
-    bool? isDirty,
-    bool? isTouched,
-    bool? wasSubmitted,
-    Map<String, dynamic>? values,
-    Object? Function()? submissionError,
+  ProfileExtra copyWith({
     MkSubmissionStatus? avatarStatus,
     MkSubmissionStatus? otpStatus,
   }) {
-    return ProfileState(
-      submissionStatus: submissionStatus ?? this.submissionStatus,
-      isValid: isValid ?? this.isValid,
-      isValidating: isValidating ?? this.isValidating,
-      isDirty: isDirty ?? this.isDirty,
-      isTouched: isTouched ?? this.isTouched,
-      wasSubmitted: wasSubmitted ?? this.wasSubmitted,
-      values: values ?? this.values,
-      submissionError: submissionError != null
-          ? submissionError()
-          : this.submissionError,
+    return ProfileExtra(
       avatarStatus: avatarStatus ?? this.avatarStatus,
       otpStatus: otpStatus ?? this.otpStatus,
     );
   }
 
   @override
-  ProfileState reset({
-    required bool isValid,
-    required bool isValidating,
-    required Map<String, dynamic> values,
-  }) {
-    return (super.reset(
-              isValid: isValid,
-              isValidating: isValidating,
-              values: values,
-            )
-            as ProfileState)
-        .copyWith(
-          avatarStatus: const MkSubmissionStatus.idle(),
-          otpStatus: const MkSubmissionStatus.idle(),
-        );
-  }
-
-  @override
-  List<Object?> get props => [...super.props, avatarStatus, otpStatus];
+  List<Object?> get props => [avatarStatus, otpStatus];
 }
 
 /// A form bloc whose two side calls are driven by test-controlled completers.
-class ProfileBloc extends MkFormBloc {
+class ProfileBloc extends MkFormBloc<ProfileExtra> {
   ProfileBloc({Completer<void>? avatarUpload, Completer<void>? otpSend})
     : this._(avatarUpload, otpSend, {
         'name': MkFieldBloc<String>(
@@ -102,24 +47,42 @@ class ProfileBloc extends MkFormBloc {
     this._avatarUpload,
     this._otpSend,
     Map<String, MkControlBloc<dynamic>> controls,
-  ) : super(controls: controls, initialState: ProfileState.initial(controls));
+  ) : super(
+        controls: controls,
+        initialState: MkFormState<ProfileExtra>(
+          submissionStatus: const MkSubmissionStatus.idle(),
+          isValid: controls.values.every((c) => c.isValid),
+          isValidating: controls.values.any((c) => c.isValidating),
+          isDirty: controls.values.any((c) => c.isDirty),
+          isTouched: controls.values.any((c) => c.isTouched),
+          wasSubmitted: false,
+          values: {
+            for (final entry in controls.entries)
+              entry.key: entry.value.value,
+          },
+          extra: const ProfileExtra(),
+          extraReset: () => const ProfileExtra(),
+          isExtraBusy: (e) => e.isBusy,
+        ),
+      );
 
   final Completer<void>? _avatarUpload;
   final Completer<void>? _otpSend;
   int submitCalls = 0;
 
-  @override
-  ProfileState get state => super.state as ProfileState;
+  Future<void> uploadAvatar() => _track(
+    _avatarUpload!,
+    (status) => state.updateExtra((e) => e.copyWith(avatarStatus: status)),
+  );
 
-  Future<void> uploadAvatar() =>
-      _track(_avatarUpload!, (s) => state.copyWith(avatarStatus: s));
-
-  Future<void> sendOtp() =>
-      _track(_otpSend!, (s) => state.copyWith(otpStatus: s));
+  Future<void> sendOtp() => _track(
+    _otpSend!,
+    (status) => state.updateExtra((e) => e.copyWith(otpStatus: status)),
+  );
 
   Future<void> _track(
     Completer<void> call,
-    ProfileState Function(MkSubmissionStatus status) apply,
+    MkFormState<ProfileExtra> Function(MkSubmissionStatus status) apply,
   ) async {
     emit(apply(const MkSubmissionStatus.submitting()));
     try {

@@ -22,18 +22,21 @@ void main() {
               child: Column(
                 children: [
                   // Filtered builder: only rebuilds when avatarStatus changes.
-                  MkFormStateBuilder<ProfileState>(
+                  MkFormStateBuilder<MkFormState<ProfileExtra>>(
                     buildWhen: (previous, current) =>
-                        previous.avatarStatus != current.avatarStatus,
+                        previous.extra.avatarStatus !=
+                        current.extra.avatarStatus,
                     builder: (context, state, formBloc) {
                       filteredBuilds++;
                       return Text(
-                        state.avatarStatus.isSubmitting ? 'uploading' : 'idle',
+                        state.extra.avatarStatus.isSubmitting
+                            ? 'uploading'
+                            : 'idle',
                       );
                     },
                   ),
                   // Unfiltered builder: rebuilds on any state change (positive control).
-                  MkFormStateBuilder<ProfileState>(
+                  MkFormStateBuilder<MkFormState<ProfileExtra>>(
                     builder: (context, state, formBloc) {
                       unfilteredBuilds++;
                       return Text('unfiltered: $unfilteredBuilds');
@@ -109,7 +112,7 @@ void main() {
           MaterialApp(
             home: MkFormScope.value(
               value: bloc,
-              child: MkFormStateBuilder<ProfileState>(
+              child: MkFormStateBuilder<MkFormState<ProfileExtra>>(
                 builder: (context, state, formBloc) => const SizedBox(),
               ),
             ),
@@ -118,7 +121,7 @@ void main() {
 
         final error = tester.takeException();
         expect(error, isA<StateError>());
-        expect(error.toString(), contains('ProfileState'));
+        expect(error.toString(), contains('MkFormState<ProfileExtra>'));
       },
     );
   });

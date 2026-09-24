@@ -3,23 +3,22 @@ import 'package:flutter_test/flutter_test.dart';
 import '../support/profile_form.dart';
 
 void main() {
-  group('extending MkFormState', () {
-    test('reset keeps the subclass type and resets custom fields', () {
+  group('MkFormState<T> extras', () {
+    test('reset preserves the extra type and resets custom fields', () {
       final bloc = ProfileBloc(avatarUpload: Completer<void>());
       addTearDown(bloc.close);
 
       unawaited(bloc.uploadAvatar());
-      expect(bloc.state.avatarStatus.isSubmitting, isTrue);
+      expect(bloc.state.extra.avatarStatus.isSubmitting, isTrue);
 
       bloc.reset();
 
-      expect(bloc.state, isA<ProfileState>());
-      expect(bloc.state.avatarStatus.isIdle, isTrue);
-      expect(bloc.state.otpStatus.isIdle, isTrue);
+      expect(bloc.state.extra.avatarStatus.isIdle, isTrue);
+      expect(bloc.state.extra.otpStatus.isIdle, isTrue);
       expect(bloc.state.submissionStatus.isIdle, isTrue);
     });
 
-    test('a busy custom status blocks canSubmit and submit()', () async {
+    test('a busy extra blocks canSubmit and submit()', () async {
       final upload = Completer<void>();
       final bloc = ProfileBloc(avatarUpload: upload);
       addTearDown(bloc.close);
@@ -51,30 +50,33 @@ void main() {
 
       unawaited(bloc.uploadAvatar());
       unawaited(bloc.sendOtp());
-      expect(bloc.state.avatarStatus.isSubmitting, isTrue);
-      expect(bloc.state.otpStatus.isSubmitting, isTrue);
+      expect(bloc.state.extra.avatarStatus.isSubmitting, isTrue);
+      expect(bloc.state.extra.otpStatus.isSubmitting, isTrue);
 
       otp.complete();
       await pumpEventQueue();
-      expect(bloc.state.otpStatus.isSuccess, isTrue);
-      expect(bloc.state.avatarStatus.isSubmitting, isTrue);
+      expect(bloc.state.extra.otpStatus.isSuccess, isTrue);
+      expect(bloc.state.extra.avatarStatus.isSubmitting, isTrue);
       expect(bloc.state.isBusy, isTrue);
 
       upload.completeError(Exception('upload failed'));
       await pumpEventQueue();
-      expect(bloc.state.avatarStatus.isFailure, isTrue);
-      expect(bloc.state.otpStatus.isSuccess, isTrue);
+      expect(bloc.state.extra.avatarStatus.isFailure, isTrue);
+      expect(bloc.state.extra.otpStatus.isSuccess, isTrue);
       expect(bloc.state.isBusy, isFalse);
     });
 
-    test('custom fields survive control updates', () {
+    test('a control edit leaves extra reference-identical', () {
       final bloc = ProfileBloc(avatarUpload: Completer<void>());
       addTearDown(bloc.close);
 
       unawaited(bloc.uploadAvatar());
+      final extraBeforeEdit = bloc.state.extra;
+
       bloc.field<String>('name')!.changeValue('Ada');
 
-      expect(bloc.state.avatarStatus.isSubmitting, isTrue);
+      expect(identical(bloc.state.extra, extraBeforeEdit), isTrue);
+      expect(bloc.state.extra.avatarStatus.isSubmitting, isTrue);
       expect(bloc.state.values['name'], 'Ada');
     });
   });
