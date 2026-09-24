@@ -12,9 +12,9 @@ part 'profile_extras.freezed.dart';
 ///
 /// This class is generated with freezed: adding a field is one line here, and
 /// `copyWith` (including setting a nullable field back to null), `==` and
-/// `toString` come for free. It sits in a single `extras` field of
-/// `ProfileFormState` because freezed cannot generate a subclass of
-/// `MkFormState` itself.
+/// `toString` come for free. It sits directly in `MkFormState<ProfileExtras>`'s
+/// `extra` field — freezed classes work well in the generic slot without
+/// needing a state subclass.
 @freezed
 abstract class ProfileExtras with _$ProfileExtras {
   const ProfileExtras._();
