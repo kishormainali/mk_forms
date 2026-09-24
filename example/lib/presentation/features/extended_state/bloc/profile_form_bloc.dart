@@ -78,7 +78,8 @@ class ProfileFormBloc extends MkFormBloc<ProfileExtras> {
         if (phone.isEmpty) throw Exception('Enter a phone number first');
         return _repository.sendOtp(phone);
       },
-      status: (s, status) => s.updateExtra((e) => e.copyWith(otpStatus: status)),
+      status: (s, status) =>
+          s.updateExtra((e) => e.copyWith(otpStatus: status)),
       onSuccess: (s, _) => s.updateExtra((e) => e.copyWith(otpSentTo: phone)),
       onFailure: (s) => s.updateExtra((e) => e.copyWith(otpSentTo: null)),
     );

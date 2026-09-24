@@ -50,14 +50,14 @@ void main() {
     });
 
     test('copyWith(extra: () => null) explicitly clears a nullable extra', () {
-      final state = MkFormState<int?>(
-        submissionStatus: const MkSubmissionStatus.idle(),
+      const state = MkFormState<int?>(
+        submissionStatus: MkSubmissionStatus.idle(),
         isValid: true,
         isValidating: false,
         isDirty: false,
         isTouched: false,
         wasSubmitted: false,
-        values: const {},
+        values: {},
         extra: 1,
       );
 
@@ -129,14 +129,14 @@ void main() {
         final idle = _state(extra: 1);
         expect(idle.isBusy, isFalse);
 
-        final submitting = MkFormState<int>(
-          submissionStatus: const MkSubmissionStatus.submitting(),
+        const submitting = MkFormState<int>(
+          submissionStatus: MkSubmissionStatus.submitting(),
           isValid: true,
           isValidating: false,
           isDirty: false,
           isTouched: false,
           wasSubmitted: false,
-          values: const {},
+          values: {},
           extra: 1,
         );
         expect(submitting.isBusy, isTrue);
@@ -148,7 +148,7 @@ void main() {
       expect(busy.isBusy, isTrue);
       expect(busy.canSubmit, isFalse);
 
-      final idle = _state(extra: 0, isExtraBusy: (e) => e > 0);
+      final idle = _state(isExtraBusy: (e) => e > 0);
       expect(idle.isBusy, isFalse);
     });
 

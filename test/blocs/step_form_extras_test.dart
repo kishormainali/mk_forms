@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mk_forms/mk_forms.dart';
 
-/// Minimal extra payload proving MkStepFormBloc<T> composes step tracking
+/// Minimal extra payload proving `MkStepFormBloc<T>` composes step tracking
 /// with typed extras without any hand-written state subclass.
 class _OnboardingExtra {
   const _OnboardingExtra({
@@ -46,9 +46,8 @@ class _OnboardingBloc extends MkStepFormBloc<_OnboardingExtra> {
     );
     emit(
       state.updateExtra(
-        (e) => e.copyWith(
-          welcomeEmailStatus: const MkSubmissionStatus.success(),
-        ),
+        (e) =>
+            e.copyWith(welcomeEmailStatus: const MkSubmissionStatus.success()),
       ),
     );
   }
