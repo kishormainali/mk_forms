@@ -1,6 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mk_forms/mk_forms.dart';
 
+class TestTypedFormBloc extends MkFormBloc<String> {
+  TestTypedFormBloc() : super(controls: const {});
+
+  @override
+  Future<dynamic> onSubmit(Map<String, dynamic> values) async => null;
+}
+
 class TestLoginFormBloc extends MkFormBloc {
   TestLoginFormBloc({this.shouldSucceed = true})
     : super(
@@ -132,6 +139,13 @@ void main() {
 
         expect(submitCount, 1);
         expect(simpleForm.state.isSuccess, isTrue);
+      },
+    );
+
+    test(
+      'a non-nullable T without an explicit initialState throws at construction',
+      () {
+        expect(() => TestTypedFormBloc(), throwsA(isA<TypeError>()));
       },
     );
   });

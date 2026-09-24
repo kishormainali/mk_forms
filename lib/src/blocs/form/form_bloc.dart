@@ -10,20 +10,25 @@ import 'form_state.dart';
 
 /// Abstract or standalone coordinator bloc managing the form lifecycle.
 ///
+/// [T] is the type of [MkFormState.extra]; most forms never need it and can
+/// extend `MkFormBloc` (no type argument) exactly as before. A form that
+/// wants typed extra fields extends `MkFormBloc<MyExtras>` and passes
+/// `initialState: MkFormState<MyExtras>(...)`.
+///
 /// Handles:
 /// - Aggregated validation across all controls.
 /// - Submission flow with automatic validation gating.
 /// - Clear submission error lifecycle (automatically clears submission error
 ///   when the user modifies any field, preventing repeated error banners).
 /// - Server error mapping to field controls via [setFieldErrors].
-abstract class MkFormBloc extends Cubit<MkFormState> {
+abstract class MkFormBloc<T extends Object?> extends Cubit<MkFormState<T>> {
   MkFormBloc({
     Map<String, MkControlBloc<dynamic>>? controls,
-    MkFormState? initialState,
+    MkFormState<T>? initialState,
   }) : _rootGroup = MkGroupBloc(controls ?? {}),
        super(
          initialState ??
-             MkFormState(
+             MkFormState<T>(
                submissionStatus: const MkSubmissionStatus.idle(),
                isValid: controls?.values.every((c) => c.isValid) ?? true,
                isValidating:
@@ -35,6 +40,12 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
                  for (final entry in (controls ?? const {}).entries)
                    entry.key: entry.value.value,
                },
+               // Only reached by forms that don't need typed extras (T is
+               // Object?, so null is a valid value); a bloc with a real
+               // extras type must always pass `initialState` explicitly, as
+               // it must today for a subclassed state. See the "Residual
+               // casts" section of the design spec.
+               extra: null as T,
              ),
        ) {
     _initControlListeners();
@@ -56,8 +67,8 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
   C? control<C extends MkControlBloc<dynamic>>(String name) =>
       _rootGroup.control<C>(name);
 
-  /// Retrieves a registered [MkFieldBloc<T>] by [name].
-  MkFieldBloc<T>? field<T>(String name) => _rootGroup.field<T>(name);
+  /// Retrieves a registered [MkFieldBloc<F>] by [name].
+  MkFieldBloc<F>? field<F>(String name) => _rootGroup.field<F>(name);
 
   /// Registers a control dynamically.
   void registerControl(String name, MkControlBloc<dynamic> control) {
@@ -73,7 +84,7 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
   /// that finish after the form was disposed cannot throw.
   @protected
   @override
-  void emit(MkFormState state) {
+  void emit(MkFormState<T> state) {
     if (isClosed) return;
     super.emit(state);
   }
@@ -109,10 +120,16 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
     );
   }
 
-  /// Hook for subclasses (such as [MkStepFormBloc]) to preserve subtype state properties.
+  /// Hook for subclasses to customize how control changes update the state.
+  ///
+  /// The base implementation calls [MkFormState.copyWith], which dispatches
+  /// virtually to the runtime type's `copyWith` override — so a state
+  /// subclass such as [MkStepFormState] never needs to override this to
+  /// preserve its own fields. `extra` is never passed here, so it is always
+  /// preserved untouched across control edits.
   @protected
-  MkFormState onUpdateFormState(
-    MkFormState currentState, {
+  MkFormState<T> onUpdateFormState(
+    MkFormState<T> currentState, {
     required bool isValid,
     required bool isValidating,
     required bool isDirty,
@@ -166,7 +183,7 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
   Future<void> submit() async {
     // `state.isSubmitting` only flips once validation has finished, so a
     // dedicated flag is needed to reject calls made while validating.
-    // `state.isBusy` also covers subclass-defined in-flight work.
+    // `state.isBusy` also covers extra-defined in-flight work.
     if (isClosed || _isSubmitInFlight || state.isBusy) return;
     _isSubmitInFlight = true;
     try {
@@ -287,7 +304,8 @@ abstract class MkFormBloc extends Cubit<MkFormState> {
 
   /// Resets the form and all its controls to their initial states.
   ///
-  /// Subclass state is preserved through [MkFormState.reset].
+  /// `extra` is preserved (or regenerated via `extraReset`) through
+  /// [MkFormState.reset].
   void reset() {
     _rootGroup.reset();
     emit(
