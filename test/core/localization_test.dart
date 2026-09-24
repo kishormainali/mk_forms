@@ -107,4 +107,72 @@ void main() {
       expect(find.text('This field is required'), findsNothing);
     });
   });
+
+  group('Field-aware messages (MkFormMessages.resolveField)', () {
+    const messages = MkDefaultEnglishMessages();
+
+    test('required', () {
+      expect(
+        messages.resolveField(MkErrorCodes.required, 'Email'),
+        'Email is required.',
+      );
+    });
+
+    test('email', () {
+      expect(
+        messages.resolveField(MkErrorCodes.email, 'Email'),
+        'Email must be a valid email address.',
+      );
+    });
+
+    test('minLength', () {
+      expect(
+        messages.resolveField(MkErrorCodes.minLength, 'Password', {'min': 8}),
+        'Password must be at least 8 characters.',
+      );
+    });
+
+    test('maxLength', () {
+      expect(
+        messages.resolveField(MkErrorCodes.maxLength, 'Bio', {'max': 200}),
+        'Bio must be at most 200 characters.',
+      );
+    });
+
+    test('min', () {
+      expect(
+        messages.resolveField(MkErrorCodes.min, 'Age', {'min': 18}),
+        'Age must be at least 18.',
+      );
+    });
+
+    test('max', () {
+      expect(
+        messages.resolveField(MkErrorCodes.max, 'Quantity', {'max': 10}),
+        'Quantity must be at most 10.',
+      );
+    });
+
+    test('pattern', () {
+      expect(
+        messages.resolveField(MkErrorCodes.pattern, 'Zip code'),
+        'Zip code has an invalid format.',
+      );
+    });
+
+    test('match', () {
+      expect(
+        messages.resolveField(MkErrorCodes.match, 'Confirm password'),
+        'Confirm password does not match.',
+      );
+    });
+
+    test('unknown/unsupported error code returns null', () {
+      expect(
+        messages.resolveField(MkErrorCodes.asyncValidationFailed, 'Email'),
+        isNull,
+      );
+      expect(messages.resolveField('someCustomCode', 'Email'), isNull);
+    });
+  });
 }
