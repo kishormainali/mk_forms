@@ -1,8 +1,15 @@
 import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
 import '../../core/status.dart';
 
 /// Represents the overall state of an [MkFormBloc].
-class MkFormState extends Equatable {
+///
+/// [T] is the type of [extra]: a single slot for whatever a form needs
+/// beyond the base fields (independent statuses, extra data). Most forms
+/// never need it and can ignore the type parameter entirely — plain
+/// `MkFormState` (no type argument) resolves to `MkFormState<Object?>` with
+/// `extra` left `null`.
+class MkFormState<T extends Object?> extends Equatable {
   const MkFormState({
     required this.submissionStatus,
     required this.isValid,
@@ -12,6 +19,9 @@ class MkFormState extends Equatable {
     required this.wasSubmitted,
     required this.values,
     this.submissionError,
+    required this.extra,
+    this.extraReset,
+    this.isExtraBusy,
   });
 
   /// Current submission lifecycle status (idle, submitting, success, failure).
@@ -38,26 +48,49 @@ class MkFormState extends Equatable {
   /// The error object if the last submission failed, or null.
   final Object? submissionError;
 
+  /// App-defined payload: statuses and extra fields beyond the base ones.
+  ///
+  /// Field edits never touch this: [MkFormBloc] only calls [copyWith] with
+  /// the base fields, so the same [extra] instance carries through every
+  /// edit untouched. Update it explicitly with [updateExtra] or `copyWith`.
+  final T extra;
+
+  /// Regenerates a pristine [extra] on [reset]. If omitted, [reset] leaves
+  /// [extra] unchanged.
+  ///
+  /// Marked `@protected`: part of the constructor's public surface (an app
+  /// sets it once when building its bloc's initial state) but not meant to
+  /// be read outside a state's own `copyWith`/`reset` chain. It is a plain
+  /// (non-underscore) field rather than Dart-private, because
+  /// `MkStepFormState` (a different file/library) must read it from its own
+  /// `copyWith`/`reset` overrides — Dart privacy is per-library.
+  @protected
+  final T Function()? extraReset;
+
+  /// Feeds [isBusy]. If omitted, [extra] never contributes to [isBusy].
+  /// Same visibility rationale as [extraReset].
+  @protected
+  final bool Function(T extra)? isExtraBusy;
+
   /// Whether the form can currently be submitted.
   bool get canSubmit => isValid && !isValidating && !isBusy;
 
   /// Whether the form is busy and must not accept another submission.
   ///
-  /// Defaults to [isSubmitting]. Subclasses that track other in-flight work
-  /// (an avatar upload, an OTP request) override this to include it:
-  ///
-  /// ```dart
-  /// @override
-  /// bool get isBusy => super.isBusy || avatarStatus.isSubmitting;
-  /// ```
-  bool get isBusy => isSubmitting;
+  /// Defaults to [isSubmitting] plus whatever [isExtraBusy] reports for
+  /// [extra].
+  bool get isBusy => isSubmitting || (isExtraBusy?.call(extra) ?? false);
 
   /// Shorthand getters for submission states.
   bool get isSubmitting => submissionStatus.isSubmitting;
   bool get isSuccess => submissionStatus.isSuccess;
   bool get isFailure => submissionStatus.isFailure;
 
-  MkFormState copyWith({
+  /// Returns a copy with [update] applied to [extra].
+  MkFormState<T> updateExtra(T Function(T extra) update) =>
+      copyWith(extra: update(extra));
+
+  MkFormState<T> copyWith({
     MkSubmissionStatus? submissionStatus,
     bool? isValid,
     bool? isValidating,
@@ -66,8 +99,9 @@ class MkFormState extends Equatable {
     bool? wasSubmitted,
     Map<String, dynamic>? values,
     Object? Function()? submissionError,
+    T? extra,
   }) {
-    return MkFormState(
+    return MkFormState<T>(
       submissionStatus: submissionStatus ?? this.submissionStatus,
       isValid: isValid ?? this.isValid,
       isValidating: isValidating ?? this.isValidating,
@@ -78,25 +112,17 @@ class MkFormState extends Equatable {
       submissionError: submissionError != null
           ? submissionError()
           : this.submissionError,
+      extra: extra ?? this.extra,
+      extraReset: extraReset,
+      isExtraBusy: isExtraBusy,
     );
   }
 
   /// Returns an idle, pristine copy of this state.
   ///
-  /// Used by [MkFormBloc.reset]. It goes through [copyWith], so subclass
-  /// fields are preserved; subclasses that add fields override this to return
-  /// them to their defaults:
-  ///
-  /// ```dart
-  /// @override
-  /// MyState reset({required bool isValid, required bool isValidating,
-  ///     required Map<String, dynamic> values}) {
-  ///   return (super.reset(isValid: isValid, isValidating: isValidating,
-  ///           values: values) as MyState)
-  ///       .copyWith(avatarStatus: const MkSubmissionStatus.idle());
-  /// }
-  /// ```
-  MkFormState reset({
+  /// Used by [MkFormBloc.reset]. [extra] is regenerated via [extraReset], or
+  /// left unchanged if none was given.
+  MkFormState<T> reset({
     required bool isValid,
     required bool isValidating,
     required Map<String, dynamic> values,
@@ -110,6 +136,7 @@ class MkFormState extends Equatable {
       wasSubmitted: false,
       values: values,
       submissionError: () => null,
+      extra: extraReset != null ? extraReset!() : extra,
     );
   }
 
@@ -123,5 +150,6 @@ class MkFormState extends Equatable {
     wasSubmitted,
     values,
     submissionError,
+    extra,
   ];
 }
