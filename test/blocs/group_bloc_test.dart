@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mk_forms/mk_forms.dart';
 
@@ -80,6 +82,84 @@ void main() {
       expect(group.controls.isEmpty, isTrue);
       expect(group.value.isEmpty, isTrue);
     });
+
+    test('removeControl closes the removed control by default', () {
+      final email = MkFieldBloc<String>(initialValue: 'a@b.com');
+      final group = MkGroupBloc({'email': email});
+
+      final removed = group.removeControl('email');
+
+      expect(removed, same(email));
+      expect(email.isClosed, isTrue);
+    });
+
+    test('removeControl(dispose: false) detaches without closing', () {
+      final email = MkFieldBloc<String>(initialValue: 'a@b.com');
+      final group = MkGroupBloc({'email': email});
+
+      final detached = group.removeControl('email', dispose: false);
+
+      expect(detached, same(email));
+      expect(email.isClosed, isFalse);
+      expect(group.value, isEmpty);
+
+      unawaited(email.close());
+    });
+
+    test(
+      'addControl replacing an existing key closes the displaced control',
+      () {
+        final oldField = MkFieldBloc<String>(initialValue: 'old');
+        final group = MkGroupBloc({'name': oldField});
+
+        group.addControl('name', MkFieldBloc<String>(initialValue: 'new'));
+
+        expect(oldField.isClosed, isTrue);
+        expect(group.value, {'name': 'new'});
+      },
+    );
+
+    test(
+      'addControl(disposeReplaced: false) leaves the displaced control open',
+      () {
+        final oldField = MkFieldBloc<String>(initialValue: 'old');
+        final group = MkGroupBloc({'name': oldField});
+
+        group.addControl(
+          'name',
+          MkFieldBloc<String>(initialValue: 'new'),
+          disposeReplaced: false,
+        );
+
+        expect(oldField.isClosed, isFalse);
+        unawaited(oldField.close());
+      },
+    );
+
+    test(
+      'removing a field with an active dependency stops it being revalidated '
+      'and releases it from the control it depended on',
+      () {
+        final password = MkFieldBloc<String>(initialValue: 'secret1');
+        final confirmPassword = MkFieldBloc<String>(initialValue: 'secret1')
+          ..addDependency(password);
+
+        final group = MkGroupBloc({'confirmPassword': confirmPassword});
+
+        group.removeControl('confirmPassword');
+        expect(confirmPassword.isClosed, isTrue);
+
+        // Before the fix, confirmPassword's dependency callback stayed
+        // registered on `password` forever, so this next line would keep
+        // confirmPassword reachable and would keep re-running its (now
+        // pointless) revalidation on every change to `password`. It must be
+        // a silent no-op now that confirmPassword is closed and detached.
+        password.changeValue('secret2');
+
+        expect(confirmPassword.isClosed, isTrue);
+        expect(confirmPassword.value, 'secret1');
+      },
+    );
 
     group('field label auto-derivation', () {
       test(

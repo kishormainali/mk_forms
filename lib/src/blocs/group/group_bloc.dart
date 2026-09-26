@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../batched_aggregate.dart';
 import '../control_bloc.dart';
 import '../field/field_bloc.dart';
@@ -68,9 +70,16 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
   }
 
   /// Adds a new control to this group dynamically.
-  void addControl(String name, MkControlBloc<dynamic> control) {
+  ///
+  /// If [name] already has a control registered, it is replaced; the
+  /// displaced control is closed unless [disposeReplaced] is `false`.
+  void addControl(
+    String name,
+    MkControlBloc<dynamic> control, {
+    bool disposeReplaced = true,
+  }) {
     if (isClosed) return;
-    removeControl(name);
+    removeControl(name, dispose: disposeReplaced);
     _controls[name] = control;
     _assignLabelIfField(name, control);
     _listenToControl(name, control);
@@ -78,14 +87,22 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
   }
 
   /// Removes a control from this group dynamically.
-  void removeControl(String name) {
-    if (isClosed) return;
+  ///
+  /// The removed control is closed by default, matching the invariant that
+  /// a control never outlives its parent. Pass [dispose] as `false` when
+  /// intentionally re-parenting the returned control elsewhere.
+  MkControlBloc<dynamic>? removeControl(String name, {bool dispose = true}) {
+    if (isClosed) return null;
     final callback = _listenerCallbacks.remove(name);
-    if (callback != null) {
-      _controls[name]?.removeStateListener(callback);
+    final removed = _controls.remove(name);
+    if (callback != null && removed != null) {
+      removed.removeStateListener(callback);
     }
-    _controls.remove(name);
+    if (dispose && removed != null) {
+      unawaited(removed.close());
+    }
     _recalculateState();
+    return removed;
   }
 
   @override
