@@ -1,6 +1,27 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mk_forms/mk_forms.dart';
 
+class _CountingPattern implements Pattern {
+  _CountingPattern(this._source, {required this.onToString});
+
+  final String _source;
+  final void Function() onToString;
+
+  @override
+  String toString() {
+    onToString();
+    return _source;
+  }
+
+  @override
+  Iterable<Match> allMatches(String string, [int start = 0]) =>
+      RegExp(_source).allMatches(string, start);
+
+  @override
+  Match? matchAsPrefix(String string, [int start = 0]) =>
+      RegExp(_source).matchAsPrefix(string, start);
+}
+
 void main() {
   group('MkValidators', () {
     group('required', () {
@@ -127,6 +148,33 @@ void main() {
         expect(validator(null), isNull);
         expect(validator('abc'), 'Invalid format');
         expect(validator('123'), isNull);
+      });
+
+      test('compiles the RegExp once, not on every validation call', () {
+        var toStringCalls = 0;
+        final countingPattern = _CountingPattern(
+          r'^\d+$',
+          onToString: () => toStringCalls++,
+        );
+
+        final counted = MkValidators.pattern(countingPattern);
+
+        counted('123');
+        counted('456');
+        counted('789');
+
+        expect(toStringCalls, 1);
+      });
+
+      test('still validates correctly across repeated calls', () {
+        final digitsOnly = MkValidators.pattern(
+          RegExp(r'^\d+$'),
+          'digits only',
+        );
+
+        expect(digitsOnly('123'), isNull);
+        expect(digitsOnly('abc'), 'digits only');
+        expect(digitsOnly('456'), isNull);
       });
     });
 

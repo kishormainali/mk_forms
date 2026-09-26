@@ -164,9 +164,10 @@ class MkValidators {
 
   /// Validates that a string matches a given [pattern].
   static Validator<String> pattern(Pattern pattern, [String? message]) {
+    final regex = pattern is RegExp ? pattern : RegExp(pattern.toString());
+
     String? validator(String? value) {
       if (value == null || value.isEmpty) return null;
-      final regex = pattern is RegExp ? pattern : RegExp(pattern.toString());
       if (!regex.hasMatch(value)) {
         return message ?? MkFormLocalizations.current.pattern();
       }
