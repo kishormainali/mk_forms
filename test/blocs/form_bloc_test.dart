@@ -148,5 +148,38 @@ void main() {
         expect(() => TestTypedFormBloc(), throwsA(isA<TypeError>()));
       },
     );
+
+    test('unregisterControl closes the removed control by default', () {
+      final form = MkSimpleFormBloc(
+        controls: const {},
+        onSubmit: (values) async => null,
+      );
+      final extra = MkFieldBloc<String>(initialValue: 'a');
+
+      form.registerControl('extra', extra);
+      expect(form.values, {'extra': 'a'});
+
+      final removed = form.unregisterControl('extra');
+
+      expect(removed, same(extra));
+      expect(extra.isClosed, isTrue);
+    });
+
+    test('unregisterControl(dispose: false) then registerControl re-activates '
+        'the same field instance (the conditional-field toggle pattern)', () {
+      final form = MkSimpleFormBloc(
+        controls: const {},
+        onSubmit: (values) async => null,
+      );
+      final extra = MkFieldBloc<String>(initialValue: 'a');
+
+      form.registerControl('extra', extra);
+      form.unregisterControl('extra', dispose: false);
+      expect(extra.isClosed, isFalse);
+
+      form.registerControl('extra', extra);
+      extra.changeValue('b');
+      expect(form.values, {'extra': 'b'});
+    });
   });
 }

@@ -80,7 +80,8 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
     bool disposeReplaced = true,
   }) {
     if (isClosed) return;
-    removeControl(name, dispose: disposeReplaced);
+    final replacingSelf = identical(_controls[name], control);
+    removeControl(name, dispose: disposeReplaced && !replacingSelf);
     _controls[name] = control;
     _assignLabelIfField(name, control);
     _listenToControl(name, control);

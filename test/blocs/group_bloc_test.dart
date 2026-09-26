@@ -136,18 +136,37 @@ void main() {
       },
     );
 
+    test('addControl re-registering the same instance under its own key does '
+        'not close it', () {
+      final field = MkFieldBloc<String>(initialValue: 'a');
+      final group = MkGroupBloc({'name': field});
+
+      group.addControl('name', field);
+
+      expect(field.isClosed, isFalse);
+      field.changeValue('b');
+      expect(group.value, {'name': 'b'});
+    });
+
     test(
       'removing a field with an active dependency stops it being revalidated '
       'and releases it from the control it depended on',
       () {
         final password = MkFieldBloc<String>(initialValue: 'secret1');
+        final listenerCountBeforeDependency = password.stateListenerCount;
         final confirmPassword = MkFieldBloc<String>(initialValue: 'secret1')
           ..addDependency(password);
+        expect(password.stateListenerCount, listenerCountBeforeDependency + 1);
 
         final group = MkGroupBloc({'confirmPassword': confirmPassword});
 
         group.removeControl('confirmPassword');
         expect(confirmPassword.isClosed, isTrue);
+
+        // Closing confirmPassword must remove its dependency callback from
+        // `password` — otherwise `password` keeps confirmPassword reachable
+        // forever and keeps re-invoking a dead field's revalidation.
+        expect(password.stateListenerCount, listenerCountBeforeDependency);
 
         // Before the fix, confirmPassword's dependency callback stayed
         // registered on `password` forever, so this next line would keep

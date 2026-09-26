@@ -79,13 +79,27 @@ abstract class MkFormBloc<T extends Object?> extends Cubit<MkFormState<T>> {
   MkFieldBloc<F>? field<F>(String name) => _rootGroup.field<F>(name);
 
   /// Registers a control dynamically.
-  void registerControl(String name, MkControlBloc<dynamic> control) {
-    _rootGroup.addControl(name, control);
+  ///
+  /// If [name] already has a control registered, it is replaced; the
+  /// displaced control is closed unless [disposeReplaced] is `false`.
+  void registerControl(
+    String name,
+    MkControlBloc<dynamic> control, {
+    bool disposeReplaced = true,
+  }) {
+    _rootGroup.addControl(name, control, disposeReplaced: disposeReplaced);
   }
 
   /// Removes a registered control.
-  void unregisterControl(String name) {
-    _rootGroup.removeControl(name);
+  ///
+  /// The removed control is closed by default; pass [dispose] as `false`
+  /// when intentionally re-registering it later (e.g. toggling a
+  /// conditional field off and back on).
+  MkControlBloc<dynamic>? unregisterControl(
+    String name, {
+    bool dispose = true,
+  }) {
+    return _rootGroup.removeControl(name, dispose: dispose);
   }
 
   /// Emitting after [close] is a silent no-op, so submissions or validations

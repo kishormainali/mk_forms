@@ -18,6 +18,14 @@ abstract class MkControlBloc<State> extends Cubit<State> {
     _stateListeners.remove(listener);
   }
 
+  /// Number of currently registered state listeners.
+  ///
+  /// Exposed only so tests can assert that a listener was actually removed
+  /// (e.g. after closing a control that depended on this one) rather than
+  /// merely asserting on behavior the removal wouldn't otherwise affect.
+  @visibleForTesting
+  int get stateListenerCount => _stateListeners.length;
+
   /// Emits [state] and notifies state listeners, but only if it actually
   /// changed. Emitting after [close] is a silent no-op, so in-flight async work
   /// finishing late cannot throw.
