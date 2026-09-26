@@ -39,8 +39,9 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
   @override
   Map<String, dynamic> get snapshotValue => state.values;
 
-  // The aggregate flags are kept up to date by the child listeners, so reading
-  // them from the cached state is O(1) instead of walking the whole subtree.
+  // Kept up to date by a full recompute over direct children on every child
+  // change (see `_recalculateState`); reads of these flags/`snapshotValue`
+  // are themselves O(1) against the cached state, with no subtree walk.
   @override
   bool get isValid => state.isValid;
 

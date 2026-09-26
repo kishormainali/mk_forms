@@ -38,7 +38,9 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
   @override
   List<dynamic> get snapshotValue => state.values;
 
-  // Kept up to date by the child listeners; O(1) instead of walking children.
+  // Kept up to date by a full recompute over direct children on every child
+  // change (see `_recalculateState`); reads of these flags/`snapshotValue`
+  // are themselves O(1) against the cached state, with no subtree walk.
   @override
   bool get isValid => state.isValid;
 

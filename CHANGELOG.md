@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- **Memory leak: dynamically removing a control from a live `MkGroupBloc` or `MkArrayBloc` now closes it by default.** `MkGroupBloc.removeControl`/`addControl` and `MkArrayBloc.removeAt`/`remove`/`clear` previously detached a removed control's listeners from its parent but never called `close()` on the removed control itself — every runtime "remove a row" / "remove a field" operation leaked one un-closed control, and if that control had an active `addDependency` on another still-live control, it stayed reachable (and kept being revalidated) forever. Whole-form/whole-array teardown via `close()` was never affected — only dynamic partial removal.
+  - All four methods gain an optional `dispose`/`disposeReplaced` parameter (default `true`, matching the fixed behavior) for the rare case of intentionally re-parenting a control from one array/group to another without disposing it.
+  - `removeControl` and `removeAt`/`remove` are unchanged in what they return (the removed control). `MkArrayBloc.clear()` now returns the `List<C>` of controls that were removed (previously `void`) so a caller passing `dispose: false` can still reach them.
+
+### Performance
+- `MkValidators.pattern()` now compiles its `RegExp` once, when the validator is constructed, instead of once per validation call.
+
 ## [1.1.0] - 2026-09-24
 
 ### Added
