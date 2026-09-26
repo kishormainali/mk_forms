@@ -72,25 +72,38 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
   }
 
   /// Removes the control at [index].
-  C? removeAt(int index) {
+  ///
+  /// The removed control is closed by default, matching the invariant that
+  /// a control never outlives its parent. Pass [dispose] as `false` when
+  /// intentionally re-parenting the returned control elsewhere.
+  C? removeAt(int index, {bool dispose = true}) {
     if (isClosed || index < 0 || index >= _controls.length) return null;
     final removed = _controls.removeAt(index);
     final callback = _listenerCallbacks.remove(removed);
     if (callback != null) {
       removed.removeStateListener(callback);
     }
+    if (dispose) {
+      unawaited(removed.close());
+    }
     _recalculateState();
     return removed;
   }
 
   /// Removes the specified [control].
-  bool remove(C control) {
+  ///
+  /// The removed control is closed by default; pass [dispose] as `false`
+  /// when intentionally re-parenting it elsewhere.
+  bool remove(C control, {bool dispose = true}) {
     if (isClosed) return false;
     final removed = _controls.remove(control);
     if (removed) {
       final callback = _listenerCallbacks.remove(control);
       if (callback != null) {
         control.removeStateListener(callback);
+      }
+      if (dispose) {
+        unawaited(control.close());
       }
       _recalculateState();
     }
@@ -107,15 +120,26 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
     _recalculateState();
   }
 
-  /// Clears all controls in this array.
-  void clear() {
-    if (isClosed) return;
+  /// Clears all controls in this array, returning the controls that were
+  /// removed.
+  ///
+  /// Every removed control is closed by default; pass [dispose] as `false`
+  /// when intentionally re-parenting some or all of them elsewhere.
+  List<C> clear({bool dispose = true}) {
+    if (isClosed) return <C>[];
     for (final entry in _listenerCallbacks.entries) {
       entry.key.removeStateListener(entry.value);
     }
     _listenerCallbacks.clear();
+    final removed = List<C>.of(_controls);
     _controls.clear();
+    if (dispose) {
+      for (final control in removed) {
+        unawaited(control.close());
+      }
+    }
     _recalculateState();
+    return removed;
   }
 
   @override
