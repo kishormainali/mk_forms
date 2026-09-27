@@ -286,5 +286,91 @@ void main() {
         expect(field.label, 'Email');
       });
     });
+
+    group('isReadOnly', () {
+      test(
+        'a read-only field with a failing validator still reports isValid',
+        () {
+          final field = MkFieldBloc<String>(
+            initialValue: '',
+            validators: [MkValidators.required()],
+            isReadOnly: true,
+          );
+
+          expect(field.isValid, isTrue);
+          expect(field.error, isNull);
+        },
+      );
+
+      test('setReadOnly(true) clears an existing error immediately', () {
+        final field = MkFieldBloc<String>(
+          initialValue: 'abcdef',
+          validators: [MkValidators.minLength(5)],
+        );
+
+        field.changeValue('a');
+        expect(field.isValid, isFalse);
+        expect(field.error, isNotNull);
+
+        field.setReadOnly(true);
+
+        expect(field.isReadOnly, isTrue);
+        expect(field.isValid, isTrue);
+        expect(field.error, isNull);
+      });
+
+      test(
+        'setReadOnly(false) re-validates and can surface an error again',
+        () {
+          final field = MkFieldBloc<String>(
+            initialValue: 'a',
+            validators: [MkValidators.minLength(5)],
+            isReadOnly: true,
+          );
+
+          expect(field.isValid, isTrue);
+
+          field.setReadOnly(false);
+
+          expect(field.isReadOnly, isFalse);
+          expect(field.isValid, isFalse);
+          expect(field.error, isNotNull);
+        },
+      );
+
+      test(
+        'a read-only field does not block the enclosing group\'s isValid',
+        () {
+          final readOnlyField = MkFieldBloc<String>(
+            initialValue: '',
+            validators: [MkValidators.required()],
+            isReadOnly: true,
+          );
+          final otherField = MkFieldBloc<String>(
+            initialValue: 'ok',
+            validators: [MkValidators.required()],
+          );
+
+          final group = MkGroupBloc({
+            'readOnly': readOnlyField,
+            'other': otherField,
+          });
+
+          expect(group.isValid, isTrue);
+        },
+      );
+
+      test('the isReadOnly constructor param starts the field valid even with '
+          'a failing initial value', () {
+        final field = MkFieldBloc<String>(
+          initialValue: '',
+          validators: [MkValidators.required()],
+          isReadOnly: true,
+        );
+
+        expect(field.isReadOnly, isTrue);
+        expect(field.isValid, isTrue);
+      });
+    });
   });
 }

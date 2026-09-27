@@ -20,6 +20,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
     Duration debounceTime = const Duration(milliseconds: 300),
     bool isEnabled = true,
     bool isVisible = true,
+    bool isReadOnly = false,
   }) : _validators = List.unmodifiable(validators),
        _asyncValidators = List.unmodifiable(asyncValidators),
        _debounceTime = debounceTime,
@@ -33,6 +34,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
            isValidating: false,
            isEnabled: isEnabled,
            isVisible: isVisible,
+           isReadOnly: isReadOnly,
            wasFormSubmitted: false,
            label: label,
          ),
@@ -79,6 +81,9 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
 
   /// Whether this field is visible.
   bool get isVisible => state.isVisible;
+
+  /// Whether this field is read-only (excluded from validation).
+  bool get isReadOnly => state.isReadOnly;
 
   /// This field's display label. Explicit via the [MkFieldBloc.new] `label`
   /// param, or auto-derived from its registration key in an [MkGroupBloc]
@@ -158,7 +163,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
     final value = next.value;
     final (syncError, syncCode, syncParams) = _runSyncValidation(value);
 
-    if (syncError != null || _asyncValidators.isEmpty) {
+    if (syncError != null || _asyncValidators.isEmpty || next.isReadOnly) {
       emit(
         next.copyWith(
           error: () => syncError,
@@ -242,6 +247,32 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
     emit(state.copyWith(isVisible: visible));
   }
 
+  /// Marks this field read-only, excluding it from validation entirely.
+  ///
+  /// Turning read-only **on** cancels any pending async validation and
+  /// clears the current error immediately, so [isValid] becomes `true`
+  /// right away instead of waiting for the next validation pass. Turning
+  /// it **off** re-validates against the current value, so a real error can
+  /// surface again.
+  void setReadOnly(bool readOnly) {
+    if (isClosed || state.isReadOnly == readOnly) return;
+    if (readOnly) {
+      _cancelPendingValidation();
+      emit(
+        state.copyWith(
+          isReadOnly: true,
+          error: () => null,
+          errorCode: () => null,
+          errorParams: () => null,
+          isValidating: false,
+        ),
+      );
+    } else {
+      emit(state.copyWith(isReadOnly: false));
+      _syncRevalidate();
+    }
+  }
+
   /// Resets this field to its initial value (or a provided new initial value).
   /// Resets `isDirty`, `isTouched`, and `wasFormSubmitted` to false.
   @override
@@ -264,6 +295,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
         isValidating: false,
         isEnabled: state.isEnabled,
         isVisible: state.isVisible,
+        isReadOnly: state.isReadOnly,
         wasFormSubmitted: false,
         error: initialError,
         errorCode: initialCode,
@@ -300,7 +332,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
       return false;
     }
 
-    if (_asyncValidators.isEmpty) {
+    if (_asyncValidators.isEmpty || state.isReadOnly) {
       emit(
         state.copyWith(
           error: () => null,
@@ -376,6 +408,7 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   }
 
   (String?, String?, Map<String, dynamic>?) _runSyncValidation(T? val) {
+    if (state.isReadOnly) return (null, null, null);
     for (final validator in _validators) {
       final error = validator(val);
       if (error != null) {

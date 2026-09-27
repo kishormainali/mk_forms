@@ -12,6 +12,7 @@ class MkFieldState<T> extends Equatable {
     required this.isValidating,
     required this.isEnabled,
     required this.isVisible,
+    required this.isReadOnly,
     required this.wasFormSubmitted,
     this.error,
     this.errorCode,
@@ -54,6 +55,13 @@ class MkFieldState<T> extends Equatable {
 
   /// Whether this field is visible in the UI.
   final bool isVisible;
+
+  /// Whether this field is read-only.
+  ///
+  /// A read-only field is excluded from validation entirely: it always
+  /// reports [isValid] as `true`, regardless of any configured validators,
+  /// so it never blocks the enclosing group/form from being valid.
+  final bool isReadOnly;
 
   /// Whether the enclosing form has attempted submission.
   final bool wasFormSubmitted;
@@ -127,6 +135,7 @@ class MkFieldState<T> extends Equatable {
     bool? isValidating,
     bool? isEnabled,
     bool? isVisible,
+    bool? isReadOnly,
     bool? wasFormSubmitted,
     String? label,
   }) {
@@ -141,6 +150,7 @@ class MkFieldState<T> extends Equatable {
       isValidating: isValidating ?? this.isValidating,
       isEnabled: isEnabled ?? this.isEnabled,
       isVisible: isVisible ?? this.isVisible,
+      isReadOnly: isReadOnly ?? this.isReadOnly,
       wasFormSubmitted: wasFormSubmitted ?? this.wasFormSubmitted,
       label: label ?? this.label,
     );
@@ -158,6 +168,7 @@ class MkFieldState<T> extends Equatable {
     isValidating,
     isEnabled,
     isVisible,
+    isReadOnly,
     wasFormSubmitted,
     label,
   ];
