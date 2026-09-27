@@ -19,6 +19,7 @@ export 'src/ui/form_scope.dart';
 export 'src/ui/form_listener.dart';
 export 'src/ui/form_builder.dart';
 export 'src/ui/field_builder.dart';
+export 'src/ui/field_selector.dart';
 export 'src/ui/subform_builder.dart';
 export 'src/ui/widgets/mk_text_field.dart';
 export 'src/ui/widgets/mk_email_field.dart';
