@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.1.1] - 2026-09-27
 
 ### Fixed
 - **Memory leak: dynamically removing a control from a live `MkGroupBloc` or `MkArrayBloc` now closes it by default.** `MkGroupBloc.removeControl`/`addControl` and `MkArrayBloc.removeAt`/`remove`/`clear` previously detached a removed control's listeners from its parent but never called `close()` on the removed control itself — every runtime "remove a row" / "remove a field" operation leaked one un-closed control, and if that control had an active `addDependency` on another still-live control, it stayed reachable (and kept being revalidated) forever. Whole-form/whole-array teardown via `close()` was never affected — only dynamic partial removal.
