@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.2.0] - 2026-09-27
 
 ### Added
 - **`MkFieldSelector<T, R>`** — a `MkFieldBuilder` sibling analogous to `flutter_bloc`'s `BlocSelector`: rebuilds only when a value derived from `MkFieldState<T>` via `selector` actually changes (e.g. just `state.error`), instead of on every field-state emission. Same field resolution (`fieldBloc` or `name` via the nearest `MkFormScope`) and `hideWhenInvisible` behavior as `MkFieldBuilder`; the builder receives `(context, selected, fieldBloc)`.
