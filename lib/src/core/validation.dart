@@ -31,6 +31,16 @@ typedef Validator<T> = String? Function(T? value);
 typedef AsyncValidator<T> = Future<String?> Function(T? value);
 
 /// Common built-in form validators with internationalization support.
+///
+/// These validators run in the bloc layer, outside any widget tree, so they
+/// have no [BuildContext] to resolve messages through
+/// [MkFormLocalizations.of]/the `MkFormLocalizationsDelegate`. The error
+/// string they compute here (via [MkFormLocalizations.current]) is only the
+/// eager fallback stored on [MkFieldState.error]; each validator also tags
+/// its [MkErrorCodes] code (see [getValidatorMetadata]) so that
+/// [MkFieldState.getLocalizedError] can re-resolve the message through the
+/// delegate once a [BuildContext] is available, which is what every
+/// built-in widget actually displays.
 class MkValidators {
   const MkValidators._();
 

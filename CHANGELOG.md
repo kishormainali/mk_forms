@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.1] - 2026-09-30
+
+### Docs
+- Documented `MkFormLocalizations.current`'s role as a no-`BuildContext` fallback only (used by `MkValidators`, which run in the bloc layer) — every built-in widget already resolves messages through `MkFormLocalizationsDelegate`/`Localizations.of` first, the same pattern `flutter_localizations` uses. Clarified in code doc comments (`form_localizations.dart`, `validation.dart`), `README.md`, and `llms.txt`. No behavior change.
+- `README.md` and `llms.txt` now document `MkFieldSelector<T, R>` and `MkFieldBloc.isReadOnly`/`setReadOnly`, both added in 1.2.0 but missing from user-facing docs until now.
+- Updated stale `mk_forms: ^1.x.x` install snippets in `README.md`/`llms.txt` to `^1.2.1`.
+
 ## [1.2.0] - 2026-09-27
 
 ### Added

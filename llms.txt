@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
-  mk_forms: ^1.1.0
+  mk_forms: ^1.2.1
 ```
 
 i18n (optional): add `flutter_localizations` under `dependencies` too — see "Internationalization" below.
@@ -48,7 +48,7 @@ final username = MkFieldBloc<String>(
 );
 ```
 
-`MkFieldState<T>` fields: `value` (`T?`), `initialValue` (`T?`), `error` (`String?`), `isDirty`, `isTouched`, `isValidating`, `isValid`, `wasFormSubmitted`, `showError` (convenience for `shouldShowError()`), `shouldShowError([AutovalidateMode mode])`.
+`MkFieldState<T>` fields: `value` (`T?`), `initialValue` (`T?`), `error` (`String?`), `isDirty`, `isTouched`, `isValidating`, `isValid`, `wasFormSubmitted`, `showError` (convenience for `shouldShowError()`), `shouldShowError([AutovalidateMode mode])`, `isReadOnly`.
 
 Programmatic control:
 ```dart
@@ -59,7 +59,11 @@ field.touch();               // reveal any current error
 field.setError('server says no'); // set an error directly (e.g. from a 422 response)
 field.setEnabled(false);
 field.setVisible(false);
+field.setReadOnly(true);    // excludes the field from validation entirely; isValid always true while set
+field.setReadOnly(false);   // re-validates against the current value
 ```
+
+`isReadOnly` (constructor param, default `false`, or `setReadOnly(bool)`) skips every validator (sync and async) while set, clears any existing `error`/`isValidating`, and forces `isValid` to `true` — so a read-only field never blocks the enclosing `MkGroupBloc`/`MkFormBloc`. Independent of the presentational `readOnly` prop on `MkTextField`/etc., which only blocks typing.
 
 `required()` treats `null`, `''`, `[]`, and `false` as invalid. Async validators that throw do NOT leak the raw exception to the user — the field gets a generic localized message and the real error goes through `onError`/`BlocObserver.onError`.
 
@@ -146,6 +150,17 @@ MkFormListener(
 ```
 
 Field widgets accept `name:` (looked up via `MkFormScope`) OR `fieldBloc:` (direct reference), plus `autovalidateMode:`. Beyond that they expose the wrapped Flutter widget's own parameters (see "Widgets" below) — only value/error/enabled are bloc-controlled.
+
+`MkFieldSelector<T, R>` — like `flutter_bloc`'s `BlocSelector`: rebuilds only when a derived value changes, not on every field-state emission.
+```dart
+MkFieldSelector<String, String?>(
+  fieldBloc: emailField, // or name: 'email'
+  selector: (state) => state.error,
+  builder: (context, error, fieldBloc) => error == null ? const SizedBox.shrink() : Text(error),
+  hideWhenInvisible: true, // default: auto-hides when state.isVisible == false
+)
+```
+`R` must be immutable/`==`-comparable for change detection to work.
 
 ## AutovalidateMode
 
@@ -300,6 +315,8 @@ MaterialApp(
 ```
 
 Global override: `MkFormLocalizations.current = MyCustomMessages();` — Scoped: `MkLocalizationScope(messages: SpanishMessages(), child: ...)` — Custom messages: extend `MkFormMessages` and override `required()`, `email()`, `minLength(int)`, `maxLength(int)`, `min(num)`, `max(num)`, `pattern()`, `match()`.
+
+`current` is a fallback only, used where no `BuildContext` exists (e.g. `MkValidators`, which run in the bloc layer). Every built-in widget resolves messages through the delegate first (`MkLocalizationScope` → `Localizations.of` → `current`, in that priority order — the same pattern `flutter_localizations` uses), so scoped overrides and runtime locale switching (below) take effect without touching `current`.
 
 **Field-aware messages.** Built-in validators produce a message naming the field, e.g. `"Email is required."` instead of `"This field is required"`. A field's label is auto-derived from its key in an `MkGroupBloc`'s controls map — this includes every field inside `MkFormBloc`/`MkStepFormBloc`, so it applies by default, not opt-in. Override it with `label:` on `MkFieldBloc` (see "Field blocs"). A field never added to a group, with no explicit `label`, keeps the old generic message.
 

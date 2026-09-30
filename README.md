@@ -37,7 +37,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
-  mk_forms: ^1.0.1
+  mk_forms: ^1.2.1
 ```
 
 For i18n support, add `flutter_localizations` and configure your `MaterialApp`:
@@ -179,6 +179,17 @@ final interests = MkFieldBloc<List<String>>(
 | `wasFormSubmitted` | `bool` | Form submission was attempted |
 | `showError` | `bool` | Convenience getter — `shouldShowError()` with default mode |
 | `shouldShowError([mode])` | `bool` | Whether to display error per `AutovalidateMode` |
+| `isReadOnly` | `bool` | Excludes the field from validation entirely (see below) |
+
+**Read-only fields.** Pass `isReadOnly: true` (constructor) or call `emailField.setReadOnly(true)` to exclude a field from validation: no validator (sync or async) runs, `error`/`isValidating` are cleared, and `isValid` is always `true` — so the field never blocks the enclosing `MkGroupBloc`/`MkFormBloc`. Turning it back off (`setReadOnly(false)`) immediately re-validates against the current value. This is independent of the presentational `readOnly` prop on `MkTextField`/`MkEmailField`/`MkPasswordField`, which only blocks typing and has no effect on validation.
+
+```dart
+final promoCode = MkFieldBloc<String>(
+  isReadOnly: true, // pre-filled, non-editable, never blocks form validity
+  initialValue: 'WELCOME10',
+  validators: [MkValidators.required()],
+);
+```
 
 ---
 
@@ -1043,6 +1054,25 @@ MkFieldBuilder<int>(
 
 ---
 
+### `MkFieldSelector<T, R>` — Select Just a Slice of State
+
+Analogous to `flutter_bloc`'s `BlocSelector`: rebuilds only when a value *derived* from `MkFieldState<T>` actually changes, ignoring every other field-state change (e.g. rebuild on `error` only, not on every keystroke that changes `value`):
+
+```dart
+MkFieldSelector<String, String?>(
+  fieldBloc: emailField, // or name: 'email' inside an MkFormScope
+  selector: (state) => state.error,
+  builder: (context, error, fieldBloc) {
+    if (error == null) return const SizedBox.shrink();
+    return Text(error, style: const TextStyle(color: Colors.red));
+  },
+)
+```
+
+The selected value `R` must be immutable/comparable with `==` for change detection to work correctly. Set `hideWhenInvisible: false` to opt out of the default auto-hide-when-`isVisible == false` behavior.
+
+---
+
 ## 🌍 Internationalization (i18n)
 
 ### Standard Setup
@@ -1067,6 +1097,8 @@ Override all validation messages globally (useful for app-level branded messages
 ```dart
 MkFormLocalizations.current = MyCustomMessages();
 ```
+
+> **Note:** `current` is a fallback used only where no `BuildContext` exists to resolve through `MkFormLocalizations.delegate` (e.g. `MkValidators`, which run in the bloc layer before any widget exists). Every built-in field widget already resolves messages through the delegate (`MkLocalizationScope` → `Localizations.of` → `current`, in that order) — the same pattern `flutter_localizations` uses — so scoped overrides and runtime locale switching below take effect without touching `current` at all. Set `current` only to change the app-wide default for contexts with no widget tree.
 
 ### Scoped Override
 
@@ -1227,6 +1259,10 @@ emailField.setEnabled(true);
 
 // Show / hide in UI
 emailField.setVisible(false);
+
+// Exclude from validation entirely — isValid is always true while read-only
+emailField.setReadOnly(true);
+emailField.setReadOnly(false); // re-validates against the current value
 ```
 
 ---

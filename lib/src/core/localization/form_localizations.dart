@@ -16,9 +16,19 @@ class MkFormLocalizations {
   /// The active form messages bundle.
   final MkFormMessages messages;
 
-  /// Global fallback validation messages.
+  /// Global fallback validation messages, used only when no [BuildContext] is
+  /// available to resolve through [delegate]/[of] (e.g. [MkValidators] in
+  /// `validation.dart`, which run in the bloc layer and produce their eager
+  /// error string before any widget exists to look up).
   ///
-  /// Can be overridden at app startup:
+  /// This is *not* the primary resolution path: every built-in widget looks
+  /// up messages via [of] (`MkLocalizationScope` → `Localizations.of` →
+  /// this fallback, in that order), the same delegate-based approach
+  /// `flutter_localizations` uses, so scoped/app-locale overrides and
+  /// runtime language switching take effect without touching [current].
+  /// Set this only to change the default when no [BuildContext] resolution
+  /// path exists at all (e.g. pure-Dart validation outside a widget tree).
+  ///
   /// ```dart
   /// void main() {
   ///   MkFormLocalizations.current = MyCustomAppMessages();
