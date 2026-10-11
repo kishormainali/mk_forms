@@ -37,7 +37,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
-  mk_forms: ^1.2.1
+  mk_forms: ^1.3.0
 ```
 
 For i18n support, add `flutter_localizations` and configure your `MaterialApp`:
@@ -684,9 +684,11 @@ void initState() {
 ### Listen to Loading State
 
 ```dart
-BlocBuilder<OnboardingFormBloc, MkStepFormState>(
-  bloc: _formBloc,
-  builder: (context, state) {
+// The bloc's declared state is `MkFormState`; at runtime it is an
+// `MkStepFormState`, which `MkFormStateBuilder` casts for you.
+MkFormStateBuilder<MkStepFormState>(
+  formBloc: _formBloc,
+  builder: (context, state, form) {
     if (state.isLoadingInitialData) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -806,9 +808,12 @@ phones.move(oldIndex, newIndex);
 ### Build Dynamic Array UI
 
 ```dart
-BlocBuilder<MkArrayBloc<MkFieldBloc<String>>, MkArrayState<MkFieldBloc<String>>>(
-  bloc: phones,
-  builder: (context, state) {
+// MkArrayBuilder rebuilds when rows are added/removed/moved, NOT when the
+// user types in a row (a plain BlocBuilder on the array would rebuild every
+// row on every keystroke). Each MkTextField updates itself.
+MkArrayBuilder<MkFieldBloc<String>>(
+  arrayBloc: phones, // or name: 'phones' inside an MkFormScope
+  builder: (context, state, array) {
     return Column(
       children: [
         ...state.controls.asMap().entries.map((e) => Row(
@@ -863,6 +868,10 @@ reference), plus an optional `autovalidateMode:` override. On top of that they e
 Flutter widget they wrap**, so you rarely need to build your own. Only what the bloc must control is handled for
 you (value, error text, enabled state); for `enabled:` the widget is disabled if *either* the parameter or the
 bloc says so, and `onChanged:` callbacks run *after* the bloc has been updated.
+
+### Works inside Flutter's `Form`
+
+Every field widget is a real `FormField` (shared base class `MkFormField<T>`), so `formKey.currentState!.validate()`, `.save()`, `.reset()`, `Form(onChanged:)` and `forceErrorText:` work with them, and each takes `onSaved:`. The bloc remains the single source of truth (`FormFieldState.value`/`errorText` read it, `didChange` writes to it); `FormField.validator`/`initialValue` aren't used. `Form.validate()` touches the bloc and runs its validators, revealing errors like a submit attempt. A `Form` is optional: `MkFormScope` + `MkFormBloc.submit()` work as before. See [doc/12-widgets.md](doc/12-widgets.md).
 
 ### `MkTextField`
 
@@ -1051,6 +1060,24 @@ MkFieldBuilder<int>(
   },
 )
 ```
+
+---
+
+### `MkFormSelector<R>` — Rebuild on One Form Flag
+
+`MkFormState.values` changes on every keystroke, so an `MkFormBuilder` without `buildWhen` rebuilds on every keystroke. Select just what you need:
+
+```dart
+MkFormSelector<bool>(
+  selector: (s) => s.canSubmit, // use a record for several values: (s.isValid, s.isSubmitting)
+  builder: (context, canSubmit, form) => FilledButton(
+    onPressed: canSubmit ? form.submit : null,
+    child: const Text('Save'),
+  ),
+)
+```
+
+See [doc/16-performance.md](doc/16-performance.md) for more on keeping rebuilds minimal.
 
 ---
 
@@ -1375,7 +1402,10 @@ example/lib/
         ├── all_fields_showcase/   # Full field type gallery
         ├── autovalidate_demo/     # AutovalidateMode switcher demo
         ├── i18n_demo/             # Live locale switching EN ↔ ES
-        └── custom_design_system/  # Custom card radios, styled chips
+        ├── custom_design_system/  # Custom card radios, styled chips
+        ├── extended_state/        # Typed extra state, concurrent API calls
+        ├── form_integration/      # Mk fields inside a Flutter Form (validate/save/reset)
+        └── large_form/            # 200 fields + array with selectors (perf patterns)
 ```
 
 **Key architecture decisions:**

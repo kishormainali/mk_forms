@@ -2,7 +2,7 @@
 
 > Reactive, type-safe Flutter form management built on `flutter_bloc`. Every field, group and array is its own Cubit-backed control; forms compose controls into a tree and expose aggregated validity, dirty/touched state, and a submission lifecycle. Fine-grained rebuilds: typing in one field never rebuilds the rest of the screen.
 
-This file is a self-contained reference for implementing forms with `mk_forms` in a Flutter app. It favors exact signatures and working code over prose. If something here looks stale, cross-check against `lib/mk_forms.dart` (the export surface) and `README.md` in this repository before trusting it.
+Longer guides with full runnable examples live in `doc/` (start at `doc/README.md`). This file is a self-contained reference for implementing forms with `mk_forms` in a Flutter app. It favors exact signatures and working code over prose. If something here looks stale, cross-check against `lib/mk_forms.dart` (the export surface) and `README.md` in this repository before trusting it.
 
 ## Install
 
@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
-  mk_forms: ^1.2.1
+  mk_forms: ^1.3.0
 ```
 
 i18n (optional): add `flutter_localizations` under `dependencies` too — see "Internationalization" below.
@@ -149,6 +149,8 @@ MkFormListener(
 )
 ```
 
+Every field widget extends `MkFormField<T>` (a Flutter `FormField<T>`): inside a `Form`, `validate()` touches the bloc and runs its validators, `save()` calls `onSaved(value)`, `reset()` resets the blocs, `Form.onChanged` fires on edits, and `forceErrorText:` shows a one-off message. The bloc is the source of truth (`FormFieldState.value/errorText` read it; `didChange` writes it; `FormField.validator/initialValue` are unused). `widget.autovalidateMode` is always `disabled` (use the `autovalidateMode:` parameter / scope); the override is exposed as `mkAutovalidateMode`. `MkEmailField`/`MkPasswordField` extend `MkTextField`; `MkDropdownField` builds a `DropdownButton` inside an `InputDecorator` (no nested `DropdownButtonFormField`). Custom fields: extend `MkFormField<T>` and implement `buildContent(context, field)` (use `field.fieldState`, `field.errorText`, `field.userChange(v)`).
+
 Field widgets accept `name:` (looked up via `MkFormScope`) OR `fieldBloc:` (direct reference), plus `autovalidateMode:`. Beyond that they expose the wrapped Flutter widget's own parameters (see "Widgets" below) — only value/error/enabled are bloc-controlled.
 
 `MkFieldSelector<T, R>` — like `flutter_bloc`'s `BlocSelector`: rebuilds only when a derived value changes, not on every field-state emission.
@@ -161,6 +163,8 @@ MkFieldSelector<String, String?>(
 )
 ```
 `R` must be immutable/`==`-comparable for change detection to work.
+
+`MkFormSelector<R>` — the form-level equivalent: `MkFormSelector<bool>(selector: (s) => s.canSubmit, builder: (context, canSubmit, form) => ...)`. `MkFormState.values` changes on every keystroke, so an `MkFormBuilder` with no `buildWhen` rebuilds per keystroke; prefer `MkFormSelector` (records work for multiple values) or `buildWhen`. Performance guidance: `doc/16-performance.md`.
 
 ## AutovalidateMode
 
@@ -256,11 +260,24 @@ class OnboardingFormBloc extends MkStepFormBloc {
 
 Needs typed extras too? `class OnboardingFormBloc extends MkStepFormBloc<MyExtra>` — same `initialExtra`/`extraReset`/`isExtraBusy` constructor params as `MkFormBloc<T>`.
 
+Concurrency: `nextStep()` and forward `goToStep()` are serialized — a call made while another is validating is ignored and returns `false` (safe against double taps; `if (await form.nextStep()) push(...)` never pushes twice). `populateValues`/`loadInitialData`/`validateStep`/`setFieldErrors` are batched (one aggregate recompute, one form emission). In multi-route wizards earlier pages stay mounted: use `MkFormSelector` or `buildWhen` instead of a bare `MkFormBuilder` on each page.
+
 Navigation: `nextStep()` (validates current step only, advances if valid), `previousStep()` (unconditional), `goToStep(i)` (validates intermediate steps if moving forward), `validateStep(i)`.
 
 `loadInitialData(loader, {resolveInitialStep})` fetches a draft, populates fields pristine (no premature errors), and jumps to the resolved step — if an earlier step turns out invalid, it redirects there and shows errors only on that step, keeping later steps' data intact.
 
 `MkStepFormState` adds: `currentStep`, `totalSteps`, `completedSteps`, `isLoadingInitialData`, `redirectedFromStep`, `invalidStepIndex`, `isFirstStep`, `isLastStep`, `stepProgress`, `isStepCompleted(i)`.
+
+Reading step state in widgets: a step bloc's *declared* state type is `MkFormState<T>`, the runtime type is `MkStepFormState<T>`. So `BlocBuilder<MyStepBloc, MkStepFormState>` does NOT compile. Use the typed builder (it throws `StateError` if the state is not an `S`):
+
+```dart
+MkFormStateBuilder<MkStepFormState>(
+  formBloc: form, // optional: falls back to MkFormScope
+  builder: (context, state, form) => state.isLoadingInitialData
+      ? const CircularProgressIndicator()
+      : Text('Step ${state.currentStep + 1} of ${state.totalSteps}'),
+)
+```
 
 `MkSimpleStepFormBloc` is the inline-closure equivalent of `MkSimpleFormBloc` for step forms.
 
@@ -284,6 +301,8 @@ phones.insert(0, MkFieldBloc<String>());
 phones.removeAt(1);
 phones.move(oldIndex, newIndex);
 ```
+
+Render arrays with `MkArrayBuilder<C>` (`arrayBloc:` or `name:` via scope; builder `(context, state, array)`). By default it rebuilds only when the control list changes (add/insert/remove/move), NOT when a row's value changes — a plain `BlocBuilder` on the array rebuilds every row on every keystroke in any row because `MkArrayState.values` changes. The `state` given to the builder is a snapshot from the last rebuild (row edits still update the array/form values live); pass `rebuildOnValueChange: true` for UI that displays the values. Override with `buildWhen: (p, c) => p.controls != c.controls || p.isValid != c.isValid` to also react to aggregate flags.
 
 ## Server error mapping
 
