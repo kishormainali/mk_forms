@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-10-11
+
+### Added
+- **`MkArrayBuilder<C>`** — builds from an `MkArrayBloc` and, by default, rebuilds only when the list of controls changes (add/insert/remove/move), not when a row's value changes. A plain `BlocBuilder` on an array rebuilds every row on every keystroke in any row, because `MkArrayState.values` changes each time. Accepts `arrayBloc` or `name` (via `MkFormScope`) and an optional `buildWhen`.
+  `rebuildOnValueChange: true` opts in to also rebuilding when any row's value changes (for UI that displays the values).
+- **`MkFormSelector<R>` — `BlocSelector` for form state (e.g. `(s) => s.canSubmit`), so widgets that need one flag no longer rebuild on every keystroke (`MkFormState.values` changes constantly).
+
+### Changed
+- **All field widgets are now Flutter `FormField`s.** A new base class `MkFormField<T>` (with `MkFormFieldState<T>`) is shared by `MkTextField`, `MkEmailField`, `MkPasswordField`, `MkCheckboxField`, `MkRadioGroup`, `MkDropdownField` and `MkMultiSelectSearchDropdown`. Inside a `Form`, `validate()`, `save()`, `reset()`, `onChanged` and `forceErrorText` now work with them, and every field accepts `onSaved:` and `forceErrorText:`. The bloc remains the source of truth, and fine-grained rebuilds are preserved (typing still doesn't rebuild the `TextField`).
+- `MkEmailField` and `MkPasswordField` now extend `MkTextField` (instead of wrapping it).
+- `MkDropdownField` now renders a `DropdownButton` in an `InputDecorator` (what `DropdownButtonFormField` does internally) so there is exactly one `FormField` per field.
+- Reading `widget.enabled` / `widget.autovalidateMode` on a field now yields `FormField`'s members (`bool` / always `AutovalidateMode.disabled`). The constructor parameters are unchanged; the autovalidate override is available as `widget.mkAutovalidateMode`. `restorationId` is now also forwarded to `FormField`.
+
+### Performance
+- `populateValues` (and therefore `loadInitialData`) now applies the payload in one batch: one aggregate recompute and one form emission instead of one per field. 2,000 fields: ~480 ms → ~5 ms.
+- `validateControls` / `validateStep` and `setFieldErrors` are batched the same way (validating a 20-field step in a 2,000-field form: ~12 ms → ~2 ms).
+
+### Fixed
+- **`MkDropdownField` and `MkMultiSelectSearchDropdown` showed the label and the hint at the same time** (the hint was drawn on top of the label). They now follow the Material `TextField` rule: with a label, the hint stays hidden until the label has floated (field focused, or `floatingLabelBehavior: always`); without a label the hint is always shown. The hint keeps its layout space, so the field doesn't change height. The multi-select now also reports `isEmpty`/`isFocused` to its `InputDecorator`, so its label floats correctly when focused.
+- **`nextStep()` / `goToStep()` could skip a step** when called twice before validation finished (double tap, slow async validators): both calls advanced. Navigation is now serialized; a call made while another is in flight is ignored and returns `false`, which also prevents a double route push.
+- **`MkTextField` (and `MkEmailField`/`MkPasswordField`) reverted or dropped typed characters whenever a parent rebuilt on each keystroke** — most visibly rows inside a dynamic array (typing lagged, text disappeared, values lagged). The field skips rebuilds for value-only changes, which left its `BlocBuilder`'s cached state one keystroke behind; the next parent rebuild wrote that stale value back into the text controller. It now always renders from the bloc's live state.
+
+### Docs
+- New `doc/` folder: 16 guides, each with a complete runnable example, including a Performance guide.
+- Fixed the README/`llms.txt` step-form snippet: `BlocBuilder<MyStepBloc, MkStepFormState>` does not compile (the declared state type is `MkFormState`); use `MkFormStateBuilder<MkStepFormState>`.
+- The dynamic-array example now uses `MkArrayBuilder`.
+
+---
+
 ## [1.2.1] - 2026-09-30
 
 ### Docs
