@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../blocs/field_bloc.dart';
-import '../../field_builder.dart';
-import '../../form_scope.dart';
+import '../../form_field.dart';
 import 'mk_radio_option.dart';
 
 export 'mk_radio_option.dart';
@@ -23,16 +21,16 @@ export 'mk_radio_option.dart';
 /// - [Radio] only (horizontal/wrap layouts): [focusColor].
 ///
 /// Options can also be fully custom via [itemBuilder].
-class MkRadioGroup<T> extends StatelessWidget {
+class MkRadioGroup<T> extends MkFormField<T> {
   const MkRadioGroup({
     super.key,
-    this.fieldBloc,
-    this.name,
+    super.fieldBloc,
+    super.name,
     required this.options,
     this.layout = MkRadioLayout.vertical,
     this.title,
     this.onChanged,
-    this.enabled,
+    super.enabled,
     this.mouseCursor,
     this.toggleable = false,
     this.activeColor,
@@ -68,17 +66,10 @@ class MkRadioGroup<T> extends StatelessWidget {
     this.errorStyle,
     this.errorPadding = const EdgeInsets.only(left: 16, top: 4),
     this.itemBuilder,
-    this.autovalidateMode,
-  }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
-
-  /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
-  final MkFieldBloc<T>? fieldBloc;
-
-  /// Name of the field in the nearest [MkFormScope], used when [fieldBloc] is null.
-  final String? name;
+    super.autovalidateMode,
+    super.onSaved,
+    super.forceErrorText,
+  });
 
   /// The selectable options.
   final List<MkRadioOption<T>> options;
@@ -89,14 +80,8 @@ class MkRadioGroup<T> extends StatelessWidget {
   /// Optional widget shown above the options.
   final Widget? title;
 
-  /// Overrides the [AutovalidateMode] of the enclosing [MkFormScope].
-  final AutovalidateMode? autovalidateMode;
-
   /// Called with the new value after the bloc has been updated.
   final ValueChanged<T?>? onChanged;
-
-  /// Set to `false` to disable the whole group regardless of the bloc.
-  final bool? enabled;
 
   /// See [RadioListTile.mouseCursor] / [Radio.mouseCursor].
   final MouseCursor? mouseCursor;
@@ -214,18 +199,17 @@ class MkRadioGroup<T> extends StatelessWidget {
   itemBuilder;
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildContent(BuildContext context, MkFormFieldState<T> field) {
     final theme = Theme.of(context);
-
-    return MkFieldBuilder<T>(
-      fieldBloc: fieldBloc,
-      name: name,
-      builder: (context, state, bloc) {
-        final isGroupEnabled = state.isEnabled && (enabled ?? true);
+    final state = field.fieldState;
+    final errorText = field.errorText;
+    {
+      {
+        final isGroupEnabled = field.isFieldEnabled;
 
         void select(T? value) {
           if (!isGroupEnabled) return;
-          bloc.changeValue(value, markTouched: true);
+          field.userChange(value, markTouched: true);
           onChanged?.call(value);
         }
 
@@ -374,23 +358,17 @@ class MkRadioGroup<T> extends StatelessWidget {
           );
         }
 
-        final effectiveMode =
-            autovalidateMode ??
-            MkFormScope.maybeAutovalidateModeOf(context) ??
-            AutovalidateMode.onUserInteraction;
-        final isErrorVisible = state.shouldShowError(effectiveMode);
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             if (title != null) ...[title!, const SizedBox(height: 4)],
             content,
-            if (isErrorVisible && state.error != null)
+            if (errorText != null)
               Padding(
                 padding: errorPadding,
                 child: Text(
-                  state.getLocalizedError(context) ?? state.error!,
+                  errorText,
                   style:
                       errorStyle ??
                       theme.textTheme.bodySmall?.copyWith(
@@ -400,7 +378,7 @@ class MkRadioGroup<T> extends StatelessWidget {
               ),
           ],
         );
-      },
-    );
+      }
+    }
   }
 }

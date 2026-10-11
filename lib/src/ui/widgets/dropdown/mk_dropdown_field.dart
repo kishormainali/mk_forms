@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../blocs/field_bloc.dart';
-import '../../field_builder.dart';
-import '../../form_scope.dart';
+import '../../form_field.dart';
+import '../hint_visibility.dart';
 
-/// A Material [DropdownButtonFormField] wrapper for [MkFieldBloc<T>].
+/// A Material dropdown ([DropdownButton] in an [InputDecorator], the same
+/// structure as [DropdownButtonFormField]) bound to an [MkFieldBloc<T>].
 ///
 /// Every [DropdownButtonFormField] parameter is available here and forwarded
 /// as-is, except the [FormField] ones (`validator`, `onSaved`, `errorBuilder`,
@@ -11,11 +11,11 @@ import '../../form_scope.dart';
 /// - `initialValue`: the current value always comes from the bloc.
 /// - `onChanged`: called *after* the bloc has been updated.
 /// - `decoration`: the error text is added to it.
-class MkDropdownField<T> extends StatelessWidget {
+class MkDropdownField<T> extends MkFormField<T> {
   const MkDropdownField({
     super.key,
-    this.fieldBloc,
-    this.name,
+    super.fieldBloc,
+    super.name,
     required this.items,
     this.selectedItemBuilder,
     this.decoration = const InputDecoration(),
@@ -44,24 +44,11 @@ class MkDropdownField<T> extends StatelessWidget {
     this.barrierDismissible = true,
     this.mouseCursor,
     this.dropdownMenuItemMouseCursor,
-    this.enabled,
-    this.autovalidateMode,
-  }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
-
-  /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
-  final MkFieldBloc<T>? fieldBloc;
-
-  /// Name of the field in the nearest [MkFormScope], used when [fieldBloc] is null.
-  final String? name;
-
-  /// Overrides the [AutovalidateMode] of the enclosing [MkFormScope].
-  final AutovalidateMode? autovalidateMode;
-
-  /// Set to `false` to disable the dropdown regardless of the bloc.
-  final bool? enabled;
+    super.enabled,
+    super.autovalidateMode,
+    super.onSaved,
+    super.forceErrorText,
+  });
 
   /// See [DropdownButtonFormField.items].
   final List<DropdownMenuItem<T>> items;
@@ -148,60 +135,76 @@ class MkDropdownField<T> extends StatelessWidget {
   final MouseCursor? dropdownMenuItemMouseCursor;
 
   @override
-  Widget build(BuildContext context) {
-    return MkFieldBuilder<T>(
-      fieldBloc: fieldBloc,
-      name: name,
-      builder: (context, state, bloc) {
-        final effectiveMode =
-            autovalidateMode ??
-            MkFormScope.maybeAutovalidateModeOf(context) ??
-            AutovalidateMode.onUserInteraction;
-        final isErrorVisible = state.shouldShowError(effectiveMode);
-        final isEnabled = state.isEnabled && (enabled ?? true);
+  Widget buildContent(BuildContext context, MkFormFieldState<T> field) {
+    final state = field.fieldState;
+    final isEnabled = field.isFieldEnabled;
+    final effectiveDecoration = decoration.copyWith(
+      errorText: field.errorText,
+      enabled: isEnabled,
+    );
 
-        final effectiveDecoration = decoration.copyWith(
-          errorText: isErrorVisible ? state.getLocalizedError(context) : null,
-          enabled: isEnabled,
-        );
-
-        return DropdownButtonFormField<T>(
-          initialValue: state.value,
-          items: items,
-          selectedItemBuilder: selectedItemBuilder,
-          decoration: effectiveDecoration,
-          hint: hint,
-          disabledHint: disabledHint,
-          onChanged: isEnabled
-              ? (value) {
-                  bloc.changeValue(value, markTouched: true);
-                  onChanged?.call(value);
-                }
-              : null,
-          onTap: onTap,
-          elevation: elevation,
-          style: style,
-          icon: icon,
-          iconDisabledColor: iconDisabledColor,
-          iconEnabledColor: iconEnabledColor,
-          iconSize: iconSize,
-          isDense: isDense,
-          isExpanded: isExpanded,
-          itemHeight: itemHeight,
-          focusColor: focusColor,
-          focusNode: focusNode,
-          autofocus: autofocus,
-          dropdownColor: dropdownColor,
-          menuMaxHeight: menuMaxHeight,
-          enableFeedback: enableFeedback,
-          alignment: alignment,
-          borderRadius: borderRadius,
-          padding: padding,
-          barrierDismissible: barrierDismissible,
-          mouseCursor: mouseCursor,
-          dropdownMenuItemMouseCursor: dropdownMenuItemMouseCursor,
-        );
-      },
+    // Same structure as DropdownButtonFormField, built directly so the only
+    // FormField in the tree is this one.
+    return Focus(
+      canRequestFocus: false,
+      skipTraversal: true,
+      child: Builder(
+        builder: (context) {
+          final isFocused = Focus.of(context).hasFocus;
+          // Like a TextField, keep the hint hidden while the label sits in
+          // the field (otherwise the two overlap).
+          final showHint = mkShouldShowHint(
+            effectiveDecoration,
+            isFocused: isFocused,
+          );
+          return InputDecorator(
+            decoration: effectiveDecoration,
+            isEmpty: state.value == null,
+            isFocused: isFocused,
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<T>(
+                value: state.value,
+                items: items,
+                selectedItemBuilder: selectedItemBuilder,
+                // Like a TextField, keep the hint hidden while the label sits in
+                // the field (otherwise the two overlap).
+                hint: hint == null || showHint
+                    ? hint
+                    : mkHintSlot(visible: false, child: hint!),
+                disabledHint: disabledHint,
+                onChanged: isEnabled
+                    ? (value) {
+                        field.userChange(value, markTouched: true);
+                        onChanged?.call(value);
+                      }
+                    : null,
+                onTap: onTap,
+                elevation: elevation,
+                style: style,
+                icon: icon,
+                iconDisabledColor: iconDisabledColor,
+                iconEnabledColor: iconEnabledColor,
+                iconSize: iconSize,
+                isDense: isDense,
+                isExpanded: isExpanded,
+                itemHeight: itemHeight,
+                focusColor: focusColor,
+                focusNode: focusNode,
+                autofocus: autofocus,
+                dropdownColor: dropdownColor,
+                menuMaxHeight: menuMaxHeight,
+                enableFeedback: enableFeedback,
+                alignment: alignment,
+                borderRadius: borderRadius,
+                padding: padding,
+                barrierDismissible: barrierDismissible,
+                mouseCursor: mouseCursor,
+                dropdownMenuItemMouseCursor: dropdownMenuItemMouseCursor,
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

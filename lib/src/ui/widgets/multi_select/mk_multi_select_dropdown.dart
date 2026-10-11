@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../blocs/field_bloc.dart';
-import '../../field_builder.dart';
-import '../../form_scope.dart';
+import '../../form_field.dart';
+import '../hint_visibility.dart';
 import 'multi_select_modal.dart';
 
 export 'multi_select_modal.dart';
@@ -24,11 +23,11 @@ export 'multi_select_modal.dart';
 /// - all texts: [hintText], [searchHint], [modalTitle], [doneLabel],
 ///   [selectAllLabel], [clearAllLabel] and [moreLabelBuilder], so they can be
 ///   localized.
-class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
+class MkMultiSelectSearchDropdown<T> extends MkFormField<List<T>> {
   const MkMultiSelectSearchDropdown({
     super.key,
-    this.fieldBloc,
-    this.name,
+    super.fieldBloc,
+    super.name,
     required this.items,
     required this.itemToString,
     this.decoration = const InputDecoration(),
@@ -49,8 +48,10 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
     this.searchFilter,
     this.maxChipsDisplayed = 4,
     this.onChanged,
-    this.enabled,
-    this.autovalidateMode,
+    super.enabled,
+    super.autovalidateMode,
+    super.onSaved,
+    super.forceErrorText,
     // InkWell
     this.borderRadius,
     this.mouseCursor,
@@ -101,16 +102,7 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
     this.dialogBarrierColor,
     this.dialogBarrierDismissible = true,
     this.dialogUseRootNavigator = true,
-  }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
-
-  /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
-  final MkFieldBloc<List<T>>? fieldBloc;
-
-  /// Name of the field in the nearest [MkFormScope], used when [fieldBloc] is null.
-  final String? name;
+  });
 
   /// All selectable items.
   final List<T> items;
@@ -160,14 +152,8 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
   /// Maximum number of chips shown before collapsing into "+N more".
   final int maxChipsDisplayed;
 
-  /// Overrides the [AutovalidateMode] of the enclosing [MkFormScope].
-  final AutovalidateMode? autovalidateMode;
-
   /// Called with the new selection after the bloc has been updated.
   final ValueChanged<List<T>>? onChanged;
-
-  /// Set to `false` to disable the field regardless of the bloc.
-  final bool? enabled;
 
   /// Custom chip builder for selected items.
   final Widget Function(BuildContext context, T item, VoidCallback onRemove)?
@@ -310,28 +296,22 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
   final bool dialogUseRootNavigator;
 
   @override
-  Widget build(BuildContext context) {
-    return MkFieldBuilder<List<T>>(
-      fieldBloc: fieldBloc,
-      name: name,
-      builder: (context, state, bloc) {
+  Widget buildContent(BuildContext context, MkFormFieldState<List<T>> field) {
+    final state = field.fieldState;
+    final bloc = field.bloc;
+    {
+      {
         final selectedItems = state.value ?? <T>[];
-        final isEnabled = state.isEnabled && (enabled ?? true);
-
-        final effectiveMode =
-            autovalidateMode ??
-            MkFormScope.maybeAutovalidateModeOf(context) ??
-            AutovalidateMode.onUserInteraction;
-        final isErrorVisible = state.shouldShowError(effectiveMode);
+        final isEnabled = field.isFieldEnabled;
 
         final effectiveDecoration = decoration.copyWith(
-          errorText: isErrorVisible ? state.getLocalizedError(context) : null,
+          errorText: field.errorText,
           suffixIcon: icon,
           enabled: isEnabled,
         );
 
         void commit(List<T> updated) {
-          bloc.changeValue(updated);
+          field.userChange(updated);
           onChanged?.call(updated);
         }
 
@@ -341,87 +321,113 @@ class MkMultiSelectSearchDropdown<T> extends StatelessWidget {
 
         final hiddenCount = selectedItems.length - maxChipsDisplayed;
 
-        return InkWell(
-          onTap: isEnabled
-              ? () async {
-                  bloc.touch();
-                  await _openSelectionModal(
-                    context: context,
-                    currentSelection: selectedItems,
-                    onSelectionChanged: commit,
-                  );
-                }
-              : null,
-          borderRadius: borderRadius,
-          mouseCursor: mouseCursor,
-          focusNode: focusNode,
-          autofocus: autofocus,
-          onFocusChange: onFocusChange,
-          focusColor: focusColor,
-          hoverColor: hoverColor,
-          splashColor: splashColor,
-          highlightColor: highlightColor,
-          overlayColor: overlayColor,
-          splashFactory: splashFactory,
-          enableFeedback: enableFeedback,
-          canRequestFocus: canRequestFocus,
-          child: InputDecorator(
-            decoration: effectiveDecoration,
-            child: selectedItems.isEmpty
-                ? Text(
-                    hintText,
-                    style:
-                        hintStyle ??
-                        TextStyle(color: Theme.of(context).hintColor),
-                  )
-                : Wrap(
-                    spacing: chipSpacing,
-                    runSpacing: chipRunSpacing,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      ...selectedItems.take(maxChipsDisplayed).map((item) {
-                        if (chipBuilder != null) {
-                          return chipBuilder!(
-                            context,
-                            item,
-                            () => remove(item),
-                          );
-                        }
-                        return InputChip(
-                          label: Text(itemToString(item)),
-                          labelStyle: chipLabelStyle,
-                          backgroundColor: chipBackgroundColor,
-                          padding: chipPadding,
-                          shape: chipShape,
-                          side: chipSide,
-                          visualDensity: chipVisualDensity,
-                          materialTapTargetSize: chipMaterialTapTargetSize,
-                          deleteIcon: chipDeleteIcon,
-                          deleteIconColor: chipDeleteIconColor,
-                          onDeleted: isEnabled ? () => remove(item) : null,
+        return Focus(
+          canRequestFocus: false,
+          skipTraversal: true,
+          child: Builder(
+            builder: (context) {
+              final isFocused = Focus.of(context).hasFocus;
+              return InkWell(
+                onTap: isEnabled
+                    ? () async {
+                        bloc.touch();
+                        await _openSelectionModal(
+                          context: context,
+                          currentSelection: selectedItems,
+                          onSelectionChanged: commit,
                         );
-                      }),
-                      if (hiddenCount > 0)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4),
-                          child: Text(
-                            moreLabelBuilder?.call(hiddenCount) ??
-                                '+$hiddenCount more',
-                            style:
-                                moreLabelStyle ??
-                                TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
+                      }
+                    : null,
+                borderRadius: borderRadius,
+                mouseCursor: mouseCursor,
+                focusNode: focusNode,
+                autofocus: autofocus,
+                onFocusChange: onFocusChange,
+                focusColor: focusColor,
+                hoverColor: hoverColor,
+                splashColor: splashColor,
+                highlightColor: highlightColor,
+                overlayColor: overlayColor,
+                splashFactory: splashFactory,
+                enableFeedback: enableFeedback,
+                canRequestFocus: canRequestFocus,
+                child: InputDecorator(
+                  decoration: effectiveDecoration,
+                  isEmpty: selectedItems.isEmpty,
+                  isFocused: isFocused,
+                  child: selectedItems.isEmpty
+                      ? mkHintSlot(
+                          // Like a TextField: with a label, the hint appears only
+                          // once the label has floated (focused / always).
+                          visible: mkShouldShowHint(
+                            effectiveDecoration,
+                            isFocused: isFocused,
                           ),
+                          child: Text(
+                            hintText,
+                            style:
+                                hintStyle ??
+                                TextStyle(color: Theme.of(context).hintColor),
+                          ),
+                        )
+                      : Wrap(
+                          spacing: chipSpacing,
+                          runSpacing: chipRunSpacing,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            ...selectedItems.take(maxChipsDisplayed).map((
+                              item,
+                            ) {
+                              if (chipBuilder != null) {
+                                return chipBuilder!(
+                                  context,
+                                  item,
+                                  () => remove(item),
+                                );
+                              }
+                              return InputChip(
+                                label: Text(itemToString(item)),
+                                labelStyle: chipLabelStyle,
+                                backgroundColor: chipBackgroundColor,
+                                padding: chipPadding,
+                                shape: chipShape,
+                                side: chipSide,
+                                visualDensity: chipVisualDensity,
+                                materialTapTargetSize:
+                                    chipMaterialTapTargetSize,
+                                deleteIcon: chipDeleteIcon,
+                                deleteIconColor: chipDeleteIconColor,
+                                onDeleted: isEnabled
+                                    ? () => remove(item)
+                                    : null,
+                              );
+                            }),
+                            if (hiddenCount > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: Text(
+                                  moreLabelBuilder?.call(hiddenCount) ??
+                                      '+$hiddenCount more',
+                                  style:
+                                      moreLabelStyle ??
+                                      TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                      ),
+                                ),
+                              ),
+                          ],
                         ),
-                    ],
-                  ),
+                ),
+              );
+            },
           ),
         );
-      },
-    );
+      }
+    }
   }
 
   Future<void> _openSelectionModal({

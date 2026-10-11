@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../blocs/field_bloc.dart';
-import '../../field_builder.dart';
-import '../../form_scope.dart';
+import '../../form_field.dart';
 
 /// A Material [CheckboxListTile] wrapper for [MkFieldBloc<bool>].
 ///
@@ -13,11 +11,11 @@ import '../../form_scope.dart';
 /// - `isError`: defaults to whether a validation error is currently shown.
 /// - `statesController`: not supported (requires a newer Flutter than this
 ///   package targets).
-class MkCheckboxField extends StatelessWidget {
+class MkCheckboxField extends MkFormField<bool> {
   const MkCheckboxField({
     super.key,
-    this.fieldBloc,
-    this.name,
+    super.fieldBloc,
+    super.name,
     required this.title,
     this.subtitle,
     this.secondary,
@@ -36,7 +34,7 @@ class MkCheckboxField extends StatelessWidget {
     this.shape,
     this.side,
     this.isError,
-    this.enabled,
+    super.enabled,
     this.tileColor,
     this.isThreeLine,
     this.dense,
@@ -57,20 +55,10 @@ class MkCheckboxField extends StatelessWidget {
     this.titleAlignment,
     this.errorStyle,
     this.errorPadding = const EdgeInsets.only(left: 16, top: 2),
-    this.autovalidateMode,
-  }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
-
-  /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
-  final MkFieldBloc<bool>? fieldBloc;
-
-  /// Name of the field in the nearest [MkFormScope], used when [fieldBloc] is null.
-  final String? name;
-
-  /// Overrides the [AutovalidateMode] of the enclosing [MkFormScope].
-  final AutovalidateMode? autovalidateMode;
+    super.autovalidateMode,
+    super.onSaved,
+    super.forceErrorText,
+  });
 
   /// Style of the validation error shown below the tile.
   /// Defaults to `bodySmall` in the theme's error color.
@@ -133,9 +121,6 @@ class MkCheckboxField extends StatelessWidget {
   /// See [CheckboxListTile.isError]. When null, true while an error is shown.
   final bool? isError;
 
-  /// Set to `false` to disable the tile regardless of the bloc.
-  final bool? enabled;
-
   /// See [CheckboxListTile.tileColor].
   final Color? tileColor;
 
@@ -192,85 +177,74 @@ class MkCheckboxField extends StatelessWidget {
   final ListTileTitleAlignment? titleAlignment;
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildContent(BuildContext context, MkFormFieldState<bool> field) {
     final theme = Theme.of(context);
+    final state = field.fieldState;
+    final errorText = field.errorText;
+    final isEnabled = field.isFieldEnabled;
 
-    return MkFieldBuilder<bool>(
-      fieldBloc: fieldBloc,
-      name: name,
-      builder: (context, state, bloc) {
-        final effectiveMode =
-            autovalidateMode ??
-            MkFormScope.maybeAutovalidateModeOf(context) ??
-            AutovalidateMode.onUserInteraction;
-        final isErrorVisible =
-            state.shouldShowError(effectiveMode) && state.error != null;
-        final isEnabled = state.isEnabled && (enabled ?? true);
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CheckboxListTile(
-              value: tristate ? state.value : (state.value ?? false),
-              onChanged: isEnabled
-                  ? (value) {
-                      bloc.changeValue(value, markTouched: true);
-                      onChanged?.call(value);
-                    }
-                  : null,
-              title: title,
-              subtitle: subtitle,
-              secondary: secondary,
-              mouseCursor: mouseCursor,
-              activeColor: activeColor,
-              fillColor: fillColor,
-              checkColor: checkColor,
-              hoverColor: hoverColor,
-              overlayColor: overlayColor,
-              splashRadius: splashRadius,
-              materialTapTargetSize: materialTapTargetSize,
-              visualDensity: visualDensity,
-              focusNode: focusNode,
-              autofocus: autofocus,
-              shape: shape,
-              side: side,
-              isError: isError ?? isErrorVisible,
-              enabled: isEnabled,
-              tileColor: tileColor,
-              isThreeLine: isThreeLine,
-              dense: dense,
-              selected: selected,
-              controlAffinity: controlAffinity,
-              contentPadding: contentPadding,
-              tristate: tristate,
-              checkboxShape: checkboxShape,
-              selectedTileColor: selectedTileColor,
-              onFocusChange: onFocusChange,
-              enableFeedback: enableFeedback,
-              horizontalTitleGap: horizontalTitleGap,
-              minVerticalPadding: minVerticalPadding,
-              minLeadingWidth: minLeadingWidth,
-              minTileHeight: minTileHeight,
-              checkboxSemanticLabel: checkboxSemanticLabel,
-              checkboxScaleFactor: checkboxScaleFactor,
-              titleAlignment: titleAlignment,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CheckboxListTile(
+          value: tristate ? state.value : (state.value ?? false),
+          onChanged: isEnabled
+              ? (value) {
+                  field.userChange(value, markTouched: true);
+                  onChanged?.call(value);
+                }
+              : null,
+          title: title,
+          subtitle: subtitle,
+          secondary: secondary,
+          mouseCursor: mouseCursor,
+          activeColor: activeColor,
+          fillColor: fillColor,
+          checkColor: checkColor,
+          hoverColor: hoverColor,
+          overlayColor: overlayColor,
+          splashRadius: splashRadius,
+          materialTapTargetSize: materialTapTargetSize,
+          visualDensity: visualDensity,
+          focusNode: focusNode,
+          autofocus: autofocus,
+          shape: shape,
+          side: side,
+          isError: isError ?? (errorText != null),
+          enabled: isEnabled,
+          tileColor: tileColor,
+          isThreeLine: isThreeLine,
+          dense: dense,
+          selected: selected,
+          controlAffinity: controlAffinity,
+          contentPadding: contentPadding,
+          tristate: tristate,
+          checkboxShape: checkboxShape,
+          selectedTileColor: selectedTileColor,
+          onFocusChange: onFocusChange,
+          enableFeedback: enableFeedback,
+          horizontalTitleGap: horizontalTitleGap,
+          minVerticalPadding: minVerticalPadding,
+          minLeadingWidth: minLeadingWidth,
+          minTileHeight: minTileHeight,
+          checkboxSemanticLabel: checkboxSemanticLabel,
+          checkboxScaleFactor: checkboxScaleFactor,
+          titleAlignment: titleAlignment,
+        ),
+        if (errorText != null)
+          Padding(
+            padding: errorPadding,
+            child: Text(
+              errorText,
+              style:
+                  errorStyle ??
+                  theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
             ),
-            if (isErrorVisible)
-              Padding(
-                padding: errorPadding,
-                child: Text(
-                  state.getLocalizedError(context) ?? state.error!,
-                  style:
-                      errorStyle ??
-                      theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.error,
-                      ),
-                ),
-              ),
-          ],
-        );
-      },
+          ),
+      ],
     );
   }
 }

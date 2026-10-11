@@ -755,7 +755,7 @@ void main() {
       );
 
       await tester.pumpWidget(build());
-      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.tap(find.byType(DropdownButton<String>));
       await tester.pumpAndSettle();
       await tester.tap(find.text('B').last);
       await tester.pumpAndSettle();

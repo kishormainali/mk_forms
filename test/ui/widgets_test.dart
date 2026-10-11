@@ -132,7 +132,7 @@ void main() {
 
       expect(find.text('Standard User'), findsOneWidget);
 
-      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.tap(find.byType(DropdownButton<String>));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Administrator').last);
@@ -529,7 +529,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.tap(find.byType(DropdownButton<String>));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Administrator').last);
       await tester.pumpAndSettle();

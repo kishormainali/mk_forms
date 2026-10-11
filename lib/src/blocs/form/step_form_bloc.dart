@@ -72,6 +72,7 @@ abstract class MkStepFormBloc<T extends Object?> extends MkFormBloc<T> {
        );
 
   final List<MkFormStep> _steps;
+  bool _isNavigating = false;
 
   /// Unmodifiable list of configured steps.
   List<MkFormStep> get steps => _steps;
@@ -113,17 +114,22 @@ abstract class MkStepFormBloc<T extends Object?> extends MkFormBloc<T> {
   ///
   /// Returns `true` if validation passed and the step advanced (or is on the last step).
   Future<bool> nextStep() async {
-    if (isClosed) return false;
+    // A second call while validation is in flight (double tap, slow async
+    // validators) would advance twice and skip a step. Ignore it, as
+    // `submit()` does; the caller that started the navigation gets the result.
+    if (isClosed || _isNavigating) return false;
+    _isNavigating = true;
+    try {
+      final isStepValid = await validateStep(currentStep);
+      if (!isStepValid || isClosed) return false;
 
-    final isStepValid = await validateStep(currentStep);
-    if (!isStepValid) return false;
-
-    if (state.currentStep < totalSteps - 1) {
-      emit(state.copyWith(currentStep: state.currentStep + 1));
+      if (state.currentStep < totalSteps - 1) {
+        emit(state.copyWith(currentStep: state.currentStep + 1));
+      }
       return true;
+    } finally {
+      _isNavigating = false;
     }
-
-    return true;
   }
 
   /// Navigates to the previous step if not already on the first step.
@@ -144,14 +150,20 @@ abstract class MkStepFormBloc<T extends Object?> extends MkFormBloc<T> {
       return true;
     }
 
-    // Navigating forward: validate all steps between current and target
-    for (int i = currentStep; i < targetStep; i++) {
-      final valid = await validateStep(i);
-      if (!valid || isClosed) return false;
-    }
+    if (_isNavigating) return false;
+    _isNavigating = true;
+    try {
+      // Navigating forward: validate all steps between current and target
+      for (int i = currentStep; i < targetStep; i++) {
+        final valid = await validateStep(i);
+        if (!valid || isClosed) return false;
+      }
 
-    emit(state.copyWith(currentStep: targetStep));
-    return true;
+      emit(state.copyWith(currentStep: targetStep));
+      return true;
+    } finally {
+      _isNavigating = false;
+    }
   }
 
   /// Asynchronously loads initial/draft data from an API and hydrates form fields.

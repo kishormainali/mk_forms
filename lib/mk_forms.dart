@@ -16,8 +16,11 @@ export 'src/blocs/form_bloc.dart';
 
 // UI widgets & helpers
 export 'src/ui/form_scope.dart';
+export 'src/ui/form_field.dart';
 export 'src/ui/form_listener.dart';
 export 'src/ui/form_builder.dart';
+export 'src/ui/form_selector.dart';
+export 'src/ui/array_builder.dart';
 export 'src/ui/field_builder.dart';
 export 'src/ui/field_selector.dart';
 export 'src/ui/subform_builder.dart';

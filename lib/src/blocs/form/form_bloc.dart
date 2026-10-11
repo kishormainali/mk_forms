@@ -186,13 +186,15 @@ abstract class MkFormBloc<T extends Object?> extends Cubit<MkFormState<T>> {
   ///
   /// For example: `setFieldErrors({'email': 'Email is already taken'})`.
   void setFieldErrors(Map<String, String> fieldErrors) {
-    for (final entry in fieldErrors.entries) {
-      final f = field<dynamic>(entry.key);
-      if (f != null) {
-        f.setError(entry.value);
-        f.touch();
+    _rootGroup.batch(() {
+      for (final entry in fieldErrors.entries) {
+        final f = field<dynamic>(entry.key);
+        if (f != null) {
+          f.setError(entry.value);
+          f.touch();
+        }
       }
-    }
+    });
   }
 
   /// Submits the form.
@@ -274,26 +276,32 @@ abstract class MkFormBloc<T extends Object?> extends Cubit<MkFormState<T>> {
   /// keeping controls pure and resetting dirty/touched states so no premature errors appear.
   /// If [markPristine] is `false`, values are applied via `changeValue`.
   void populateValues(Map<String, dynamic> data, {bool markPristine = true}) {
-    for (final entry in data.entries) {
-      final ctrl = control<MkControlBloc<dynamic>>(entry.key);
-      if (ctrl is MkFieldBloc) {
-        if (markPristine) {
-          ctrl.reset(entry.value);
-        } else {
-          ctrl.changeValue(entry.value);
-        }
-      } else if (ctrl is MkGroupBloc && entry.value is Map<String, dynamic>) {
-        for (final subEntry in (entry.value as Map<String, dynamic>).entries) {
-          final subCtrl = ctrl.control<MkControlBloc<dynamic>>(subEntry.key);
-          if (subCtrl is MkFieldBloc) {
-            if (markPristine) {
-              subCtrl.reset(subEntry.value);
-            } else {
-              subCtrl.changeValue(subEntry.value);
+    // One aggregate recompute (and one form emission) for the whole payload,
+    // instead of one per field.
+    _rootGroup.batch(() {
+      for (final entry in data.entries) {
+        final ctrl = control<MkControlBloc<dynamic>>(entry.key);
+        if (ctrl is MkFieldBloc) {
+          _applyValue(ctrl, entry.value, markPristine);
+        } else if (ctrl is MkGroupBloc && entry.value is Map<String, dynamic>) {
+          ctrl.batch(() {
+            for (final sub in (entry.value as Map<String, dynamic>).entries) {
+              final subCtrl = ctrl.control<MkControlBloc<dynamic>>(sub.key);
+              if (subCtrl is MkFieldBloc) {
+                _applyValue(subCtrl, sub.value, markPristine);
+              }
             }
-          }
+          });
         }
       }
+    });
+  }
+
+  void _applyValue(MkFieldBloc<dynamic> field, dynamic value, bool pristine) {
+    if (pristine) {
+      field.reset(value);
+    } else {
+      field.changeValue(value);
     }
   }
 
@@ -311,16 +319,20 @@ abstract class MkFormBloc<T extends Object?> extends Cubit<MkFormState<T>> {
 
   /// Touches and validates only a specific subset of [controlNames].
   Future<bool> validateControls(Iterable<String> controlNames) async {
-    final targets = <MkControlBloc<dynamic>>[];
-    for (final name in controlNames) {
-      final c = control<MkControlBloc<dynamic>>(name);
-      if (c != null) {
-        targets.add(c);
-        c.touch();
-        c.markFormSubmitted();
+    final pending = <Future<bool>>[];
+    // Synchronous work (touch, submitted flag, sync validators) completes
+    // inside the batch, so the aggregate is recomputed once, not per control.
+    _rootGroup.batch(() {
+      for (final name in controlNames) {
+        final c = control<MkControlBloc<dynamic>>(name);
+        if (c != null) {
+          c.touch();
+          c.markFormSubmitted();
+          pending.add(c.validate());
+        }
       }
-    }
-    final results = await Future.wait(targets.map((c) => c.validate()));
+    });
+    final results = await Future.wait(pending);
     return results.every((valid) => valid);
   }
 

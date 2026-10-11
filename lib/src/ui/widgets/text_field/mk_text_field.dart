@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../blocs/field_bloc.dart';
 import '../../../core/deep_equals.dart';
-import '../../field_builder.dart';
-import '../../form_scope.dart';
+import '../../form_field.dart';
 
 /// A Material [TextField] pre-configured for an [MkFieldBloc<String>].
 ///
@@ -22,11 +21,11 @@ import '../../form_scope.dart';
 /// - `enabled`: combined with the bloc's enabled state (both must allow input).
 /// - `decoration`: the error text and the validating indicator are added to it.
 /// - `onChanged`: called *after* the bloc has been updated.
-class MkTextField extends StatefulWidget {
+class MkTextField extends MkFormField<String> {
   const MkTextField({
     super.key,
-    this.fieldBloc,
-    this.name,
+    super.fieldBloc,
+    super.name,
     this.decoration = const InputDecoration(),
     this.keyboardType,
     this.textInputAction,
@@ -56,7 +55,7 @@ class MkTextField extends StatefulWidget {
     this.onSubmitted,
     this.onAppPrivateCommand,
     this.inputFormatters,
-    this.enabled,
+    super.enabled,
     this.ignorePointers,
     this.cursorWidth = 2.0,
     this.cursorHeight,
@@ -83,7 +82,7 @@ class MkTextField extends StatefulWidget {
     this.autofillHints = const <String>[],
     this.contentInsertionConfiguration,
     this.clipBehavior = Clip.hardEdge,
-    this.restorationId,
+    super.restorationId,
     this.stylusHandwritingEnabled =
         EditableText.defaultStylusHandwritingEnabled,
     this.enableIMEPersonalizedLearning = true,
@@ -96,20 +95,10 @@ class MkTextField extends StatefulWidget {
     this.groupId = EditableText,
     this.focusNode,
     this.showValidatingIndicator = true,
-    this.autovalidateMode,
-  }) : assert(
-         fieldBloc != null || name != null,
-         'Either fieldBloc or name must be provided',
-       );
-
-  /// The field bloc to bind to. If null, [name] is looked up in the nearest [MkFormScope].
-  final MkFieldBloc<String>? fieldBloc;
-
-  /// Name of the field in the nearest [MkFormScope], used when [fieldBloc] is null.
-  final String? name;
-
-  /// Overrides the [AutovalidateMode] of the enclosing [MkFormScope].
-  final AutovalidateMode? autovalidateMode;
+    super.autovalidateMode,
+    super.onSaved,
+    super.forceErrorText,
+  });
 
   /// The decoration of the field. `errorText` is filled in from the bloc.
   final InputDecoration decoration;
@@ -201,10 +190,6 @@ class MkTextField extends StatefulWidget {
   /// See [TextField.inputFormatters].
   final List<TextInputFormatter>? inputFormatters;
 
-  /// Set to `false` to disable the field regardless of the bloc. The
-  /// field is also disabled when the bloc is disabled ([MkFieldBloc.setEnabled]).
-  final bool? enabled;
-
   /// See [TextField.ignorePointers].
   final bool? ignorePointers;
 
@@ -283,9 +268,6 @@ class MkTextField extends StatefulWidget {
   /// See [TextField.clipBehavior].
   final Clip clipBehavior;
 
-  /// See [TextField.restorationId].
-  final String? restorationId;
-
   /// See [TextField.stylusHandwritingEnabled].
   final bool stylusHandwritingEnabled;
 
@@ -319,7 +301,11 @@ class MkTextField extends StatefulWidget {
   final FocusNode? focusNode;
 
   @override
-  State<MkTextField> createState() => _MkTextFieldState();
+  MkFormFieldState<String> createState() => MkTextFieldState();
+
+  @override
+  Widget buildContent(BuildContext context, MkFormFieldState<String> field) =>
+      (field as MkTextFieldState).buildTextField(context);
 }
 
 Widget _defaultContextMenuBuilder(
@@ -331,10 +317,14 @@ Widget _defaultContextMenuBuilder(
   );
 }
 
-class _MkTextFieldState extends State<MkTextField> {
+/// State of [MkTextField]. Subclassed by `MkEmailField` and
+/// `MkPasswordField` to customize the decoration and obscuring.
+class MkTextFieldState extends MkFormFieldState<String> {
   final TextEditingController _controller = TextEditingController();
   FocusNode? _ownFocusNode;
-  MkFieldBloc<String>? _activeBloc;
+
+  @override
+  MkTextField get widget => super.widget as MkTextField;
 
   FocusNode get _focusNode =>
       widget.focusNode ?? (_ownFocusNode ??= FocusNode());
@@ -346,12 +336,11 @@ class _MkTextFieldState extends State<MkTextField> {
   }
 
   @override
-  void didUpdateWidget(MkTextField oldWidget) {
+  void didUpdateWidget(FormField<String> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.focusNode != widget.focusNode) {
-      (oldWidget.focusNode ?? _ownFocusNode)?.removeListener(
-        _handleFocusChange,
-      );
+    final previous = oldWidget as MkTextField;
+    if (previous.focusNode != widget.focusNode) {
+      (previous.focusNode ?? _ownFocusNode)?.removeListener(_handleFocusChange);
       if (widget.focusNode != null) {
         _ownFocusNode?.dispose();
         _ownFocusNode = null;
@@ -362,7 +351,7 @@ class _MkTextFieldState extends State<MkTextField> {
 
   void _handleFocusChange() {
     if (!_focusNode.hasFocus) {
-      _activeBloc?.touch();
+      bloc.touch();
     }
   }
 
@@ -380,7 +369,8 @@ class _MkTextFieldState extends State<MkTextField> {
   /// change (the common case: every keystroke of a valid field) needs no
   /// rebuild. Programmatic changes (reset, populate) still rebuild because the
   /// incoming value then differs from what the controller holds.
-  bool _affectsDisplay(
+  @override
+  bool affectsDisplay(
     MkFieldState<String> previous,
     MkFieldState<String> current,
   ) {
@@ -395,126 +385,125 @@ class _MkTextFieldState extends State<MkTextField> {
         previous.wasFormSubmitted != current.wasFormSubmitted;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return MkFieldBuilder<String>(
-      fieldBloc: widget.fieldBloc,
-      name: widget.name,
-      buildWhen: _affectsDisplay,
-      builder: (context, state, bloc) {
-        _activeBloc = bloc;
+  /// The decoration to start from, before the error text, validating
+  /// indicator and enabled flag are applied. Overridden by `MkEmailField`
+  /// and `MkPasswordField` to add their defaults.
+  @protected
+  InputDecoration baseDecoration(BuildContext context) => widget.decoration;
 
-        // Sync controller value if state changed externally (e.g. reset or programmatic update)
-        final incomingText = state.value ?? '';
-        if (_controller.text != incomingText) {
-          _controller.value = TextEditingValue(
-            text: incomingText,
-            selection: TextSelection.collapsed(offset: incomingText.length),
-          );
-        }
+  /// Whether the text is obscured. Overridden by `MkPasswordField`.
+  @protected
+  bool get obscureText => widget.obscureText;
 
-        Widget? suffixIcon = widget.decoration.suffixIcon;
-        if (widget.showValidatingIndicator && state.isValidating) {
-          suffixIcon = const Padding(
-            padding: EdgeInsets.all(12),
-            child: SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          );
-        }
+  /// Builds the [TextField].
+  Widget buildTextField(BuildContext context) {
+    // Always render from the bloc's live state: `affectsDisplay` skips
+    // value-only emissions, so any cached state would be a keystroke behind
+    // and a parent rebuild would write it back into the controller.
+    final state = fieldState;
+    // Sync controller value if state changed externally (e.g. reset or programmatic update)
+    final incomingText = state.value ?? '';
+    if (_controller.text != incomingText) {
+      _controller.value = TextEditingValue(
+        text: incomingText,
+        selection: TextSelection.collapsed(offset: incomingText.length),
+      );
+    }
 
-        final effectiveAutovalidateMode =
-            widget.autovalidateMode ??
-            MkFormScope.maybeAutovalidateModeOf(context) ??
-            AutovalidateMode.onUserInteraction;
+    final decoration = baseDecoration(context);
+    Widget? suffixIcon = decoration.suffixIcon;
+    if (widget.showValidatingIndicator && state.isValidating) {
+      suffixIcon = const Padding(
+        padding: EdgeInsets.all(12),
+        child: SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
 
-        final isErrorVisible = state.shouldShowError(effectiveAutovalidateMode);
-        final isEnabled = state.isEnabled && (widget.enabled ?? true);
+    final isEnabled = isFieldEnabled;
+    final effectiveDecoration = decoration.copyWith(
+      errorText: errorText,
+      suffixIcon: suffixIcon,
+      enabled: isEnabled && !widget.readOnly,
+    );
 
-        final effectiveDecoration = widget.decoration.copyWith(
-          errorText: isErrorVisible ? state.getLocalizedError(context) : null,
-          suffixIcon: suffixIcon,
-          enabled: isEnabled && !widget.readOnly,
-        );
-
-        return TextField(
-          controller: _controller,
-          focusNode: _focusNode,
-          decoration: effectiveDecoration,
-          enabled: isEnabled,
-          keyboardType: widget.keyboardType,
-          textInputAction: widget.textInputAction,
-          textCapitalization: widget.textCapitalization,
-          style: widget.style,
-          strutStyle: widget.strutStyle,
-          textAlign: widget.textAlign,
-          textAlignVertical: widget.textAlignVertical,
-          textDirection: widget.textDirection,
-          readOnly: widget.readOnly,
-          showCursor: widget.showCursor,
-          autofocus: widget.autofocus,
-          statesController: widget.statesController,
-          obscuringCharacter: widget.obscuringCharacter,
-          obscureText: widget.obscureText,
-          autocorrect: widget.autocorrect,
-          smartDashesType: widget.smartDashesType,
-          smartQuotesType: widget.smartQuotesType,
-          enableSuggestions: widget.enableSuggestions,
-          maxLines: widget.maxLines,
-          minLines: widget.minLines,
-          expands: widget.expands,
-          maxLength: widget.maxLength,
-          maxLengthEnforcement: widget.maxLengthEnforcement,
-          onEditingComplete: widget.onEditingComplete,
-          onAppPrivateCommand: widget.onAppPrivateCommand,
-          inputFormatters: widget.inputFormatters,
-          ignorePointers: widget.ignorePointers,
-          cursorWidth: widget.cursorWidth,
-          cursorHeight: widget.cursorHeight,
-          cursorRadius: widget.cursorRadius,
-          cursorOpacityAnimates: widget.cursorOpacityAnimates,
-          cursorColor: widget.cursorColor,
-          cursorErrorColor: widget.cursorErrorColor,
-          selectionHeightStyle: widget.selectionHeightStyle,
-          selectionWidthStyle: widget.selectionWidthStyle,
-          keyboardAppearance: widget.keyboardAppearance,
-          scrollPadding: widget.scrollPadding,
-          enableInteractiveSelection: widget.enableInteractiveSelection,
-          selectAllOnFocus: widget.selectAllOnFocus,
-          selectionControls: widget.selectionControls,
-          dragStartBehavior: widget.dragStartBehavior,
-          onTap: widget.onTap,
-          onTapAlwaysCalled: widget.onTapAlwaysCalled,
-          onTapOutside: widget.onTapOutside,
-          onTapUpOutside: widget.onTapUpOutside,
-          mouseCursor: widget.mouseCursor,
-          buildCounter: widget.buildCounter,
-          scrollController: widget.scrollController,
-          scrollPhysics: widget.scrollPhysics,
-          autofillHints: widget.autofillHints,
-          contentInsertionConfiguration: widget.contentInsertionConfiguration,
-          clipBehavior: widget.clipBehavior,
-          restorationId: widget.restorationId,
-          stylusHandwritingEnabled: widget.stylusHandwritingEnabled,
-          enableIMEPersonalizedLearning: widget.enableIMEPersonalizedLearning,
-          canRequestFocus: widget.canRequestFocus,
-          undoController: widget.undoController,
-          spellCheckConfiguration: widget.spellCheckConfiguration,
-          magnifierConfiguration: widget.magnifierConfiguration,
-          hintLocales: widget.hintLocales,
-          groupId: widget.groupId,
-          contextMenuBuilder:
-              widget.contextMenuBuilder ?? _defaultContextMenuBuilder,
-          onChanged: (text) {
-            bloc.changeValue(text);
-            widget.onChanged?.call(text);
-          },
-          onSubmitted: (text) {
-            widget.onSubmitted?.call(text);
-          },
-        );
+    return TextField(
+      controller: _controller,
+      focusNode: _focusNode,
+      decoration: effectiveDecoration,
+      enabled: isEnabled,
+      keyboardType: widget.keyboardType,
+      textInputAction: widget.textInputAction,
+      textCapitalization: widget.textCapitalization,
+      style: widget.style,
+      strutStyle: widget.strutStyle,
+      textAlign: widget.textAlign,
+      textAlignVertical: widget.textAlignVertical,
+      textDirection: widget.textDirection,
+      readOnly: widget.readOnly,
+      showCursor: widget.showCursor,
+      autofocus: widget.autofocus,
+      statesController: widget.statesController,
+      obscuringCharacter: widget.obscuringCharacter,
+      obscureText: obscureText,
+      autocorrect: widget.autocorrect,
+      smartDashesType: widget.smartDashesType,
+      smartQuotesType: widget.smartQuotesType,
+      enableSuggestions: widget.enableSuggestions,
+      maxLines: widget.maxLines,
+      minLines: widget.minLines,
+      expands: widget.expands,
+      maxLength: widget.maxLength,
+      maxLengthEnforcement: widget.maxLengthEnforcement,
+      onEditingComplete: widget.onEditingComplete,
+      onAppPrivateCommand: widget.onAppPrivateCommand,
+      inputFormatters: widget.inputFormatters,
+      ignorePointers: widget.ignorePointers,
+      cursorWidth: widget.cursorWidth,
+      cursorHeight: widget.cursorHeight,
+      cursorRadius: widget.cursorRadius,
+      cursorOpacityAnimates: widget.cursorOpacityAnimates,
+      cursorColor: widget.cursorColor,
+      cursorErrorColor: widget.cursorErrorColor,
+      selectionHeightStyle: widget.selectionHeightStyle,
+      selectionWidthStyle: widget.selectionWidthStyle,
+      keyboardAppearance: widget.keyboardAppearance,
+      scrollPadding: widget.scrollPadding,
+      enableInteractiveSelection: widget.enableInteractiveSelection,
+      selectAllOnFocus: widget.selectAllOnFocus,
+      selectionControls: widget.selectionControls,
+      dragStartBehavior: widget.dragStartBehavior,
+      onTap: widget.onTap,
+      onTapAlwaysCalled: widget.onTapAlwaysCalled,
+      onTapOutside: widget.onTapOutside,
+      onTapUpOutside: widget.onTapUpOutside,
+      mouseCursor: widget.mouseCursor,
+      buildCounter: widget.buildCounter,
+      scrollController: widget.scrollController,
+      scrollPhysics: widget.scrollPhysics,
+      autofillHints: widget.autofillHints,
+      contentInsertionConfiguration: widget.contentInsertionConfiguration,
+      clipBehavior: widget.clipBehavior,
+      restorationId: widget.restorationId,
+      stylusHandwritingEnabled: widget.stylusHandwritingEnabled,
+      enableIMEPersonalizedLearning: widget.enableIMEPersonalizedLearning,
+      canRequestFocus: widget.canRequestFocus,
+      undoController: widget.undoController,
+      spellCheckConfiguration: widget.spellCheckConfiguration,
+      magnifierConfiguration: widget.magnifierConfiguration,
+      hintLocales: widget.hintLocales,
+      groupId: widget.groupId,
+      contextMenuBuilder:
+          widget.contextMenuBuilder ?? _defaultContextMenuBuilder,
+      onChanged: (text) {
+        userChange(text);
+        widget.onChanged?.call(text);
+      },
+      onSubmitted: (text) {
+        widget.onSubmitted?.call(text);
       },
     );
   }

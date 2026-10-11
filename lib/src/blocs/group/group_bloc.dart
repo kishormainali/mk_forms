@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:meta/meta.dart';
+
 import '../batched_aggregate.dart';
 import '../control_bloc.dart';
 import '../field/field_bloc.dart';
@@ -106,6 +108,14 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
     _recalculateState();
     return removed;
   }
+
+  /// Runs [action] and recomputes this group's aggregate (and notifies
+  /// parents) **once** afterwards, instead of once per child change.
+  ///
+  /// Used by [MkFormBloc] for bulk operations such as populating values or
+  /// touching a subset of controls, which would otherwise be O(n²).
+  @internal
+  void batch(void Function() action) => runBatched(action, _recalculateState);
 
   @override
   void touch() {
