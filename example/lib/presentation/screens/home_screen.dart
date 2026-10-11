@@ -110,6 +110,22 @@ class HomeScreen extends StatelessWidget {
             color: Colors.orange.shade800,
             route: ExtendedStateRoute(),
           ),
+          (
+            title: 'Flutter Form Integration',
+            subtitle:
+                'Mk fields inside a Form: validate(), save(), reset(), onChanged, forceErrorText',
+            icon: Icons.assignment_turned_in_outlined,
+            color: Colors.lightBlue.shade800,
+            route: FormIntegrationRoute(),
+          ),
+          (
+            title: 'Large Form Performance',
+            subtitle:
+                '200 fields + dynamic list with selectors, so typing rebuilds only one field',
+            icon: Icons.speed,
+            color: Colors.red.shade700,
+            route: LargeFormRoute(),
+          ),
         ];
 
     return Scaffold(

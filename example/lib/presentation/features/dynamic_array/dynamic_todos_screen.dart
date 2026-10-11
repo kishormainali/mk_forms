@@ -59,12 +59,12 @@ class _DynamicTodosScreenState extends State<DynamicTodosScreen> {
               ),
             );
           },
-          child: StreamBuilder<MkArrayState<MkFieldBloc<String>>>(
-            stream: tasksArray.stream,
-            initialData: tasksArray.state,
-            builder: (context, snapshot) {
-              final tasksState = snapshot.data!;
-
+          // MkArrayBuilder rebuilds the list only when tasks are added,
+          // removed or moved - not on every keystroke in a task field (each
+          // MkTextField updates itself).
+          child: MkArrayBuilder<MkFieldBloc<String>>(
+            arrayBloc: tasksArray,
+            builder: (context, tasksState, _) {
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
