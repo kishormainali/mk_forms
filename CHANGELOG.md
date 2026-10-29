@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.4.0] - 2026-10-29
 
 ### Added
 - **`MkArrayBloc.addAll`, `replaceAll` and `batch`** — apply many structural changes with a single aggregate recompute and a single state emission. `replaceAll` keeps controls that are in both lists and closes only the removed ones (or none with `dispose: false`).
