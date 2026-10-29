@@ -346,7 +346,7 @@ abstract class MkFormBloc<T extends Object?> extends Cubit<MkFormState<T>> {
       state.reset(
         isValid: _rootGroup.isValid,
         isValidating: _rootGroup.isValidating,
-        values: _rootGroup.value,
+        values: _rootGroup.snapshotValue,
       ),
     );
   }

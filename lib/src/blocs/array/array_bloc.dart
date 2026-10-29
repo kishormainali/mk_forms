@@ -24,13 +24,18 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
     for (final control in _controls) {
       _listenToControl(control);
     }
+    _view = state.controls;
   }
 
   final List<C> _controls;
   final Map<C, void Function()> _listenerCallbacks = {};
 
+  // Unmodifiable snapshot of [_controls], rebuilt only when the structure
+  // changes. Row edits reuse it, so `state.controls` stays the same instance.
+  List<C>? _view;
+
   /// Current list of controls (unmodifiable).
-  List<C> get controls => List.unmodifiable(_controls);
+  List<C> get controls => _view ??= List.unmodifiable(_controls);
 
   @override
   List<dynamic> get value => _controls.map((c) => c.value).toList();
@@ -57,12 +62,62 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
 
   C operator [](int index) => _controls[index];
 
+  /// Runs [action] and recomputes this array's aggregate (and notifies
+  /// parents and listeners) **once** afterwards, instead of once per change.
+  ///
+  /// Use it to apply several structural changes (`add`, `removeAt`, ...) or
+  /// edits to rows as one update.
+  void batch(void Function() action) => runBatched(action, _recalculateState);
+
+  /// Appends [controls] to the array with a single state update.
+  void addAll(Iterable<C> controls) {
+    if (isClosed) return;
+    batch(() {
+      for (final control in controls) {
+        add(control);
+      }
+    });
+  }
+
+  /// Replaces every control in the array with [controls] using a single state
+  /// update, and returns the controls that were removed.
+  ///
+  /// Controls present in both the old and the new list stay and are never
+  /// closed. The removed ones are closed by default; pass [dispose] as `false`
+  /// when intentionally re-parenting them elsewhere.
+  List<C> replaceAll(Iterable<C> controls, {bool dispose = true}) {
+    if (isClosed) return <C>[];
+    final next = List<C>.of(controls);
+    final keep = next.toSet();
+    final removed = [
+      for (final control in _controls)
+        if (!keep.contains(control)) control,
+    ];
+    batch(() {
+      for (final entry in _listenerCallbacks.entries) {
+        entry.key.removeStateListener(entry.value);
+      }
+      _listenerCallbacks.clear();
+      _controls
+        ..clear()
+        ..addAll(next);
+      next.forEach(_listenToControl);
+      _structureChanged();
+    });
+    if (dispose) {
+      for (final control in removed) {
+        unawaited(control.close());
+      }
+    }
+    return removed;
+  }
+
   /// Appends a new control to the array.
   void add(C control) {
     if (isClosed) return;
     _controls.add(control);
     _listenToControl(control);
-    _recalculateState();
+    _structureChanged();
   }
 
   /// Inserts a control at [index].
@@ -70,7 +125,7 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
     if (isClosed) return;
     _controls.insert(index, control);
     _listenToControl(control);
-    _recalculateState();
+    _structureChanged();
   }
 
   /// Removes the control at [index].
@@ -88,7 +143,7 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
     if (dispose) {
       unawaited(removed.close());
     }
-    _recalculateState();
+    _structureChanged();
     return removed;
   }
 
@@ -107,7 +162,7 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
       if (dispose) {
         unawaited(control.close());
       }
-      _recalculateState();
+      _structureChanged();
     }
     return removed;
   }
@@ -119,7 +174,7 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
     if (newIndex < 0 || newIndex >= _controls.length) return;
     final item = _controls.removeAt(oldIndex);
     _controls.insert(newIndex, item);
-    _recalculateState();
+    _structureChanged();
   }
 
   /// Clears all controls in this array, returning the controls that were
@@ -140,7 +195,7 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
         unawaited(control.close());
       }
     }
-    _recalculateState();
+    _structureChanged();
     return removed;
   }
 
@@ -194,6 +249,13 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
     control.addStateListener(callback);
   }
 
+  /// The list of controls changed: drop the cached view and recompute.
+  void _structureChanged() {
+    _view = null;
+    if (deferIfBatching()) return;
+    _recalculateState();
+  }
+
   /// Recomputes the aggregate in a single pass over the children.
   void _recalculateState() {
     if (isClosed) return;
@@ -211,7 +273,7 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
     }
     emit(
       MkArrayState<C>(
-        controls: List.unmodifiable(_controls),
+        controls: controls,
         values: values,
         isValid: isValid,
         isValidating: isValidating,
@@ -227,9 +289,8 @@ class MkArrayBloc<C extends MkControlBloc<dynamic>>
       entry.key.removeStateListener(entry.value);
     }
     _listenerCallbacks.clear();
-    for (final control in _controls) {
-      await control.close();
-    }
+    // Children are independent, so close them concurrently.
+    await Future.wait([for (final control in _controls) control.close()]);
     return super.close();
   }
 }

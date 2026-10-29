@@ -21,6 +21,9 @@ mixin MkBatchedAggregate<S> on MkControlBloc<S> {
   }
 
   /// Runs [action], then calls [flush] once if any child changed meanwhile.
+  ///
+  /// [flush] also runs if [action] throws, so the aggregate never stays stale
+  /// after a partially applied bulk operation.
   @protected
   void runBatched(void Function() action, void Function() flush) {
     _batchDepth++;
@@ -28,10 +31,10 @@ mixin MkBatchedAggregate<S> on MkControlBloc<S> {
       action();
     } finally {
       _batchDepth--;
-    }
-    if (_batchDepth == 0 && _batchDirty) {
-      _batchDirty = false;
-      flush();
+      if (_batchDepth == 0 && _batchDirty) {
+        _batchDirty = false;
+        flush();
+      }
     }
   }
 }

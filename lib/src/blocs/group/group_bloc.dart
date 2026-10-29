@@ -217,9 +217,10 @@ class MkGroupBloc extends MkControlBloc<MkGroupState> with MkBatchedAggregate {
       _controls[entry.key]?.removeStateListener(entry.value);
     }
     _listenerCallbacks.clear();
-    for (final control in _controls.values) {
-      await control.close();
-    }
+    // Children are independent, so close them concurrently.
+    await Future.wait([
+      for (final control in _controls.values) control.close(),
+    ]);
     return super.close();
   }
 }
