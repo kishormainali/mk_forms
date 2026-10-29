@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **`MkArrayBloc.addAll`, `replaceAll` and `batch`** — apply many structural changes with a single aggregate recompute and a single state emission. `replaceAll` keeps controls that are in both lists and closes only the removed ones (or none with `dispose: false`).
+
+### Changed
+- Performance: fewer allocations and one equality check instead of two per state change; `MkArrayBloc.controls` / `state.controls` keep the same list instance across row edits; `MkFormBloc.reset()` no longer re-walks the control tree. `reset()` and `populateValues()` are roughly twice as fast on large forms.
+- `MkGroupBloc.close()` and `MkArrayBloc.close()` close their children concurrently.
+- The multi-select modal filters its items only when the search query changes (not on every selection tap) and looks up selected rows in a set.
+- A batched bulk operation now recomputes its aggregate even if the action throws, so the state is never left stale.
+
+---
+
 ## [1.3.0] - 2026-10-11
 
 ### Added
