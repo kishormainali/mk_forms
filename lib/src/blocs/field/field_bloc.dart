@@ -142,11 +142,9 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
 
     _cancelPendingValidation();
     _validateAndEmit(
-      state.copyWith(
-        value: () => newValue,
-        isDirty: !mkDeepEquals(newValue, state.initialValue),
-        isTouched: markTouched ? true : null,
-      ),
+      newValue,
+      isDirty: !mkDeepEquals(newValue, state.initialValue),
+      isTouched: markTouched ? true : null,
     );
   }
 
@@ -154,22 +152,25 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   void _revalidate() {
     if (isClosed) return;
     _cancelPendingValidation();
-    _validateAndEmit(state);
+    _validateAndEmit(state.value);
   }
 
-  /// Runs sync validation on [next]'s value and emits it. If sync validation
-  /// passes and async validators exist, starts the debounced async run.
-  void _validateAndEmit(MkFieldState<T> next) {
-    final value = next.value;
+  /// Runs sync validation on [value] and emits the resulting state. If sync
+  /// validation passes and async validators exist, starts the debounced async
+  /// run.
+  void _validateAndEmit(T? value, {bool? isDirty, bool? isTouched}) {
     final (syncError, syncCode, syncParams) = _runSyncValidation(value);
 
-    if (syncError != null || _asyncValidators.isEmpty || next.isReadOnly) {
+    if (syncError != null || _asyncValidators.isEmpty || state.isReadOnly) {
       emit(
-        next.copyWith(
-          error: () => syncError,
-          errorCode: () => syncCode,
-          errorParams: () => syncParams,
+        state.withValidation(
+          value: value,
+          error: syncError,
+          errorCode: syncCode,
+          errorParams: syncParams,
           isValidating: false,
+          isDirty: isDirty,
+          isTouched: isTouched,
         ),
       );
       return;
@@ -177,11 +178,14 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
 
     // Sync passed, start async debounced validation
     emit(
-      next.copyWith(
-        error: () => null,
-        errorCode: () => null,
-        errorParams: () => null,
+      state.withValidation(
+        value: value,
+        error: null,
+        errorCode: null,
+        errorParams: null,
         isValidating: true,
+        isDirty: isDirty,
+        isTouched: isTouched,
       ),
     );
     final token = _latestAsyncToken;
@@ -214,10 +218,11 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
   void setError(String? error, {String? code, Map<String, dynamic>? params}) {
     if (isClosed) return;
     emit(
-      state.copyWith(
-        error: () => error,
-        errorCode: () => code,
-        errorParams: () => params,
+      state.withValidation(
+        value: state.value,
+        error: error,
+        errorCode: code,
+        errorParams: params,
         isValidating: false,
       ),
     );
@@ -322,10 +327,11 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
 
     if (syncError != null) {
       emit(
-        state.copyWith(
-          error: () => syncError,
-          errorCode: () => syncCode,
-          errorParams: () => syncParams,
+        state.withValidation(
+          value: state.value,
+          error: syncError,
+          errorCode: syncCode,
+          errorParams: syncParams,
           isValidating: false,
         ),
       );
@@ -334,10 +340,11 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
 
     if (_asyncValidators.isEmpty || state.isReadOnly) {
       emit(
-        state.copyWith(
-          error: () => null,
-          errorCode: () => null,
-          errorParams: () => null,
+        state.withValidation(
+          value: state.value,
+          error: null,
+          errorCode: null,
+          errorParams: null,
           isValidating: false,
         ),
       );
@@ -345,10 +352,11 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
     }
 
     emit(
-      state.copyWith(
-        error: () => null,
-        errorCode: () => null,
-        errorParams: () => null,
+      state.withValidation(
+        value: state.value,
+        error: null,
+        errorCode: null,
+        errorParams: null,
         isValidating: true,
       ),
     );
@@ -364,10 +372,11 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
     }
 
     emit(
-      state.copyWith(
-        error: () => asyncError,
-        errorCode: () => asyncCode,
-        errorParams: () => asyncParams,
+      state.withValidation(
+        value: state.value,
+        error: asyncError,
+        errorCode: asyncCode,
+        errorParams: asyncParams,
         isValidating: false,
       ),
     );
@@ -427,10 +436,11 @@ class MkFieldBloc<T> extends MkControlBloc<MkFieldState<T>> {
     if (token != _latestAsyncToken || isClosed) return;
 
     emit(
-      state.copyWith(
-        error: () => asyncError,
-        errorCode: () => asyncCode,
-        errorParams: () => asyncParams,
+      state.withValidation(
+        value: state.value,
+        error: asyncError,
+        errorCode: asyncCode,
+        errorParams: asyncParams,
         isValidating: false,
       ),
     );

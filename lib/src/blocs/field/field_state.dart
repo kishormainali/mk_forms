@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import '../../core/localization.dart';
 
 /// Represents the state of a single form field [MkFieldBloc<T>].
@@ -122,6 +123,40 @@ class MkFieldState<T> extends Equatable {
       if (resolved != null) return resolved;
     }
     return error;
+  }
+
+  /// Returns a copy with [value] and the validation outcome replaced in one
+  /// allocation, for the validation hot path.
+  ///
+  /// Equivalent to [copyWith] with `value`, `error`, `errorCode`, `errorParams`
+  /// and `isValidating` set (and optionally [isDirty] / [isTouched]), but
+  /// without the closure allocations `copyWith` needs to tell "unchanged" from
+  /// "set to null".
+  @internal
+  MkFieldState<T> withValidation({
+    required T? value,
+    required String? error,
+    required String? errorCode,
+    required Map<String, dynamic>? errorParams,
+    required bool isValidating,
+    bool? isDirty,
+    bool? isTouched,
+  }) {
+    return MkFieldState<T>(
+      value: value,
+      initialValue: initialValue,
+      error: error,
+      errorCode: errorCode,
+      errorParams: errorParams,
+      isDirty: isDirty ?? this.isDirty,
+      isTouched: isTouched ?? this.isTouched,
+      isValidating: isValidating,
+      isEnabled: isEnabled,
+      isVisible: isVisible,
+      isReadOnly: isReadOnly,
+      wasFormSubmitted: wasFormSubmitted,
+      label: label,
+    );
   }
 
   MkFieldState<T> copyWith({

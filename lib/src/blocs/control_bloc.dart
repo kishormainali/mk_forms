@@ -6,16 +6,21 @@ import 'package:meta/meta.dart';
 abstract class MkControlBloc<State> extends Cubit<State> {
   MkControlBloc(super.initialState);
 
-  final List<void Function()> _stateListeners = [];
+  // Copy-on-write: add/remove (rare) replace the list, so `emit` (hot) can
+  // iterate it directly even if a listener adds or removes listeners.
+  List<void Function()> _stateListeners = const [];
+  bool _hasEmitted = false;
 
   /// Registers a synchronous listener invoked immediately when state changes.
   void addStateListener(void Function() listener) {
-    _stateListeners.add(listener);
+    _stateListeners = [..._stateListeners, listener];
   }
 
   /// Removes a registered synchronous listener.
   void removeStateListener(void Function() listener) {
-    _stateListeners.remove(listener);
+    final index = _stateListeners.indexOf(listener);
+    if (index < 0) return;
+    _stateListeners = List.of(_stateListeners)..removeAt(index);
   }
 
   /// Number of currently registered state listeners.
@@ -33,10 +38,19 @@ abstract class MkControlBloc<State> extends Cubit<State> {
   @override
   void emit(State state) {
     if (isClosed) return;
-    final changed = state != this.state;
+    final previous = this.state;
+    final first = !_hasEmitted;
+    _hasEmitted = true;
+    // `Cubit.emit` already skips an equal state, so rather than comparing
+    // (deeply) a second time, a change is a new instance. The one exception
+    // is the very first emission, which `Cubit` always accepts.
     super.emit(state);
-    if (!changed || _stateListeners.isEmpty) return;
-    for (final listener in List.of(_stateListeners)) {
+    final current = this.state;
+    if (identical(previous, current)) return;
+    if (first && current == previous) return;
+    final listeners = _stateListeners;
+    if (listeners.isEmpty) return;
+    for (final listener in listeners) {
       listener();
     }
   }
