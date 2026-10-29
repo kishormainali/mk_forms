@@ -49,12 +49,35 @@ class MkMultiSelectModalContent<T> extends StatefulWidget {
 class _MkMultiSelectModalContentState<T>
     extends State<MkMultiSelectModalContent<T>> {
   late List<T> _selected;
+  // Mirrors [_selected] for O(1) "is this row selected" lookups; [_selected]
+  // stays a list because its order is what gets reported.
+  late Set<T> _selectedSet;
+  // The items matching the search query. Recomputed when the query or the
+  // inputs change, not on every build (a checkbox tap rebuilds the modal).
+  late List<T> _filteredItems;
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _selected = List<T>.from(widget.currentSelection);
+    _selectedSet = _selected.toSet();
+    _applyFilter();
+  }
+
+  @override
+  void didUpdateWidget(MkMultiSelectModalContent<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.items, widget.items) ||
+        !identical(oldWidget.searchPredicate, widget.searchPredicate)) {
+      _applyFilter();
+    }
+  }
+
+  void _applyFilter() {
+    _filteredItems = widget.items
+        .where((item) => widget.searchPredicate(item, _searchQuery))
+        .toList();
   }
 
   /// Reports a snapshot of the selection. The modal keeps mutating [_selected],
@@ -66,9 +89,7 @@ class _MkMultiSelectModalContentState<T>
 
   @override
   Widget build(BuildContext context) {
-    final filteredItems = widget.items
-        .where((item) => widget.searchPredicate(item, _searchQuery))
-        .toList();
+    final filteredItems = _filteredItems;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -114,6 +135,7 @@ class _MkMultiSelectModalContentState<T>
               onChanged: (val) {
                 setState(() {
                   _searchQuery = val;
+                  _applyFilter();
                 });
               },
             ),
@@ -126,6 +148,7 @@ class _MkMultiSelectModalContentState<T>
                   onPressed: () {
                     setState(() {
                       _selected = List<T>.from(widget.items);
+                      _selectedSet = _selected.toSet();
                     });
                     _notifySelectionChanged();
                   },
@@ -135,6 +158,7 @@ class _MkMultiSelectModalContentState<T>
                   onPressed: () {
                     setState(() {
                       _selected.clear();
+                      _selectedSet.clear();
                     });
                     _notifySelectionChanged();
                   },
@@ -150,7 +174,7 @@ class _MkMultiSelectModalContentState<T>
               itemCount: filteredItems.length,
               itemBuilder: (context, index) {
                 final item = filteredItems[index];
-                final isSelected = _selected.contains(item);
+                final isSelected = _selectedSet.contains(item);
 
                 return CheckboxListTile(
                   value: isSelected,
@@ -158,8 +182,10 @@ class _MkMultiSelectModalContentState<T>
                     setState(() {
                       if (checked == true) {
                         _selected.add(item);
+                        _selectedSet.add(item);
                       } else {
                         _selected.remove(item);
+                        _selectedSet.remove(item);
                       }
                     });
                     _notifySelectionChanged();
